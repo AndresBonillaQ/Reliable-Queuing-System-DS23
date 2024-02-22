@@ -1,11 +1,10 @@
-package message.request;
+package it.polimi.ds.message.request;
 
 import java.io.Serializable;
 
-public class AppendValueRequest implements Serializable {
+public class ReadValueRequest implements Serializable {
     private String clientId;
     private String queueId;
-    private Integer value;
 
     public String getClientId() {
         return clientId;
@@ -21,13 +20,5 @@ public class AppendValueRequest implements Serializable {
 
     public void setQueueId(String queueId) {
         this.queueId = queueId;
-    }
-
-    public Integer getValue() {
-        return value;
-    }
-
-    public void setValue(Integer value) {
-        this.value = value;
     }
 }

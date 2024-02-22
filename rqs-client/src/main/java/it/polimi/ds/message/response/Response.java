@@ -1,14 +1,14 @@
-package message.response;
+package it.polimi.ds.message.response;
 
 public abstract class Response {
-    protected String status;
+    protected StatusEnum status;
     protected String desStatus;
 
-    public String getStatus() {
+    public StatusEnum getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(StatusEnum status) {
         this.status = status;
     }
 

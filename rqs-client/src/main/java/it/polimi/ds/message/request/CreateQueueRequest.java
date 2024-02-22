@@ -1,4 +1,4 @@
-package message.request;
+package it.polimi.ds.message.request;
 
 import java.io.Serializable;
 

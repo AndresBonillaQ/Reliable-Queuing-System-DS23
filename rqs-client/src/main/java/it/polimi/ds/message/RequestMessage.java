@@ -1,16 +1,18 @@
-package message;
+package it.polimi.ds.message;
+
+import it.polimi.ds.message.request.RequestIdEnum;
 
 import java.io.Serializable;
 
-public class Message implements Serializable {
-    private String id = null;
+public class RequestMessage implements Serializable {
+    private RequestIdEnum id = null;
     private String content = null;
 
-    public String getId() {
+    public RequestIdEnum getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(RequestIdEnum id) {
         this.id = id;
     }
 
