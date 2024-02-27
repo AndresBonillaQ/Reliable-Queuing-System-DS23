@@ -32,7 +32,6 @@ public class GateWayServer {
             break;
         }
     }
-
         System.out.println("Closing Gateway server");
         serverSocket.close();
     }
