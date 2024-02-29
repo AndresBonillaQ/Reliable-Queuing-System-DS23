@@ -32,12 +32,4 @@ public class ClientThread implements Runnable{
                 throw new RuntimeException(e);
             }
     }
-
-    public String getClusterId() {
-        return clusterId;
-    }
-
-    public void setClusterId(String clusterId) {
-        this.clusterId = clusterId;
-    }
 }

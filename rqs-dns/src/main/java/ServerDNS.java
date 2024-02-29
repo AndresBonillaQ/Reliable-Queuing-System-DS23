@@ -24,11 +24,9 @@ public class ServerDNS {
                 break;
             }
         }
-
         System.out.println("Closing Gateway server");
         serverSocket.close();
     }
-
         private static void handleClient(Socket clientSocket) {
             try (
                     BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -43,8 +41,6 @@ public class ServerDNS {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-
         }
 
     /**
@@ -52,7 +48,6 @@ public class ServerDNS {
      */
 
     private static String processDnsRequest(String request) {
-
             return DNS.getInstance().getAddress(request);
         }
 }

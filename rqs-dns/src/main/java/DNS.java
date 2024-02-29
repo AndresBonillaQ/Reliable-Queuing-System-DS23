@@ -10,8 +10,8 @@ public class DNS {
         }
         return instance;
     }
-    private HashMap<String, String> addressMap = new HashMap<String, String>(); //<clusterId, ipAddress>
-    private HashMap<String, Integer> portMap = new HashMap<String, Integer>(); //<clusterId, portNumber>
+    private final HashMap<String, String> addressMap = new HashMap<String, String>(); //<clusterId, ipAddress>
+    private final HashMap<String, Integer> portMap = new HashMap<String, Integer>(); //<clusterId, portNumber>
 
 
     public DNS() {

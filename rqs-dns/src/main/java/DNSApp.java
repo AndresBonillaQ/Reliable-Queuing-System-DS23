@@ -8,7 +8,6 @@ public class DNSApp {
         String clusterId, ipAddress;
         int portNumber;
         Scanner in = new Scanner(System.in);
-        System.out.println("Type 'stop' when you are done populating the DNS\n");
         do{
             System.out.println("Insert clusterId: ");
             clusterId = in.nextLine();
@@ -16,10 +15,19 @@ public class DNSApp {
             ipAddress = in.nextLine();
             DNS.getInstance().setLeaderAddress(clusterId, ipAddress);
             System.out.println("Insert the port number of the cluster: ");
-            portNumber = in.nextInt();
+            portNumber = Integer.parseInt(in.nextLine());
             DNS.getInstance().setClusterPort(clusterId, portNumber);
+            System.out.println("Insert other clusters?(Y/N):  ");
+        }while ( !in.nextLine().equals("N") );
+/*
+        clusterId = "cluster1";
+        ipAddress = "localhost";
+        DNS.getInstance().setLeaderAddress(clusterId, ipAddress);
+        portNumber = 8082;
+        DNS.getInstance().setClusterPort(clusterId, portNumber);
+*/
 
-        }while( !Objects.equals(clusterId, "stop") && !Objects.equals(ipAddress, "stop"));
+
         ServerDNS serverDNS = new ServerDNS();
         serverDNS.start();
 
