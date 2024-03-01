@@ -3,11 +3,8 @@ import com.google.gson.Gson;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.HashMap;
 public class ServerDNS {
-
     private Socket serverSocket;
-
     public void start() throws IOException {
         ServerSocket serverSocket = new ServerSocket(8090);
         System.out.println("DNS server is awaiting connections...");

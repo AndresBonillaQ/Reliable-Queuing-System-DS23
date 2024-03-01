@@ -7,21 +7,12 @@ import java.util.Objects;
 import java.util.Queue;
 
 public class ClientThread implements Runnable{
-
-    private String clusterId;
-    private String jsonData;
-    private String ipAddress;
-    private int portNumber;
-    private Socket socket;
-
-
-
-
+    private final String jsonData;
+    private final Socket socket;
     public ClientThread(Socket socket, String jsonData) throws IOException {
         this.jsonData = jsonData;
         this.socket = socket;
     }
-
     @Override
     public void run() {
             try {

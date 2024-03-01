@@ -2,8 +2,6 @@ import java.util.HashMap;
 
 public class DNS {
     private static DNS instance = null;
-
-
     public static DNS getInstance() {
         if (instance == null) {
             instance = new DNS();
@@ -12,13 +10,8 @@ public class DNS {
     }
     private final HashMap<String, String> addressMap = new HashMap<String, String>(); //<clusterId, ipAddress>
     private final HashMap<String, Integer> portMap = new HashMap<String, Integer>(); //<clusterId, portNumber>
-
-
     public DNS() {
-
     }
-
-
     public void setLeaderAddress(String clusterId, String ipAddress) {
         addressMap.put(clusterId,ipAddress );
     }

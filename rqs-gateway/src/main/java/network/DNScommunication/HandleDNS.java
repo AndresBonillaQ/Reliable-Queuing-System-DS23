@@ -36,13 +36,14 @@ public class HandleDNS {
         BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 
+        //thread for reading the answers of the DNS
         Thread readerThread = new Thread(() -> {
             try {
                 while (true) {
                     String message = in.readLine();
                     //synchronized (answerReceived) {
                         answerReceived.add(message);
-                        System.out.println("Messaggio dal server: " + message);
+                       //  System.out.println("Messaggio dal server: " + message);
                     Thread.sleep(1000);
                     //}
                 }
@@ -52,7 +53,7 @@ public class HandleDNS {
         });
         readerThread.start();
 
-        // Avvia un thread per la scrittura dei messaggi al server
+        // Thread for sending requests to the DNS
         Thread writerThread = new Thread(() -> {
             try {
                 while (true) {

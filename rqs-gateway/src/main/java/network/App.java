@@ -12,7 +12,11 @@ public class App {
 
 
 
+        //For testing
         GateWay.getInstance().addClusterID("cluster1");
+        GateWay.getInstance().setPortNumber(8090, "cluster1");
+        GateWay.getInstance().addToQueueToClusterMap("queue1", "cluster1");
+
         //ottengo gli ip dei broker
         HandleDNS.getInstance().openDNSConnection();
         HandleDNS.getInstance().initialize();

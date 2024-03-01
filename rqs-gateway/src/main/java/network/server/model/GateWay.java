@@ -73,16 +73,12 @@ public class GateWay {
             }
         }
         return null;
-
-
     }
     private String createMessage(StringBuilder jsonData) {
-
         MessageResponse message = new MessageResponse();
         message.setId(new Gson().fromJson(jsonData.toString(), MessageRequest.class).getId());
         message.setContent(deserializeMessage(jsonData));
         return new Gson().toJson(message, MessageResponse.class);
-
     }
     public void execute(StringBuilder jsonData)  { //viene creato il messaggio e dato al clientThread
 
@@ -103,13 +99,11 @@ public class GateWay {
     public void setNumberOfBrokers(int numberOfBrokers) {
         this.numberOfBrokers = numberOfBrokers;
     }
-
     public void fillHashMaps(String clusterId, String ipAddress, int portNumber, Socket socket) {
         clusterIdToAddressMap.put(clusterId, ipAddress);
         clusterToPortMap.put(clusterId, portNumber);
         socketHashMap.put(clusterId, socket);
     }
-
     public void setIp(String clusterId, String ipAddress) {
             this.clusterIdToAddressMap.put(clusterId, ipAddress);
     }
@@ -121,14 +115,22 @@ public class GateWay {
     public ArrayList<String> getClusterID() {
         return clusterID;
     }
-
     public void setClusterID(ArrayList<String> clusterID) {
         this.clusterID = clusterID;
     }
     public int getPortNumber(String clusterID) {
             return clusterToPortMap.get(clusterID);
     }
+    public void setPortNumber(int portNumber, String clusterID) {
+        clusterToPortMap.put(clusterID, portNumber);
+    }
     public void addClusterID(String clusterID) {
             this.clusterID.add(clusterID);
+    }
+    public void addToSocketMap(Socket socket, String clusterID) {
+        socketHashMap.put(clusterID, socket);
+    }
+    public void addToQueueToClusterMap(String queueID, String clusterID) {
+        queueToClusterIdMap.put(clusterID, queueID);
     }
 }

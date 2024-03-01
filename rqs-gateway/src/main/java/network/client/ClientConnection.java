@@ -11,7 +11,6 @@ import java.util.HashMap;
 public class ClientConnection {
 
     private HashMap<String, Socket> socketHashMap = new HashMap<>();
-
     /**
      * apre la connessione tra il gateway e tutti i clients
      */
@@ -20,7 +19,8 @@ public class ClientConnection {
         ) {
             try {
                 Socket socket = new Socket(GateWay.getInstance().getIp(clusterId), GateWay.getInstance().getPortNumber(clusterId));
-                socketHashMap.put(clusterId, socket);
+                GateWay.getInstance().addToSocketMap(socket, clusterId);
+                System.out.println(clusterId + GateWay.getInstance().getIp(clusterId) + GateWay.getInstance().getPortNumber(clusterId));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
