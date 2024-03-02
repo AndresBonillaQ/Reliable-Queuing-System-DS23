@@ -32,7 +32,7 @@ public class RequestMessageBuilder {
         return message;
     }
 
-    public static RequestMessage buildCreareQueueRequestMessage(String clientId){
+    public static RequestMessage buildCreateQueueRequestMessage(String clientId){
         CreateQueueRequest createQueueRequest = new CreateQueueRequest();
         createQueueRequest.setClientId(clientId);
 

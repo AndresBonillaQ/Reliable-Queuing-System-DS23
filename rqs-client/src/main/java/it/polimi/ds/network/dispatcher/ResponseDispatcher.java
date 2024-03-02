@@ -2,10 +2,10 @@ package it.polimi.ds.network.dispatcher;
 
 import it.polimi.ds.message.ResponseMessage;
 import it.polimi.ds.message.response.ResponseIdEnum;
-import it.polimi.ds.network.handler.ResponseHandler;
-import it.polimi.ds.network.handler.impl.AppendValueResponseHandler;
-import it.polimi.ds.network.handler.impl.CreateQueueResponseHandler;
-import it.polimi.ds.network.handler.impl.ReadValueResponseHandler;
+import it.polimi.ds.network.responseHandler.ResponseHandler;
+import it.polimi.ds.network.responseHandler.impl.AppendValueResponseHandler;
+import it.polimi.ds.network.responseHandler.impl.CreateQueueResponseHandler;
+import it.polimi.ds.network.responseHandler.impl.ReadValueResponseHandler;
 import it.polimi.ds.utils.GsonInstance;
 
 import java.util.Map;
@@ -17,14 +17,14 @@ import java.util.logging.Logger;
  * */
 public class ResponseDispatcher {
 
-    private static final Map<ResponseIdEnum, ResponseHandler> messageHandlerMap;
+    private static final Map<ResponseIdEnum, ResponseHandler> responseHandlerMap;
     private static final Logger log = Logger.getLogger(ResponseDispatcher.class.getName());
 
     static{
-        messageHandlerMap = new ConcurrentHashMap<>();
-        messageHandlerMap.put(ResponseIdEnum.CREATE_QUEUE_RESPONSE, new CreateQueueResponseHandler());
-        messageHandlerMap.put(ResponseIdEnum.APPEND_VALUE_RESPONSE, new AppendValueResponseHandler());
-        messageHandlerMap.put(ResponseIdEnum.READ_VALUE_RESPONSE, new ReadValueResponseHandler());
+        responseHandlerMap = new ConcurrentHashMap<>();
+        responseHandlerMap.put(ResponseIdEnum.CREATE_QUEUE_RESPONSE, new CreateQueueResponseHandler());
+        responseHandlerMap.put(ResponseIdEnum.APPEND_VALUE_RESPONSE, new AppendValueResponseHandler());
+        responseHandlerMap.put(ResponseIdEnum.READ_VALUE_RESPONSE, new ReadValueResponseHandler());
     }
 
     private ResponseDispatcher(){}
@@ -35,12 +35,12 @@ public class ResponseDispatcher {
      *  -   if enum associated is within messageHandlerMap
      * */
     public static void exec(String line){
-        ResponseMessage message = convertMessage(line);
+        ResponseMessage response = convertMessage(line);
 
-        if(messageHandlerMap.containsKey(message.getId())){
-            messageHandlerMap.get(message.getId()).exec(message);
+        if(responseHandlerMap.containsKey(response.getId())){
+            responseHandlerMap.get(response.getId()).exec(response);
         } else {
-            log.warning("WARNING! the id " + message.getId() + " is not mapped in the responseDispatcher map, the message " + message + " has not been processed!");
+            log.warning("WARNING! the id " + response.getId() + " is not mapped in the responseDispatcher map, the message " + response + " has not been processed!");
         }
     }
 

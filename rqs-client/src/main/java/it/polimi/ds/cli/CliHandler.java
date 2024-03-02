@@ -18,7 +18,7 @@ public class CliHandler {
 
             switch (line) {
                 case "1" -> {
-                    return RequestMessageBuilder.buildCreareQueueRequestMessage(clientId);
+                    return RequestMessageBuilder.buildCreateQueueRequestMessage(clientId);
                 }
                 case "2" -> {
                     System.out.println("Insert QueueId in which append value:");
