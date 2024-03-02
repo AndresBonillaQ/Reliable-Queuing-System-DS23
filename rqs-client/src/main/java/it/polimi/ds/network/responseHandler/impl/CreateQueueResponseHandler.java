@@ -1,8 +1,8 @@
-package it.polimi.ds.network.handler.impl;
+package it.polimi.ds.network.responseHandler.impl;
 
 import it.polimi.ds.message.ResponseMessage;
 import it.polimi.ds.message.response.CreateQueueResponse;
-import it.polimi.ds.network.handler.ResponseHandler;
+import it.polimi.ds.network.responseHandler.ResponseHandler;
 import it.polimi.ds.utils.GsonInstance;
 
 public class CreateQueueResponseHandler implements ResponseHandler {

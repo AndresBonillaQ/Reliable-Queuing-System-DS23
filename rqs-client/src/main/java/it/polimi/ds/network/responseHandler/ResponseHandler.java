@@ -1,4 +1,4 @@
-package it.polimi.ds.network.handler;
+package it.polimi.ds.network.responseHandler;
 
 import it.polimi.ds.message.ResponseMessage;
 
