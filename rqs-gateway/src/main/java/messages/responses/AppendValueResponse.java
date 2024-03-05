@@ -4,31 +4,22 @@ import java.io.Serializable;
 
 
 public class AppendValueResponse implements Serializable {
-    private String clientId;
-    private String queueId;
-    private Integer value;
+    protected StatusEnum status;
+    protected String desStatus;
 
-    public String getClientId() {
-        return clientId;
+    public StatusEnum getStatus() {
+        return status;
     }
 
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
+    public void setStatus(StatusEnum status) {
+        this.status = status;
     }
 
-    public String getQueueId() {
-        return queueId;
+    public String getDesStatus() {
+        return desStatus;
     }
 
-    public void setQueueId(String queueId) {
-        this.queueId = queueId;
-    }
-
-    public Integer getValue() {
-        return value;
-    }
-
-    public void setValue(Integer value) {
-        this.value = value;
+    public void setDesStatus(String desStatus) {
+        this.desStatus = desStatus;
     }
 }
