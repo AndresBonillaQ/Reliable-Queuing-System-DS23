@@ -1,12 +1,9 @@
-package network.DNScommunication;
+package network.dnscommunication;
 
-import com.google.gson.Gson;
-import messages.messagesToDNS.MessageToDNS;
 import network.server.model.GateWay;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.HashMap;
 import java.util.PriorityQueue;
 import java.util.Queue;
 

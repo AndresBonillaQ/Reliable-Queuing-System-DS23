@@ -1,4 +1,4 @@
-package messages;
+package messages.utils;
 
 import com.google.gson.Gson;
 import messages.requests.AppendValueRequest;
