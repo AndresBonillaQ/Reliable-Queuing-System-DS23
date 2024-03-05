@@ -9,6 +9,7 @@ public class ClientHandler extends Server{
     }
 
     public void handleClient(Socket clientSocket) {
+        while (!clientSocket.isClosed()) {
             try (
                     BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                     PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)
@@ -22,6 +23,13 @@ public class ClientHandler extends Server{
                 e.printStackTrace();
             }
         }
+            try {
+                clientSocket.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+    }
     /**
      *riceve in input il clusterId e ritorna l'indirizzo ip del leader di quel cluster
      */

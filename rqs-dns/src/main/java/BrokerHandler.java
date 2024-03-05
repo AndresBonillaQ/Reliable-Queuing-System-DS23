@@ -9,24 +9,29 @@ import java.net.Socket;
 import java.util.HashMap;
 
 public class BrokerHandler extends Server {
-    private HashMap<String, Integer> numberOfQueuePerCluster = new HashMap<>(); //< clusterID, numberOfQueues>
-
     public BrokerHandler(int portNumber) {
         super(portNumber);
     }
 
     public void handleClient(Socket clientSocket) {
-        try {
+        while (!clientSocket.isClosed()) {
+            try {
                 BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
 
-            String brokerMessage;
-            while ((brokerMessage = in.readLine()) != null) {
-                processMessage(brokerMessage);
-                out.println("ok");
+                String brokerMessage;
+                while ((brokerMessage = in.readLine()) != null) {
+                    processMessage(brokerMessage);
+                    out.println("ok");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+        }
+        try {
+            clientSocket.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
     private void processMessage(String message) {
