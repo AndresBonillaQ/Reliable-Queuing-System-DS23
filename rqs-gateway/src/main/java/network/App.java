@@ -1,7 +1,7 @@
 package network;
 
-import network.DNScommunication.HandleDNS;
-import network.client.ClientConnection;
+import network.client.ConnectionManager;
+import network.dnscommunication.HandleDNS;
 import network.server.GateWayServer;
 import network.server.model.GateWay;
 
@@ -22,8 +22,8 @@ public class App {
         HandleDNS.getInstance().initialize();
 
         //apro le connessioni con i broker
-        ClientConnection clientConnection = new ClientConnection();
-        clientConnection.openConnection();
+        ConnectionManager connectionManager = new ConnectionManager();
+        connectionManager.startConnection();
 
         //apro il server per i clients
         GateWayServer gateWayServer = new GateWayServer(8081);

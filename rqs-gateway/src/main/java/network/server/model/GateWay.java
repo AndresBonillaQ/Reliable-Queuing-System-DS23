@@ -3,17 +3,16 @@ package network.server.model;
 import com.google.gson.Gson;
 import messages.MessageRequest;
 import messages.MessageResponse;
-import messages.ResponseBuilder;
 import messages.requests.AppendValueRequest;
 import messages.requests.CreateQueueRequest;
+import messages.requests.CreateQueueRequestToSend;
 import messages.requests.ReadValueRequest;
-import network.DNScommunication.HandleDNS;
-import network.client.ClientThread;
-
+import network.dnscommunication.HandleDNS;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.BlockingQueue;
 
 /**
  * Assunzioni: Il gateway, quando viene instaziato ha la lista dei clusterId, una mappa che associa queueID e clusterID e le porte
@@ -22,82 +21,23 @@ import java.util.HashMap;
 public class GateWay {
     private static GateWay instance = null;
     private int queueId;
-    private int numberOfBrokers;
     private HashMap<String, String> clusterIdToAddressMap = new HashMap<String, String>(); //<clusterId, ip>
     private HashMap<String, Integer> clusterToPortMap = new HashMap<String, Integer>();
     private HashMap<String, Socket> socketHashMap = new HashMap<>();
+    private HashMap<Integer, String> clusterNumberToClusterID = new HashMap<>(); //< clusterID, numberOfQueues>
     private ArrayList<String> clusterID = new ArrayList<>(); //Da inizializzare
     private HashMap<String, String> queueToClusterIdMap = new HashMap<String, String>(); //<queueId, clusterId>
-    private String currentClusterId = null;
+    private int currentCluster = 0;
+    private RequestMessageMap requestMessageMap = new RequestMessageMap();
+    private ResponseMessageMap responseMessageMap = new ResponseMessageMap();
+    public GateWay() throws IOException {
+    }
 
-    private String address;
-    private int portNumber;
-    private Socket socket;
-
-        public static GateWay getInstance() throws IOException {
+    public static GateWay getInstance() throws IOException {
         if (instance == null) {
             instance = new GateWay();
         }
         return instance;
-    }
-    public Integer getQueueId() {
-        return queueId;
-    }
-
-    private String deserializeMessage(StringBuilder jsonData) {
-        MessageRequest message = new Gson().fromJson(jsonData.toString(), MessageRequest.class);
-        String messageId = message.getId();
-        ResponseBuilder responseBuilder = new ResponseBuilder();
-
-        switch (messageId) {
-            case "appendValueReq" -> {
-                Gson gson = new Gson();
-                String queue = gson.fromJson(jsonData.toString(), AppendValueRequest.class).getQueueId();
-                currentClusterId = queueToClusterIdMap.get(queue);
-                socket = socketHashMap.get(queueToClusterIdMap.get(queue));
-                return responseBuilder.createAppendValueResponse(gson.fromJson(jsonData.toString(), AppendValueRequest.class));
-            }
-            case "createQueueReq" -> {
-                String string = responseBuilder.createNewQueueResponse(new Gson().fromJson(jsonData.toString(), CreateQueueRequest.class), String.valueOf(queueId));
-                currentClusterId = queueToClusterIdMap.get(String.valueOf(queueId));
-                socket = socketHashMap.get(queueToClusterIdMap.get(String.valueOf(queueId)));
-                queueId = (queueId + 1) % numberOfBrokers ;
-                return string;
-            }
-            case "readValueReq" -> {
-                Gson gson = new Gson();
-                String queue = gson.fromJson(jsonData.toString(), ReadValueRequest.class).getQueueId();
-                currentClusterId = queueToClusterIdMap.get(queue);
-                socket = socketHashMap.get(queueToClusterIdMap.get(queue));
-                return responseBuilder.createReadValueResponse(gson.fromJson(jsonData.toString(), ReadValueRequest.class));
-            }
-        }
-        return null;
-    }
-    private String createMessage(StringBuilder jsonData) {
-        MessageResponse message = new MessageResponse();
-        message.setId(new Gson().fromJson(jsonData.toString(), MessageRequest.class).getId());
-        message.setContent(deserializeMessage(jsonData));
-        return new Gson().toJson(message, MessageResponse.class);
-    }
-    public void execute(StringBuilder jsonData)  { //viene creato il messaggio e dato al clientThread
-
-        ClientThread clientThread;
-        try {
-            if (!socket.isClosed()) {
-                clientThread = new ClientThread(socket, createMessage(jsonData));
-                clientThread.run();
-            } else {
-                HandleDNS.getInstance().request(currentClusterId);
-                execute(jsonData);
-            }
-        } catch (IOException e) {
-
-        }
-    }
-
-    public void setNumberOfBrokers(int numberOfBrokers) {
-        this.numberOfBrokers = numberOfBrokers;
     }
     public void fillHashMaps(String clusterId, String ipAddress, int portNumber, Socket socket) {
         clusterIdToAddressMap.put(clusterId, ipAddress);
@@ -107,10 +47,10 @@ public class GateWay {
     public void setIp(String clusterId, String ipAddress) {
             this.clusterIdToAddressMap.put(clusterId, ipAddress);
     }
-    public String getIp( String clusterID) {
+    public String getIp(String clusterID) throws IOException {
             if ( clusterIdToAddressMap.get(clusterID) != null)
                 return clusterIdToAddressMap.get(clusterID);
-            else return null;
+            else return HandleDNS.getInstance().requestForInit(clusterID);
     }
     public ArrayList<String> getClusterID() {
         return clusterID;
@@ -133,4 +73,80 @@ public class GateWay {
     public void addToQueueToClusterMap(String queueID, String clusterID) {
         queueToClusterIdMap.put(clusterID, queueID);
     }
+    public String getClusterID(String queueID) {
+            return queueToClusterIdMap.get(queueID);
+    }
+    public Socket getSocket(String queueID) {
+            return socketHashMap.get(getClusterID(queueID));
+    }
+    public void addToResponseQueue(StringBuilder jsonData) {
+        Gson gson = new Gson();
+        String clientID = gson.fromJson(jsonData.toString(), MessageResponse.class).getClientID();
+        responseMessageMap.putOnResponseQueue(clientID, jsonData.toString());
+
+    }
+    public BlockingQueue<String> fetchRequest(String clusterId) {
+            return requestMessageMap.getMessageQueue(clusterId);
+    }
+    public BlockingQueue<String> fetchResponse(String clientID) {
+        return responseMessageMap.getMessageQueue(clientID);
+    }
+    public void addToClusterNumberToClusterID (int clusterNumber, String clusterID) {
+        clusterNumberToClusterID.put(clusterNumber, clusterID);
+    }
+    public ResponseMessageMap getResponseMessageMap() {
+        return this.responseMessageMap;
+    }
+    public RequestMessageMap getRequestMessageMap() {
+        return this.requestMessageMap;
+    }
+    public String processRequest(StringBuilder jsonData) {
+        MessageRequest message = new Gson().fromJson(jsonData.toString(), MessageRequest.class);
+        String messageId = message.getId();
+        switch (messageId) {
+            case "appendValueReq"-> {
+                Gson gson = new Gson();
+                String clientId = gson.fromJson(jsonData.toString(), AppendValueRequest.class).getClientId();
+                responseMessageMap.addClientID(clientId);
+                String queueID = gson.fromJson(jsonData.toString(), AppendValueRequest.class).getQueueId();
+                requestMessageMap.putOnRequestQueue(queueToClusterIdMap.get(queueID), message.toString());
+                return clientId;
+            }
+            case "createQueueReq" -> {
+                Gson gson = new Gson();
+                CreateQueueRequest createQueueRequest = gson.fromJson(jsonData.toString(), CreateQueueRequest.class);
+                String clientId = createQueueRequest.getClientId();
+                responseMessageMap.addClientID(clientId);
+                CreateQueueRequestToSend createQueueRequestToSend = new CreateQueueRequestToSend();
+                createQueueRequestToSend.setQueueId(String.valueOf(queueId));
+                createQueueRequestToSend.setClientId(createQueueRequest.getClientId());
+                message.setContent(createQueueRequestToSend.toString());
+
+                queueId++;
+
+                if (clusterNumberToClusterID.containsKey(currentCluster)) {
+                    requestMessageMap.putOnRequestQueue(clusterNumberToClusterID.get(currentCluster), message.toString());
+                }
+                else {
+                    currentCluster = 0;
+                    requestMessageMap.putOnRequestQueue(clusterNumberToClusterID.get(currentCluster), message.toString());
+                }
+            currentCluster++;
+
+                return clientId;
+            }
+            case "readValueReq" -> {
+                Gson gson = new Gson();
+                String clientId = gson.fromJson(jsonData.toString(), ReadValueRequest.class).getClientId();
+                responseMessageMap.addClientID(clientId);
+                String queueID = gson.fromJson(jsonData.toString(), ReadValueRequest.class).getQueueId();
+                requestMessageMap.putOnRequestQueue(queueToClusterIdMap.get(queueID), message.toString());
+                return clientId;
+            }
+        }
+        return null;
+
+    }
+
+
 }
