@@ -2,6 +2,7 @@ package network.server;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.Objects;
 
 import network.server.model.GateWay;
 
@@ -28,8 +29,15 @@ public class ClientHandler implements Runnable {
                 while ((line = reader.readLine()) != null) { //legge il messaggio formato json
                     jsonData.append(line);
                 }
+                String clientID;
                 synchronized (GateWay.getInstance()) {
-                    GateWay.getInstance().execute(jsonData);
+                    clientID = GateWay.getInstance().processRequest(jsonData);
+                }
+
+                if (!GateWay.getInstance().fetchResponse(clientID).isEmpty()) {
+                    OutputStream outputStream = clientSocket.getOutputStream();
+                    outputStream.write(Objects.requireNonNull(GateWay.getInstance().fetchResponse(clientID).poll()).getBytes());
+                    outputStream.flush();
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e);

@@ -1,15 +1,14 @@
 import java.io.IOException;
-import java.util.Objects;
 import java.util.Scanner;
 
-public class DNSApp {
+public class App {
 
     public static void main(String[] args) throws IOException {
         String clusterId, ipAddress;
         int portNumber;
 
         /**
-         * Populating the dns
+         * Populating the dns, for testing
          */
         Scanner in = new Scanner(System.in);
         do{
@@ -17,15 +16,19 @@ public class DNSApp {
             clusterId = in.nextLine();
             System.out.println("Insert ip Address of the cluster: ");
             ipAddress = in.nextLine();
-            DNS.getInstance().setLeaderAddress(clusterId, ipAddress);
+            Dns.getInstance().setLeaderAddress(clusterId, ipAddress);
             System.out.println("Insert the port number of the cluster: ");
             portNumber = Integer.parseInt(in.nextLine());
-            DNS.getInstance().setClusterPort(clusterId, portNumber);
+            Dns.getInstance().setClusterPort(clusterId, portNumber);
             System.out.println("Insert other clusters?(Y/N):  ");
         }while ( !in.nextLine().equals("N") );
 
-        ServerDNS serverDNS = new ServerDNS();
-        serverDNS.start();
+        Server clientHandler = new ClientHandler(8090);
+        Server brokerHandler = new BrokerHandler(8100);
+
+        clientHandler.start();
+        brokerHandler.start();
+
 
 
 
