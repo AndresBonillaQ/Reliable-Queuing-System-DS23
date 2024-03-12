@@ -1,5 +1,7 @@
 package it.polimi.ds.message.response;
 
+import it.polimi.ds.message.response.utils.StatusEnum;
+
 public abstract class Response {
     protected StatusEnum status;
     protected String desStatus;

@@ -1,4 +1,4 @@
-package it.polimi.ds.message.request;
+package it.polimi.ds.message.request.utils;
 
 import java.util.Optional;
 
@@ -9,6 +9,7 @@ public enum RequestIdEnum {
     APPEND_VALUE_REQUEST("appendValueReq"),
     CREATE_QUEUE_REQUEST("createQueueReq"),
     READ_VALUE_REQUEST("readValueReq"),
+    HEARTBEAT_REQUEST("heartbeatReq"),
     COMMIT_REQUEST("commitReq");
 
     private final String value;

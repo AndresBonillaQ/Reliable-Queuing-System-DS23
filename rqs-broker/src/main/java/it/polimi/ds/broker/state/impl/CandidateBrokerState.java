@@ -2,6 +2,7 @@ package it.polimi.ds.broker.state.impl;
 
 import it.polimi.ds.broker.BrokerContext;
 import it.polimi.ds.broker.state.BrokerState;
+import it.polimi.ds.broker.state.BrokerStateEnum;
 import it.polimi.ds.network.leader.toFollower.LeaderToFollower;
 import it.polimi.ds.network.leader.toGateway.LeaderToGateway;
 
@@ -16,6 +17,7 @@ public class CandidateBrokerState extends BrokerState {
 
     public CandidateBrokerState(BrokerContext brokerContext) {
         super(brokerContext);
+        brokerStateEnum = BrokerStateEnum.CANDIDATE;
     }
 
     @Override
@@ -26,14 +28,14 @@ public class CandidateBrokerState extends BrokerState {
 
     private void startServer(){
         executor.submit(() -> {
-            LeaderToGateway leaderToGateway = new LeaderToGateway(brokerContext, 1, requestBlockingQueue);
+            LeaderToGateway leaderToGateway = new LeaderToGateway(brokerContext, 1, null);
             leaderToGateway.start(executor);
         });
     }
 
     private void startClient(){
         List.of().forEach(
-                followersAddress -> executor.submit(new LeaderToFollower(brokerContext, new InetSocketAddress("", 1), requestBlockingQueue))
+                followersAddress -> executor.submit(new LeaderToFollower(brokerContext, new InetSocketAddress("", 1), null))
         );
     }
 

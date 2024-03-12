@@ -5,6 +5,7 @@ import it.polimi.ds.broker.BrokerContext;
 public abstract class BrokerState {
 
     protected final BrokerContext brokerContext;
+    protected BrokerStateEnum brokerStateEnum;
 
     public BrokerState(BrokerContext brokerContext){
         this.brokerContext = brokerContext;
@@ -19,4 +20,16 @@ public abstract class BrokerState {
     public void onLoseLeaderElection(){}
 
     public void onDiscoverLeaderWithHigherTerm(){} //?
+
+    public BrokerContext getBrokerContext() {
+        return brokerContext;
+    }
+
+    public BrokerStateEnum getBrokerStateEnum() {
+        return brokerStateEnum;
+    }
+
+    public void setBrokerStateEnum(BrokerStateEnum brokerStateEnum) {
+        this.brokerStateEnum = brokerStateEnum;
+    }
 }

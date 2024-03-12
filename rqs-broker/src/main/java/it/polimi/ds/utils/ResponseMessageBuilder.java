@@ -2,6 +2,8 @@ package it.polimi.ds.utils;
 
 import it.polimi.ds.message.ResponseMessage;
 import it.polimi.ds.message.response.*;
+import it.polimi.ds.message.response.utils.ResponseIdEnum;
+import it.polimi.ds.message.response.utils.StatusEnum;
 
 public class ResponseMessageBuilder {
 

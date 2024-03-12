@@ -1,4 +1,4 @@
-package it.polimi.ds.message.response;
+package it.polimi.ds.message.response.utils;
 
 import java.util.Optional;
 
@@ -8,7 +8,8 @@ import java.util.Optional;
 public enum ResponseIdEnum {
     APPEND_VALUE_RESPONSE("appendValueResp"),
     CREATE_QUEUE_RESPONSE("createQueueResp"),
-    READ_VALUE_RESPONSE("readValueResp");
+    READ_VALUE_RESPONSE("readValueResp"),
+    HEARTBEAT_RESPONSE("heartbeatResp"),;
 
     private final String value;
 

@@ -3,7 +3,7 @@ package it.polimi.ds.network.leader.toGateway.dispatcher;
 import it.polimi.ds.exception.RequestNoManagedException;
 import it.polimi.ds.message.RequestMessage;
 import it.polimi.ds.message.ResponseMessage;
-import it.polimi.ds.message.request.RequestIdEnum;
+import it.polimi.ds.message.request.utils.RequestIdEnum;
 import it.polimi.ds.model.IBrokerModel;
 import it.polimi.ds.network.leader.toGateway.requestHandler.impl.LeaderAppendValueRequestHandler;
 import it.polimi.ds.network.leader.toGateway.requestHandler.impl.LeaderCreateQueueRequestHandler;

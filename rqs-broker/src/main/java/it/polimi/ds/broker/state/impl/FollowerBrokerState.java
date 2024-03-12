@@ -2,6 +2,7 @@ package it.polimi.ds.broker.state.impl;
 
 import it.polimi.ds.broker.BrokerContext;
 import it.polimi.ds.broker.state.BrokerState;
+import it.polimi.ds.broker.state.BrokerStateEnum;
 import it.polimi.ds.network.follower.toLeader.FollowerToLeader;
 
 import java.util.concurrent.ExecutorService;
@@ -13,6 +14,7 @@ public class FollowerBrokerState extends BrokerState {
 
     public FollowerBrokerState(BrokerContext brokerContext) {
         super(brokerContext);
+        brokerStateEnum = BrokerStateEnum.FOLLOWER;
     }
 
     @Override
