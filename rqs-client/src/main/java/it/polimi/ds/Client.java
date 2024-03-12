@@ -28,7 +28,6 @@ public class Client {
     public void start(){
         try(
                 Socket socket = new Socket(gatewayConfig.getIp(), gatewayConfig.getPort());
-                Scanner in = new Scanner(System.in);
                 PrintWriter writer = new PrintWriter(socket.getOutputStream());
                 InputStreamReader streamReader = new InputStreamReader(socket.getInputStream());
                 BufferedReader reader = new BufferedReader(streamReader);
@@ -40,7 +39,7 @@ public class Client {
 
                 try{
                     //Get message to send to gateway
-                    request = CliHandler.getRequest(clientId, in);
+                    request = CliHandler.getRequest(clientId);
                 } catch (CliExitException e) {
                     log.info("Closing by user choice");
                     return;
