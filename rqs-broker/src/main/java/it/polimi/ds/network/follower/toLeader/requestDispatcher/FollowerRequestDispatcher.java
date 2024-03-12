@@ -3,7 +3,7 @@ package it.polimi.ds.network.follower.toLeader.requestDispatcher;
 import it.polimi.ds.exception.RequestNoManagedException;
 import it.polimi.ds.message.RequestMessage;
 import it.polimi.ds.message.ResponseMessage;
-import it.polimi.ds.message.request.RequestIdEnum;
+import it.polimi.ds.message.request.utils.RequestIdEnum;
 import it.polimi.ds.model.IBrokerModel;
 import it.polimi.ds.network.follower.toLeader.requestHandler.FollowerRequestHandler;
 import it.polimi.ds.network.follower.toLeader.requestHandler.impl.FollowerAppendValueRequestHandler;
@@ -12,7 +12,6 @@ import it.polimi.ds.network.follower.toLeader.requestHandler.impl.FollowerReadVa
 import it.polimi.ds.utils.GsonInstance;
 
 import java.util.Map;
-import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 

@@ -1,4 +1,4 @@
-package it.polimi.ds.message.response;
+package it.polimi.ds.message.response.utils;
 
 import java.util.Optional;
 
@@ -6,7 +6,7 @@ public enum StatusEnum {
     OK("OK"),
     KO("KO");
 
-    private String value;
+    private final String value;
 
     StatusEnum(String value) {
         this.value = value;

@@ -5,7 +5,7 @@ import com.google.gson.Gson;
 import java.util.Objects;
 
 public class GsonInstance {
-    private Gson gson;
+    private final Gson gson;
     private static GsonInstance instance;
 
     private GsonInstance(){
@@ -20,9 +20,5 @@ public class GsonInstance {
 
     public Gson getGson() {
         return gson;
-    }
-
-    public void setGson(Gson gson) {
-        this.gson = gson;
     }
 }
