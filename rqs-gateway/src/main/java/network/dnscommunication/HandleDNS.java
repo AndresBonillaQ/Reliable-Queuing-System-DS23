@@ -27,6 +27,7 @@ public class HandleDNS {
         return instance;
     }
 
+//apre la connessione col DNS
     public void openDNSConnection() throws IOException {
         socket = new Socket(ipDNS, portDNS);
 
@@ -72,21 +73,15 @@ public class HandleDNS {
 
     public void initialize() throws IOException {
         for (String clusterId : GateWay.getInstance().getClusterID()) {
-            GateWay.getInstance().setIp(clusterId, requestForInit(clusterId));
+            GateWay.getInstance().setIp(clusterId, requestIP(clusterId));
         }
     }
-
 //messaggio da inviare al DNS
-    public String requestForInit(String clusterID) {
+    public String requestIP(String clusterID) {
         messageToSend.add(clusterID);
         if (answerReceived.poll() != null)
             return answerReceived.poll();
         else return null;
-    }
-    public void request(String clusterID) throws IOException {
-        messageToSend.add(clusterID);
-        if (answerReceived.poll() != null)
-            GateWay.getInstance().setIp(answerReceived.poll(), clusterID);
     }
 
 

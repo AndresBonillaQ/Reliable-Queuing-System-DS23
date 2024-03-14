@@ -1,7 +1,9 @@
+package utils;
+
 import java.util.Optional;
 
 /**
- * Message Response identifier
+ * Message utils.Response identifier
  * */
 public enum ResponseIdEnum {
     APPEND_VALUE_RESPONSE("appendValueResp"),

@@ -1,6 +1,8 @@
+package network;
+
 import java.io.*;
 import java.net.Socket;
-public class ClientHandler extends Server{
+public class ClientHandler extends Server {
     private Socket serverSocket;
     private int portNumber;
 

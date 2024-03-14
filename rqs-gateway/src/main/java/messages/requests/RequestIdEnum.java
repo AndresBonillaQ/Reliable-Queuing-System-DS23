@@ -4,7 +4,7 @@ package messages.requests;
 import java.util.Optional;
 
 /**
- * Message Response identifier
+ * Message utils.Response identifier
  * */
 public enum RequestIdEnum {
     APPEND_VALUE_REQUEST("appendValueReq"),

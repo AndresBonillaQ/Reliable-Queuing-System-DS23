@@ -1,3 +1,7 @@
+package utils;
+
+import utils.ResponseIdEnum;
+
 import java.io.Serializable;
 
 public class ResponseMessage implements Serializable {

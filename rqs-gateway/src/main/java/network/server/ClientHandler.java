@@ -4,6 +4,9 @@ import java.io.*;
 import java.net.Socket;
 import java.util.Objects;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+import messages.MessageRequest;
 import network.server.model.GateWay;
 
 
@@ -13,6 +16,7 @@ import network.server.model.GateWay;
 public class ClientHandler implements Runnable {
 
     private final Socket clientSocket;
+    private String clientID;
 
     public ClientHandler(Socket socket) throws IOException {
 
@@ -24,24 +28,34 @@ public class ClientHandler implements Runnable {
         while (!clientSocket.isClosed()) {
             try {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                StringBuilder jsonData = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) { //legge il messaggio formato json
-                    jsonData.append(line);
+                Gson gson = new Gson();
+                String inputLine;
+                while ( ( inputLine =  reader.readLine() ) != null) {
+                    try {
+                        MessageRequest jsonData = gson.fromJson(inputLine, MessageRequest.class);
+                        String jsonString = gson.toJson(jsonData);
+                        System.out.println(jsonString);
+                        synchronized (GateWay.getInstance()) {
+                            clientID = GateWay.getInstance().processRequest(jsonData);
+                        }
+                    } catch (JsonSyntaxException e) {
+                        e.printStackTrace();
+                    }
                 }
-                String clientID;
-                synchronized (GateWay.getInstance()) {
-                    clientID = GateWay.getInstance().processRequest(jsonData);
-                }
-
-                if (!GateWay.getInstance().fetchResponse(clientID).isEmpty()) {
+                if (GateWay.getInstance().fetchResponse(clientID)!= null) {
                     OutputStream outputStream = clientSocket.getOutputStream();
-                    outputStream.write(Objects.requireNonNull(GateWay.getInstance().fetchResponse(clientID).poll()).getBytes());
+                    outputStream.write(GateWay.getInstance().fetchResponse(clientID).getBytes());
                     outputStream.flush();
                 }
+
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+        }
+        try {
+            clientSocket.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }

@@ -22,16 +22,16 @@ public class GateWayServer {
         System.out.println("Gateway server is awaiting connections...");
 
         while (true) {
-        try {
-            Socket socket = serverSocket.accept();
-            System.out.println("Accepted");
-            ClientHandler clientHandler = new ClientHandler(socket);
-            clientHandler.run();
-        } catch (IOException e) {
-            System.out.println("socket close..." + e.getMessage());
-            break;
+            try {
+                Socket socket = serverSocket.accept();
+                System.out.println("Accepted");
+                ClientHandler clientHandler = new ClientHandler(socket);
+                new Thread(clientHandler).start();
+            } catch (IOException e) {
+                System.out.println("socket close..." + e.getMessage());
+                break;
+            }
         }
-    }
         System.out.println("Closing Gateway server");
         serverSocket.close();
     }

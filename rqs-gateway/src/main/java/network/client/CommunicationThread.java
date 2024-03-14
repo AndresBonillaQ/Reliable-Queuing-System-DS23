@@ -25,9 +25,9 @@ public class CommunicationThread extends Thread {
     public void run() {
         while (!socket.isClosed()) {
             try {
-                if (!GateWay.getInstance().fetchRequest(clusterID).isEmpty()) { // prende la queue delle richieste relative al cluster con ID = clusterID
+                if (GateWay.getInstance().fetchRequest(clusterID) != null) { // prende la queue delle richieste relative al cluster con ID = clusterID
                     OutputStream outputStream = socket.getOutputStream();
-                    outputStream.write(Objects.requireNonNull(GateWay.getInstance().fetchRequest(clusterID).poll()).getBytes());
+                    outputStream.write(Objects.requireNonNull(GateWay.getInstance().fetchRequest(clusterID)).getBytes());
                     outputStream.flush();
                 }
                 BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));

@@ -1,3 +1,5 @@
+package utils;
+
 public abstract class Response {
     protected StatusEnum status;
     protected String desStatus;

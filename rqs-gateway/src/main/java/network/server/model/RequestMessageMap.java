@@ -11,12 +11,16 @@ public class RequestMessageMap {
 
     private Map<String, BlockingQueue<String>> requestMap = new HashMap<>();//<ClientId, Queue>
 
-    public RequestMessageMap() throws IOException {
+   /* public RequestMessageMap() throws IOException {
         for (String clusterID: GateWay.getInstance().getClusterID()
              ) {
             requestMap.put(clusterID, new LinkedBlockingQueue<>());
         }
+    }*/
+    public void addClusterID(String clusterID) {
+        requestMap.put(clusterID, new LinkedBlockingQueue<>());
     }
+
 
     public BlockingQueue<String> getMessageQueue(String clusterID) {
         return requestMap.get(clusterID);

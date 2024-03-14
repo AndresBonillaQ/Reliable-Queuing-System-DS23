@@ -1,3 +1,5 @@
+package network;
+
 import com.google.gson.Gson;
 import messages.requests.NewIpMessage;
 

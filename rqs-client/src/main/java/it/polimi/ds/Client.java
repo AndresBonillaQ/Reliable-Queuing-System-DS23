@@ -34,7 +34,7 @@ public class Client {
                 BufferedReader reader = new BufferedReader(streamReader);
         ){
             RequestMessage request;
-            socket.setSoTimeout(gatewayConfig.getTimeout());
+           // socket.setSoTimeout(gatewayConfig.getTimeout());
 
             while(true){
 

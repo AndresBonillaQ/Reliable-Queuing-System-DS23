@@ -1,16 +1,18 @@
 package messages;
 
+import messages.requests.RequestIdEnum;
+
 import java.io.Serializable;
 
 public class MessageRequest implements Serializable {
-    private String id = null;
+    private RequestIdEnum id = null;
     private String content = null;
-
-    public String getId() {
+    public MessageRequest() {}
+    public RequestIdEnum getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(RequestIdEnum id) {
         this.id = id;
     }
 
@@ -21,4 +23,5 @@ public class MessageRequest implements Serializable {
     public void setContent(String content) {
         this.content = content;
     }
+
 }

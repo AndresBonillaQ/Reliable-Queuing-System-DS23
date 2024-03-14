@@ -21,6 +21,7 @@ public class ConnectionManager implements ConnectionListener {
         }
     }
     public void startConnection() throws IOException {
+        //apro la connessione con tutti i clusters
         for (String clusterId : GateWay.getInstance().getClusterID()
         ) {
             try {
