@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ServerToGateway implements Runnable {
@@ -34,15 +35,15 @@ public class ServerToGateway implements Runnable {
                     BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                     ){
 
+                log.log(Level.INFO, "Connection established with gateway!");
+
                 while(true){
-                    synchronized (brokerContext.getBrokerState()){
-                        try {
-                            brokerContext.getBrokerState().serverToGatewayExec(in, out);
-                        } catch (IOException e) {
-                            log.severe("Error! IOException during communication with gateway!");
-                            log.severe(e.getMessage());
-                            return;
-                        }
+                    try {
+                        brokerContext.getBrokerState().serverToGatewayExec(in, out);
+                    } catch (IOException e) {
+                        log.severe("Error! IOException during communication with gateway!");
+                        log.severe(e.getMessage());
+                        return;
                     }
                 }
 

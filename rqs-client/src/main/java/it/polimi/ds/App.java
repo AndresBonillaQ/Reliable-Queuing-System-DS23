@@ -8,7 +8,7 @@ public class App {
     public static void main(String[] args) throws IOException {
 
         GatewayConfig gatewayConfig = new GatewayConfig();
-        gatewayConfig.setIp("127.0.0.1");
+        gatewayConfig.setIp("192.168.107.118");
         gatewayConfig.setPort(8081);
         gatewayConfig.setTimeout(100);
 
