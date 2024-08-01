@@ -1,13 +1,12 @@
-package network.server;
+package network.clientCommunication.network;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.Objects;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import messages.MessageRequest;
-import network.server.model.GateWay;
+import network.clientCommunication.model.Gateway;
 
 
 /**
@@ -33,18 +32,17 @@ public class ClientHandler implements Runnable {
                 while ( ( inputLine =  reader.readLine() ) != null) {
                     try {
                         MessageRequest jsonData = gson.fromJson(inputLine, MessageRequest.class);
-                        String jsonString = gson.toJson(jsonData);
-                        System.out.println(jsonString);
-                        synchronized (GateWay.getInstance()) {
-                            clientID = GateWay.getInstance().processRequest(jsonData);
+                        synchronized (Gateway.getInstance()) {
+                            clientID = Gateway.getInstance().processRequest(jsonData);
                         }
                     } catch (JsonSyntaxException e) {
                         e.printStackTrace();
                     }
                 }
-                if (GateWay.getInstance().fetchResponse(clientID)!= null) {
+                if (Gateway.getInstance().fetchResponse(clientID) != null) {
                     OutputStream outputStream = clientSocket.getOutputStream();
-                    outputStream.write(GateWay.getInstance().fetchResponse(clientID).getBytes());
+                    Gson gson1 = new Gson();
+                    outputStream.write(gson1.toJson(Gateway.getInstance().fetchResponse(clientID) ).getBytes());
                     outputStream.flush();
                 }
 

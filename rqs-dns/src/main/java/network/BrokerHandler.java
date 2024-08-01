@@ -2,13 +2,13 @@ package network;
 
 import com.google.gson.Gson;
 import messages.requests.NewIpMessage;
+import model.Dns;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.HashMap;
 
 public class BrokerHandler extends Server {
     public BrokerHandler(int portNumber) {
@@ -38,8 +38,9 @@ public class BrokerHandler extends Server {
     }
     private void processMessage(String message) {
         Gson gson = new Gson();
-        String clusterID = gson.fromJson(message, NewIpMessage.class).getClusterID();
-        String ipAddress = gson.fromJson(message, NewIpMessage.class).getIpAddress();
+        NewIpMessage newIpMessage = gson.fromJson(message, NewIpMessage.class);
+        String clusterID = newIpMessage.getClusterID();
+        String ipAddress = newIpMessage.getIpAddress();
         Dns.getInstance().setLeaderAddress(clusterID, ipAddress);
     }
 }

@@ -1,5 +1,7 @@
 package network;
 
+import model.Dns;
+
 import java.io.*;
 import java.net.Socket;
 public class ClientHandler extends Server {
@@ -20,6 +22,7 @@ public class ClientHandler extends Server {
                 while ((clientMessage = in.readLine()) != null) {
                     String response = processDnsRequest(clientMessage);
                     out.println(response);
+                    out.flush();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -30,7 +33,6 @@ public class ClientHandler extends Server {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-
     }
     /**
      *riceve in input il clusterId e ritorna l'indirizzo ip del leader di quel cluster
