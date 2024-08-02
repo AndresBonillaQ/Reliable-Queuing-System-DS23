@@ -1,9 +1,21 @@
 package it.polimi.ds.raftLog;
 
-public class RaftLog {
+import java.io.Serializable;
+
+public class RaftLog implements Serializable {
     private Integer term;
     private Integer index;
     private String request;
+    private boolean committed;
+
+    public RaftLog(){}
+
+    public RaftLog(Integer term, Integer index, String request) {
+        this.term = term;
+        this.index = index;
+        this.request = request;
+        this.committed = false;
+    }
 
     public Integer getTerm() {
         return term;
@@ -27,5 +39,13 @@ public class RaftLog {
 
     public void setRequest(String request) {
         this.request = request;
+    }
+
+    public boolean isCommitted() {
+        return committed;
+    }
+
+    public void setCommitted(boolean committed) {
+        this.committed = committed;
     }
 }

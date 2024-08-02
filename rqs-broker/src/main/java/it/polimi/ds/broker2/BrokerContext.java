@@ -1,20 +1,19 @@
 package it.polimi.ds.broker2;
 
+import it.polimi.ds.broker2.model.IBrokerModel;
+import it.polimi.ds.broker2.model.impl.BrokerModel;
+import it.polimi.ds.broker2.raft.IBrokerRaftIntegration;
+import it.polimi.ds.broker2.raft.impl.BrokerRaftIntegration;
 import it.polimi.ds.broker2.state.BrokerState;
 import it.polimi.ds.broker2.state.impl.FollowerBrokerState;
 import it.polimi.ds.broker2.state.impl.LeaderBrokerState;
-import it.polimi.ds.model.BrokerModel;
-import it.polimi.ds.model.IBrokerModel;
 import it.polimi.ds.network2.broker.client.ClientToBroker;
 import it.polimi.ds.network2.broker.server.ServerToBroker;
 import it.polimi.ds.network2.gateway.ServerToGateway;
-import it.polimi.ds.raftLog.RaftLog;
 import it.polimi.ds.utils.ExecutorInstance;
+import it.polimi.ds.utils.config.BrokerConfig;
 
-import java.net.InetSocketAddress;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.net.Socket;
 
 public class BrokerContext {
 
@@ -24,9 +23,24 @@ public class BrokerContext {
     private final String brokerId;
 
     /**
-     * Number of brokers which compose the cluster
+     * The cluster leader id, useful to followers
      * */
-    private final int numBrokersInCluster;
+    private String leaderId;
+
+    /**
+     * The cluster leader socket, useful to followers
+     * */
+    private Socket leaderSocket;
+
+    /**
+     * The cluster id
+     * */
+    private final String clusterId;
+
+    /**
+     * The numClusterBrokers
+     * */
+    private final int numClusterBrokers;
 
     /**
      * State design pattern: leader/follower/candidate
@@ -34,27 +48,26 @@ public class BrokerContext {
     private BrokerState brokerState; //= new FollowerBrokerState(this);
 
     /**
-     * Contains all queues information
+     * The object which contains all queues information
      * */
     private final IBrokerModel brokerModel = new BrokerModel();
 
     /**
-     * Contains broker log
+     * The object which contains all information about raft integration
      * */
-    private final Queue<RaftLog> raftLogQueue = new LinkedList<>();;
+    private final IBrokerRaftIntegration brokerRaftIntegration = new BrokerRaftIntegration();
 
     /**
-     * Number of brokers which compose the cluster
+     * Broker network configuration
      * */
-    private final List<InetSocketAddress> clusterBrokerAddress;
+    private final BrokerConfig brokerConfig;;
 
-    private final int brokerServerPort;
-
-    public BrokerContext(int brokerServerPort, List<InetSocketAddress> clusterBrokerAddress, String brokerId, boolean isLeader){
-        this.clusterBrokerAddress = clusterBrokerAddress;
-        this.numBrokersInCluster = clusterBrokerAddress.size() + 1;
+    public BrokerContext(BrokerConfig brokerConfig, String brokerId, String clusterId, boolean isLeader){
         this.brokerId = brokerId;
-        this.brokerServerPort = brokerServerPort;
+        this.clusterId = clusterId;
+        this.numClusterBrokers = brokerConfig.getClusterBrokerAddresses().size() + 1;
+
+        this.brokerConfig = brokerConfig;
 
         if(isLeader)
             brokerState = new LeaderBrokerState(this);
@@ -62,10 +75,13 @@ public class BrokerContext {
             brokerState = new FollowerBrokerState(this);
     }
 
+    /**
+     * Start the broker instance
+     * */
     public void start(){
-        //ExecutorInstance.getInstance().getExecutorService().submit(new ServerToGateway(this, 8081));
-        ExecutorInstance.getInstance().getExecutorService().submit(new ServerToBroker(this, brokerServerPort));
-        clusterBrokerAddress.forEach(address -> ExecutorInstance.getInstance().getExecutorService().submit(new ClientToBroker( address, this)));
+        ExecutorInstance.getInstance().getExecutorService().submit(new ServerToGateway(this, brokerConfig.getBrokerServerPortToGateway()));
+        ExecutorInstance.getInstance().getExecutorService().submit(new ServerToBroker(this, brokerConfig.getBrokerServerPortToFollower()));
+        brokerConfig.getClusterBrokerAddresses().forEach(address -> ExecutorInstance.getInstance().getExecutorService().submit(new ClientToBroker(address, this)));
     }
 
     public void setBrokerState(BrokerState brokerState) {
@@ -80,5 +96,32 @@ public class BrokerContext {
         return brokerModel;
     }
 
+    public String getBrokerId() {
+        return brokerId;
+    }
 
+    public String getClusterId() {
+        return clusterId;
+    }
+
+    public IBrokerRaftIntegration getBrokerRaftIntegration() {
+        return brokerRaftIntegration;
+    }
+
+    public int getNumClusterBrokers() {
+        return numClusterBrokers;
+    }
+
+    public String getLeaderId() {
+        return leaderId;
+    }
+
+    public Socket getLeaderSocket() {
+        return leaderSocket;
+    }
+
+    public void updateNewLeaderInfo(String leaderId, Socket leaderSocket){
+        this.leaderId = leaderId;
+        this.leaderSocket = leaderSocket;
+    }
 }

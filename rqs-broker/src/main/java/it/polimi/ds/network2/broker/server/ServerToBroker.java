@@ -9,6 +9,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -32,21 +33,21 @@ public class ServerToBroker implements Runnable{
                 ServerSocket serverSocket = new ServerSocket(serverPort);
         ){
 
-            log.info("Server to the broker is open!");
+            log.log(Level.INFO, "Broker has open as server on port: {0} !", serverSocket.getLocalPort());
 
             while(true){
                 try{
                     Socket clientSocket = serverSocket.accept();
-                    log.info("A new broker has been connected as client!");
+                    log.log(Level.INFO, "A new broker has been connected as client on port {0}!", clientSocket.getPort());
                     ExecutorInstance.getInstance().getExecutorService().submit(new BrokerHandler(brokerContext, clientSocket));
                 }catch (IOException ex){
-                    log.severe("ERROR opening connection with broker as client!");
+                    log.log(Level.INFO, "ERROR opening connection with broker as client!");
                     return;
                 }
             }
 
         } catch (IOException ex) {
-            log.severe("Error! IOException opening server to brokers");
+            log.log(Level.INFO, "Error! IOException opening server to brokers");
             log.severe(ex.getMessage());
         }
     }

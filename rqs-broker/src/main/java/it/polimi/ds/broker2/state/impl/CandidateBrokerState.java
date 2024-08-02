@@ -31,11 +31,11 @@ public class CandidateBrokerState extends BrokerState {
     @Override
     public void serverToGatewayExec(BufferedReader in, PrintWriter out) {
         log.info("serverToGatewayExec: IT's candidate..");
-        //deny each message
+        //deny ALL messages
     }
 
     @Override
-    public void serverToBrokerExec(BufferedReader in, PrintWriter out) {
+    public void serverToBrokerExec(Socket socket, BufferedReader in, PrintWriter out) {
         log.info("serverToBrokerExec: IT's candidate..");
         //deny each message
     }

@@ -1,12 +1,14 @@
 package it.polimi.ds.network2.broker.server.handler;
 
 import it.polimi.ds.broker2.BrokerContext;
+import it.polimi.ds.network2.utils.thread.impl.ThreadsCommunication;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class BrokerHandler implements Runnable{
@@ -24,22 +26,22 @@ public class BrokerHandler implements Runnable{
     public void run() {
         try(
                 PrintWriter out = new PrintWriter(socket.getOutputStream());
-                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                InputStreamReader streamReader = new InputStreamReader(socket.getInputStream());
+                BufferedReader in = new BufferedReader(streamReader);
            ){
-
-            log.info("Starting communication with broker!");
+            ThreadsCommunication.getInstance().addSocketQueue(socket);
 
             while(true){
                 try{
-                    brokerContext.getBrokerState().serverToBrokerExec(in, out);
+                    brokerContext.getBrokerState().serverToBrokerExec(socket, in, out);
                 } catch (IOException e){
-                    log.severe("IOException in communication with broker!");
+                    log.log(Level.SEVERE, "IOException in communication with broker client {0}!", socket.getPort());
                     return;
                 }
             }
 
         }catch (IOException ex){
-            log.severe("IO Exception in connection with broker server!");
+            log.log(Level.SEVERE, "IOException in connection with broker server!");
         }
     }
 }

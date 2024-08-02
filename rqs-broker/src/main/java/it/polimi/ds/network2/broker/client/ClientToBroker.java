@@ -1,7 +1,7 @@
 package it.polimi.ds.network2.broker.client;
 
 import it.polimi.ds.broker2.BrokerContext;
-import it.polimi.ds.network2.utils.ThreadCommunication;
+import it.polimi.ds.network2.utils.thread.impl.ThreadsCommunication;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -9,8 +9,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ClientToBroker implements Runnable{
@@ -28,7 +27,7 @@ public class ClientToBroker implements Runnable{
     public void run() {
 
         try {
-            log.info("WAITING 15 sec to make the other server going up...");
+            log.log(Level.INFO, "WAITING 15 sec to make the other server going up...");
             Thread.sleep(15000);
         } catch (InterruptedException e) {
             return;
@@ -41,15 +40,13 @@ public class ClientToBroker implements Runnable{
                 PrintWriter out = new PrintWriter(socket.getOutputStream());
         ){
 
-            log.info("Connected to the broker as client!");
-
-            ThreadCommunication.getInstance().addSocketQueue(socket);
+            log.log(Level.INFO, "Connection as client established with port {0}", socket.getPort());
 
             while(true){
                 try{
                     brokerContext.getBrokerState().clientToBrokerExec(socket, in, out);
                 }catch (IOException e){
-                    log.severe("ERROR IOException in communication with broker as client!");
+                    log.log(Level.INFO, "ERROR IOException in communication with broker as client: {0}", e.getMessage());
                     return;
                 }
             }

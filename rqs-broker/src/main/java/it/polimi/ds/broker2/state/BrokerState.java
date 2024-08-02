@@ -20,7 +20,7 @@ public abstract class BrokerState {
     abstract public void clientToBrokerExec(Socket socket, BufferedReader in, PrintWriter out) throws IOException;
     abstract public void clientToDnsExec(BufferedReader in, PrintWriter out);
     abstract public void serverToGatewayExec(BufferedReader in, PrintWriter out) throws IOException;
-    abstract public void serverToBrokerExec(BufferedReader in, PrintWriter out) throws IOException;
+    abstract public void serverToBrokerExec(Socket socket, BufferedReader in, PrintWriter out) throws IOException;
 
     public void onHeartbeatTimeout(){}
 

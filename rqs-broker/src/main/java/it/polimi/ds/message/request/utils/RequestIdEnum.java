@@ -10,7 +10,8 @@ public enum RequestIdEnum {
     CREATE_QUEUE_REQUEST("createQueueReq"),
     READ_VALUE_REQUEST("readValueReq"),
     HEARTBEAT_REQUEST("heartbeatReq"),
-    COMMIT_REQUEST("commitReq");
+    COMMIT_REQUEST("commitReq"),
+    APPEND_ENTRY_LOG_REQUEST("appendEntryLogReq");
 
     private final String value;
 

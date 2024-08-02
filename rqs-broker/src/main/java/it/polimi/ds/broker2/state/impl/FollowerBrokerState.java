@@ -12,6 +12,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class FollowerBrokerState extends BrokerState {
@@ -21,42 +22,51 @@ public class FollowerBrokerState extends BrokerState {
 
     public FollowerBrokerState(BrokerContext brokerContext) {
         super(brokerContext);
-        heartbeatTimerThreadStart();
+        //heartbeatTimerThreadStart();
     }
 
     @Override
     public void clientToBrokerExec(Socket socket, BufferedReader in, PrintWriter out) {
-        log.info("clientToBrokerExec: IT's follower");
+        //log.info("clientToBrokerExec: IT's follower");
         //deny each message
     }
 
     @Override
     public void clientToDnsExec(BufferedReader in, PrintWriter out) {
-        log.info("clientToDnsExec: IT's follower");
+        //log.info("clientToDnsExec: IT's follower");
         //deny each message
     }
 
     @Override
     public void serverToGatewayExec(BufferedReader in, PrintWriter out) {
-        log.info("serverToGatewayExec: IT's follower");
-        //deny each message
+        //log.info("serverToGatewayExec: IT's follower");
+        //deny ALL messages
     }
 
+    /**
+     * Followers accept messages only from leader
+     * */
     @Override
-    public void serverToBrokerExec(BufferedReader in, PrintWriter out) throws IOException {
-        log.info("serverToBrokerExec: IT's follower..");
+    public void serverToBrokerExec(Socket socket, BufferedReader in, PrintWriter out) throws IOException {
+
         String requestLine = in.readLine();
-        System.out.println("RECEIVED: { " + requestLine + " }");
 
-        heartBeatTimerThreadLock.notify();
+        if(requestLine != null && !requestLine.isEmpty()){
+            log.log(Level.INFO, "Request from Leader: {0} ;responding to socket on port: {1}", new Object[]{requestLine, socket.getPort()});
 
+            //forwarding message
+            out.println("responseOf: " + requestLine);
+            out.flush();
+        }
+
+        //heartBeatTimerThreadLock.notify();
+/*
         ResponseMessage responseMessage = new ResponseMessage(
                 ResponseIdEnum.HEARTBEAT_RESPONSE,
                 GsonInstance.getInstance().getGson().toJson(new HeartbeatResponse())
-        );
+        );*/
 
-        out.println(GsonInstance.getInstance().getGson().toJson(responseMessage));
-        out.flush();
+
     }
 
     @Override
