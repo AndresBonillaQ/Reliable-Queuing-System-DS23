@@ -26,7 +26,7 @@ public class FollowerBrokerState extends BrokerState {
     }
 
     @Override
-    public void clientToBrokerExec(Socket socket, BufferedReader in, PrintWriter out) {
+    public void clientToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) {
         //log.info("clientToBrokerExec: IT's follower");
         //deny each message
     }
@@ -47,12 +47,12 @@ public class FollowerBrokerState extends BrokerState {
      * Followers accept messages only from leader
      * */
     @Override
-    public void serverToBrokerExec(Socket socket, BufferedReader in, PrintWriter out) throws IOException {
+    public void serverToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) throws IOException {
 
         String requestLine = in.readLine();
 
         if(requestLine != null && !requestLine.isEmpty()){
-            log.log(Level.INFO, "Request from Leader: {0} ;responding to socket on port: {1}", new Object[]{requestLine, socket.getPort()});
+            log.log(Level.INFO, "Request from Leader: {0} ; responding to brokerId {1}", new Object[]{requestLine, clientBrokerId});
 
             //forwarding message
             out.println("responseOf: " + requestLine);

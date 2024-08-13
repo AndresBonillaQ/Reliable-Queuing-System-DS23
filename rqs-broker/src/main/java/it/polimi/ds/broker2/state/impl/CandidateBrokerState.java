@@ -17,7 +17,7 @@ public class CandidateBrokerState extends BrokerState {
     }
 
     @Override
-    public void clientToBrokerExec(Socket socket, BufferedReader in, PrintWriter out) {
+    public void clientToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) {
         log.info("clientToBrokerExec: IT's candidate..");
         //deny each message
     }
@@ -35,7 +35,7 @@ public class CandidateBrokerState extends BrokerState {
     }
 
     @Override
-    public void serverToBrokerExec(Socket socket, BufferedReader in, PrintWriter out) {
+    public void serverToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) {
         log.info("serverToBrokerExec: IT's candidate..");
         //deny each message
     }

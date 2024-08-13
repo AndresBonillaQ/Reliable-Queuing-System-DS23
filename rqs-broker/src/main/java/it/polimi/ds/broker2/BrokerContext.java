@@ -11,9 +11,12 @@ import it.polimi.ds.network2.broker.client.ClientToBroker;
 import it.polimi.ds.network2.broker.server.ServerToBroker;
 import it.polimi.ds.network2.gateway.ServerToGateway;
 import it.polimi.ds.utils.ExecutorInstance;
+import it.polimi.ds.utils.ThreadsHealth;
 import it.polimi.ds.utils.config.BrokerConfig;
 
 import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class BrokerContext {
 
@@ -60,12 +63,14 @@ public class BrokerContext {
     /**
      * Broker network configuration
      * */
-    private final BrokerConfig brokerConfig;;
+    private final BrokerConfig brokerConfig;
+
+    private final Logger log = Logger.getLogger(BrokerContext.class.getName());
 
     public BrokerContext(BrokerConfig brokerConfig, String brokerId, String clusterId, boolean isLeader){
         this.brokerId = brokerId;
         this.clusterId = clusterId;
-        this.numClusterBrokers = brokerConfig.getClusterBrokerAddresses().size() + 1;
+        this.numClusterBrokers = brokerConfig.getClusterBrokerConfig().size() + 1;
 
         this.brokerConfig = brokerConfig;
 
@@ -79,9 +84,11 @@ public class BrokerContext {
      * Start the broker instance
      * */
     public void start(){
+        log.log(Level.INFO, "Starting broker with ID {0}", brokerId);
+        new Thread(new ThreadsHealth()).start();
         ExecutorInstance.getInstance().getExecutorService().submit(new ServerToGateway(this, brokerConfig.getBrokerServerPortToGateway()));
-        ExecutorInstance.getInstance().getExecutorService().submit(new ServerToBroker(this, brokerConfig.getBrokerServerPortToFollower()));
-        brokerConfig.getClusterBrokerAddresses().forEach(address -> ExecutorInstance.getInstance().getExecutorService().submit(new ClientToBroker(address, this)));
+        ExecutorInstance.getInstance().getExecutorService().submit(new ServerToBroker(this, brokerConfig.getBrokerServerPortToBrokers()));
+        brokerConfig.getClusterBrokerConfig().forEach(brokerInfo -> ExecutorInstance.getInstance().getExecutorService().submit(new ClientToBroker(brokerInfo.getInetSocketAddress(), this, brokerInfo.getBrokerId())));
     }
 
     public void setBrokerState(BrokerState brokerState) {
