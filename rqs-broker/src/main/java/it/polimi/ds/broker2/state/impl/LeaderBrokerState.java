@@ -30,11 +30,11 @@ public class LeaderBrokerState extends BrokerState {
      * This method handles all messages to forward to followers from the BlockingQueue
      * */
     @Override
-    public void clientToBrokerExec(Socket socket, BufferedReader in, PrintWriter out) {
+    public void clientToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) {
 
         try{
             //blocking execution until a message to forward is available
-            String requestToForward = ThreadsCommunication.getInstance().getRequestConcurrentHashMap().get(socket).poll(3, TimeUnit.SECONDS);
+            String requestToForward = ThreadsCommunication.getInstance().getRequestConcurrentHashMapOfBrokerId(clientBrokerId).poll(500, TimeUnit.MILLISECONDS);
 
             if(requestToForward != null && !requestToForward.isEmpty()){
                 log.log(Level.INFO, "Forwarding request to follower: {0}", requestToForward);
@@ -144,16 +144,18 @@ public class LeaderBrokerState extends BrokerState {
      * This method handles all responses received from followers
      * */
     @Override
-    public void serverToBrokerExec(Socket socket, BufferedReader in, PrintWriter out) throws IOException {
+    public void serverToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) throws IOException {
 
-        log.log(Level.INFO, "Broker server to followers waiting on port: {0}", socket.getPort());
-        String responseLine = in.readLine(); //TODO capire cosa succede se arriva un messaggio con ID non nella enum
+        log.log(Level.INFO, "TEESTTTT");
+
+        String responseLine = in.readLine();
+        log.log(Level.INFO, "Received message from broker clientBrokerId {0} ...", clientBrokerId);
 
         if(responseLine != null && !responseLine.isEmpty()){
             log.log(Level.INFO, "Response from follower: {0}", responseLine);
 
             // add message to responseQueue
-            ThreadsCommunication.getInstance().addResponseToFollowerResponseQueue(socket, responseLine);
+            ThreadsCommunication.getInstance().addResponseToFollowerResponseQueue(clientBrokerId, responseLine);
         }
     }
 

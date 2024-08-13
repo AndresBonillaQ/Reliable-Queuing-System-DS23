@@ -17,7 +17,10 @@ public class LeaderWaitingForFollowersCallable implements Callable<String> {
 
     @Override
     public String call() throws Exception {
-        log.log(Level.INFO, "ResponseBlockingQueue of callable is: {0}", responseBlockingQueue);
-        return responseBlockingQueue.poll(15, TimeUnit.SECONDS);
+        String resp =  responseBlockingQueue.poll(7, TimeUnit.SECONDS);
+
+        log.log(Level.INFO, "ResponseBlockingQueue of callable is {0}, response {1}", new Object[]{responseBlockingQueue, resp});
+
+        return resp;
     }
 }

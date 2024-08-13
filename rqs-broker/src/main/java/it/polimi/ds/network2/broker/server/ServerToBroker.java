@@ -37,8 +37,8 @@ public class ServerToBroker implements Runnable{
 
             while(true){
                 try{
-                    Socket clientSocket = serverSocket.accept();
-                    log.log(Level.INFO, "A new broker has been connected as client on port {0}!", clientSocket.getPort());
+                    final Socket clientSocket = serverSocket.accept();
+                    log.log(Level.INFO, "A new broker has been connected as client on port {0}!", serverPort);
                     ExecutorInstance.getInstance().getExecutorService().submit(new BrokerHandler(brokerContext, clientSocket));
                 }catch (IOException ex){
                     log.log(Level.INFO, "ERROR opening connection with broker as client!");
