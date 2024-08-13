@@ -3,19 +3,17 @@ package it.polimi.ds.network2.broker.client;
 import it.polimi.ds.broker2.BrokerContext;
 import it.polimi.ds.exception.network.ImpossibleSetUpException;
 import it.polimi.ds.message.RequestMessage;
-import it.polimi.ds.message.ResponseMessage;
 import it.polimi.ds.message.request.SetUpRequest;
 import it.polimi.ds.message.request.utils.RequestIdEnum;
 import it.polimi.ds.message.response.SetUpResponse;
 import it.polimi.ds.message.response.utils.StatusEnum;
-import it.polimi.ds.network2.utils.thread.impl.ThreadsCommunication;
+import it.polimi.ds.utils.BrokerInfo;
 import it.polimi.ds.utils.GsonInstance;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,14 +21,12 @@ import java.util.logging.Logger;
 public class ClientToBroker implements Runnable{
 
     private final Logger log = Logger.getLogger(ClientToBroker.class.getName());
-    private final InetSocketAddress brokerAddress;
+    private final BrokerInfo brokerInfo;
     private final BrokerContext brokerContext;
-    private final String clientBrokerId;
 
-    public ClientToBroker(InetSocketAddress inetSocketAddress, BrokerContext brokerContext, String clientBrokerId){
-        this.brokerAddress = inetSocketAddress;
+    public ClientToBroker(BrokerInfo brokerInfo, BrokerContext brokerContext){
+        this.brokerInfo = brokerInfo;
         this.brokerContext = brokerContext;
-        this.clientBrokerId = clientBrokerId;
     }
 
     @Override
@@ -44,19 +40,19 @@ public class ClientToBroker implements Runnable{
         }
 
         try(
-                Socket socket = new Socket(brokerAddress.getHostString(), brokerAddress.getPort());
+                Socket socket = new Socket(brokerInfo.getHostName(), brokerInfo.getPort());
                 InputStreamReader streamReader = new InputStreamReader(socket.getInputStream());
                 BufferedReader in = new BufferedReader(streamReader);
                 PrintWriter out = new PrintWriter(socket.getOutputStream());
 
         ){
-            log.log(Level.INFO, "Connection as client established with host: {0} and port {1}", new Object[]{brokerAddress.getHostString(), brokerAddress.getPort()});
+            log.log(Level.INFO, "Connection as client to broker established with host: {0} and port {1}", new Object[]{brokerInfo.getHostName(), brokerInfo.getPort()});
 
             try{
                 sendFirstSetupMessage(in, out);
 
                 while(true){
-                    brokerContext.getBrokerState().clientToBrokerExec(clientBrokerId, in, out);
+                    brokerContext.getBrokerState().clientToBrokerExec(brokerInfo.getBrokerId(), in, out);
                 }
 
             } catch (IOException | ImpossibleSetUpException e){
@@ -73,7 +69,7 @@ public class ClientToBroker implements Runnable{
      * First message sent to brokers is the ID
      * */
     private void sendFirstSetupMessage(BufferedReader in, PrintWriter out) throws IOException, ImpossibleSetUpException {
-        SetUpRequest setUpRequest = new SetUpRequest(brokerContext.getBrokerId());
+        SetUpRequest setUpRequest = new SetUpRequest(brokerContext.getMyBrokerConfig().getMyBrokerId());
 
         RequestMessage requestMessage = new RequestMessage(
                 RequestIdEnum.SET_UP_REQUEST,
@@ -91,7 +87,5 @@ public class ClientToBroker implements Runnable{
             log.log(Level.SEVERE, "Impossible to setUp client, error: {0}, finishing connection..", setUpResponse.getDesStatus());
             throw new ImpossibleSetUpException("Impossible to setUp with broker as client!");
         }
-
-        log.log(Level.INFO, "SetUp brokerClientId finished");
     }
 }

@@ -3,16 +3,19 @@ package it.polimi.ds.broker2.state.impl;
 import it.polimi.ds.broker2.BrokerContext;
 import it.polimi.ds.broker2.state.BrokerState;
 import it.polimi.ds.message.RequestMessage;
+import it.polimi.ds.message.raft.request.RaftLogEntryRequest;
 import it.polimi.ds.message.request.HeartbeatRequest;
 import it.polimi.ds.message.request.utils.RequestIdEnum;
 import it.polimi.ds.network2.utils.LeaderWaitingForFollowersCallable;
 import it.polimi.ds.network2.utils.thread.impl.ThreadsCommunication;
+import it.polimi.ds.raftLog.RaftLog;
 import it.polimi.ds.utils.GsonInstance;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.List;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,11 +33,11 @@ public class LeaderBrokerState extends BrokerState {
      * This method handles all messages to forward to followers from the BlockingQueue
      * */
     @Override
-    public void clientToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) {
+    public void clientToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) throws IOException {
 
         try{
             //blocking execution until a message to forward is available
-            String requestToForward = ThreadsCommunication.getInstance().getRequestConcurrentHashMapOfBrokerId(clientBrokerId).poll(500, TimeUnit.MILLISECONDS);
+            String requestToForward = ThreadsCommunication.getInstance().getRequestConcurrentHashMapOfBrokerId(clientBrokerId).poll(50, TimeUnit.MILLISECONDS);
 
             if(requestToForward != null && !requestToForward.isEmpty()){
                 log.log(Level.INFO, "Forwarding request to follower: {0}", requestToForward);
@@ -42,6 +45,12 @@ public class LeaderBrokerState extends BrokerState {
                 //forwarding message
                 out.println(requestToForward);
                 out.flush();
+
+                String responseLine = in.readLine();
+                log.log(Level.INFO, "RESPONSE: {0}", responseLine);
+
+                // add message to responseQueue
+                ThreadsCommunication.getInstance().addResponseToFollowerResponseQueue(clientBrokerId, responseLine);
             }
 
         }catch (InterruptedException e){
@@ -80,14 +89,14 @@ public class LeaderBrokerState extends BrokerState {
         }*/
 
         ThreadsCommunication.getInstance().addRequestToAllFollowerRequestQueue(requestLine); //tmp
-/*
+
         //build log and append it
         final List<RaftLog> raftLog = getBrokerContext().getBrokerRaftIntegration().buildAndAppendNewLog(requestLine);
 
         //build logEntryRequest to forward to all followers
         final RaftLogEntryRequest raftLogEntryRequest = new RaftLogEntryRequest(
                 getBrokerContext().getBrokerRaftIntegration().getCurrentTerm(),
-                getBrokerContext().getBrokerId(),
+                getBrokerContext().getMyBrokerConfig().getMyBrokerId(),
                 getBrokerContext().getBrokerRaftIntegration().getPrevLogIndex(),
                 getBrokerContext().getBrokerRaftIntegration().getPrevLogTerm(),
                 -1, //TODO capire
@@ -100,8 +109,8 @@ public class LeaderBrokerState extends BrokerState {
         );
 
         //pass message to each thread which handle client connection with followers
-        LeaderThreadCommunication.getInstance().addRequestToAllFollowerRequestQueue(GsonInstance.getInstance().getGson().toJson(raftLogMessage));
-*/
+        ThreadsCommunication.getInstance().addRequestToAllFollowerRequestQueue(GsonInstance.getInstance().getGson().toJson(raftLogMessage));
+
         // start from 1 because the leader vote OK for himself
         final int numConsensus = 1;
         final int numFollowersThread = ThreadsCommunication.getInstance().getResponseConcurrentHashMap().size();
@@ -145,18 +154,7 @@ public class LeaderBrokerState extends BrokerState {
      * */
     @Override
     public void serverToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) throws IOException {
-
-        log.log(Level.INFO, "TEESTTTT");
-
-        String responseLine = in.readLine();
-        log.log(Level.INFO, "Received message from broker clientBrokerId {0} ...", clientBrokerId);
-
-        if(responseLine != null && !responseLine.isEmpty()){
-            log.log(Level.INFO, "Response from follower: {0}", responseLine);
-
-            // add message to responseQueue
-            ThreadsCommunication.getInstance().addResponseToFollowerResponseQueue(clientBrokerId, responseLine);
-        }
+        //DENY all messages
     }
 
     private void startHeartBeat(){

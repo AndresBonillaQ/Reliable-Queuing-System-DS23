@@ -33,12 +33,12 @@ public class ServerToBroker implements Runnable{
                 ServerSocket serverSocket = new ServerSocket(serverPort);
         ){
 
-            log.log(Level.INFO, "Broker has open as server on port: {0} !", serverSocket.getLocalPort());
+            log.log(Level.INFO, "Broker open server to brokers on port : {0} !", serverPort);
 
             while(true){
                 try{
                     final Socket clientSocket = serverSocket.accept();
-                    log.log(Level.INFO, "A new broker has been connected as client on port {0}!", serverPort);
+                    log.log(Level.INFO, "A new broker has connected as client on port {0}!", clientSocket.getPort());
                     ExecutorInstance.getInstance().getExecutorService().submit(new BrokerHandler(brokerContext, clientSocket));
                 }catch (IOException ex){
                     log.log(Level.INFO, "ERROR opening connection with broker as client!");

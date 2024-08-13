@@ -42,11 +42,13 @@ public class BrokerHandler implements Runnable{
 
             try{
                 final String brokerClientId = receiveFirstSetupMessage(in, out);
-                log.log(Level.INFO, "SetUp brokerClientId {0} finished !", brokerClientId);
+                //log.log(Level.INFO, "SetUp brokerClientId {0} finished !", brokerClientId);
 
-                while(true){
+                while(socket.isConnected() && !socket.isClosed()){
                     brokerContext.getBrokerState().serverToBrokerExec(brokerClientId, in, out);
                 }
+
+                log.log(Level.SEVERE, "serverToBrokerExec Connection closed");
 
             } catch (ImpossibleSetUpException | IOException e){
                 log.log(Level.SEVERE, "ERROR in communication with broker, error: {0}", e.getMessage());

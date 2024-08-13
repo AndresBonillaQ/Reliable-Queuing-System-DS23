@@ -29,6 +29,7 @@ public class ServerToGateway implements Runnable {
         try(
                 ServerSocket serverSocket = new ServerSocket(serverPort)
         ){
+            log.log(Level.INFO, "Broker open server to gateway on port : {0} !", serverPort);
             try(
                     Socket clientSocket = serverSocket.accept();
                     PrintWriter out = new PrintWriter(clientSocket.getOutputStream());
@@ -37,16 +38,11 @@ public class ServerToGateway implements Runnable {
 
                 log.log(Level.INFO, "Connection established with gateway!");
 
-                while(true){
-                    try {
-                        brokerContext.getBrokerState().serverToGatewayExec(in, out);
-                    } catch (IOException e) {
-                        log.severe("Error! IOException during communication with gateway!");
-                        log.severe(e.getMessage());
-                        return;
-                    }
+                while(clientSocket.isConnected() && !clientSocket.isClosed()){
+                    brokerContext.getBrokerState().serverToGatewayExec(in, out);
                 }
 
+                log.log(Level.SEVERE, "serverToGatewayExec Connection closed");
 
             } catch (IOException e) {
                 log.severe("Error! IOException during establishing connection with gateway!");
