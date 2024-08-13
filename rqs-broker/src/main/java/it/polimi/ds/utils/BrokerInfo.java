@@ -4,11 +4,13 @@ import java.net.InetSocketAddress;
 
 public class BrokerInfo {
     private String brokerId;
-    private InetSocketAddress inetSocketAddress;
+    private String hostName;
+    private int port;
 
-    public BrokerInfo(String brokerId, InetSocketAddress inetSocketAddress) {
+    public BrokerInfo(String brokerId, String hostName, int port) {
         this.brokerId = brokerId;
-        this.inetSocketAddress = inetSocketAddress;
+        this.hostName = hostName;
+        this.port = port;
     }
 
     public String getBrokerId() {
@@ -19,11 +21,19 @@ public class BrokerInfo {
         this.brokerId = brokerId;
     }
 
-    public InetSocketAddress getInetSocketAddress() {
-        return inetSocketAddress;
+    public String getHostName() {
+        return hostName;
     }
 
-    public void setInetSocketAddress(InetSocketAddress inetSocketAddress) {
-        this.inetSocketAddress = inetSocketAddress;
+    public void setHostName(String hostName) {
+        this.hostName = hostName;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
     }
 }

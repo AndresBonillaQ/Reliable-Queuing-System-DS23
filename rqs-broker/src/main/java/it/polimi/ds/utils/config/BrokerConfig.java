@@ -6,6 +6,10 @@ import java.util.List;
 
 public class BrokerConfig {
 
+    private final String myBrokerId;
+
+    private final String myClusterId;
+
     /**
      * Number of brokers which compose the cluster
      * */
@@ -21,7 +25,9 @@ public class BrokerConfig {
      * */
     private final int brokerServerPortToGateway;
 
-    public BrokerConfig(List<BrokerInfo> clusterBrokerConfig, int brokerServerPortToBrokers, int brokerServerPortToGateway) {
+    public BrokerConfig(String myBrokerId, String myClusterId, int brokerServerPortToBrokers, int brokerServerPortToGateway, List<BrokerInfo> clusterBrokerConfig) {
+        this.myBrokerId = myBrokerId;
+        this.myClusterId = myClusterId;
         this.clusterBrokerConfig = clusterBrokerConfig;
         this.brokerServerPortToBrokers = brokerServerPortToBrokers;
         this.brokerServerPortToGateway = brokerServerPortToGateway;
@@ -37,5 +43,13 @@ public class BrokerConfig {
 
     public int getBrokerServerPortToGateway() {
         return brokerServerPortToGateway;
+    }
+
+    public String getMyBrokerId() {
+        return myBrokerId;
+    }
+
+    public String getMyClusterId() {
+        return myClusterId;
     }
 }

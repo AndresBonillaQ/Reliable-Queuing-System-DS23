@@ -43,8 +43,6 @@ public class ThreadsCommunication {
     }
 
     public boolean addBrokerId(String brokerId){
-        log.log(Level.INFO, "Adding brokerId {0} to requestConcurrentHashMap", brokerId);
-
         if(requestConcurrentHashMap.containsKey(brokerId) || responseConcurrentHashMap.containsKey(brokerId))
             return false;
 
@@ -55,7 +53,8 @@ public class ThreadsCommunication {
     }
 
     public void addRequestToAllFollowerRequestQueue(String request){
-        log.log(Level.INFO, "Adding request {0} to requestConcurrentHashMap with size {1}", new Object[]{request, requestConcurrentHashMap.size()});
+        log.log(Level.INFO, "Adding request {0} to map with keys: {1}", new Object[]{request, requestConcurrentHashMap.keySet()});
+
         requestConcurrentHashMap.values().forEach(
                 blockingQueue-> blockingQueue.add(request)
         );
@@ -80,7 +79,7 @@ public class ThreadsCommunication {
     }
 
     public BlockingQueue<String> getRequestConcurrentHashMapOfBrokerId(String brokerId) {
-        log.log(Level.INFO, "Retrieving BlockingQueue of brokerId {0}, isPresent {1}", new Object[]{brokerId, requestConcurrentHashMap.containsKey(brokerId)});
+        //log.log(Level.INFO, "Retrieving BlockingQueue of brokerId {0}, isPresent {1}", new Object[]{brokerId, requestConcurrentHashMap.containsKey(brokerId)});
 
         return requestConcurrentHashMap.get(brokerId);
     }
