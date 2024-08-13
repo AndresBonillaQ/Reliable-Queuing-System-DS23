@@ -3,13 +3,14 @@ package it.polimi.ds.utils;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 public class ExecutorInstance {
-    private final ExecutorService executorService;
+    private final ThreadPoolExecutor executor;
     private static ExecutorInstance instance;
 
     private ExecutorInstance(){
-        this.executorService = Executors.newCachedThreadPool();
+        this.executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(100);
     }
 
     public static ExecutorInstance getInstance(){
@@ -19,6 +20,14 @@ public class ExecutorInstance {
     }
 
     public ExecutorService getExecutorService() {
-        return executorService;
+        return executor;
+    }
+
+    public void logging(){
+        System.out.println("Thread attivi: " + executor.getActiveCount());
+        System.out.println("Task in coda: " + executor.getQueue().size());
+        System.out.println("Numero massimo di thread usati: " + executor.getLargestPoolSize());
+        System.out.println("Numero di task completati: " + executor.getCompletedTaskCount());
+        System.out.println("----------------------------");
     }
 }

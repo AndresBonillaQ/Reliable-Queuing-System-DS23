@@ -6,6 +6,7 @@ import java.util.Optional;
  * Message Response identifier
  * */
 public enum RequestIdEnum {
+    SET_UP_REQUEST("setUpReq"),
     APPEND_VALUE_REQUEST("appendValueReq"),
     CREATE_QUEUE_REQUEST("createQueueReq"),
     READ_VALUE_REQUEST("readValueReq"),

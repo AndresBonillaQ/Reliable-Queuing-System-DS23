@@ -17,10 +17,10 @@ public abstract class BrokerState {
         this.brokerContext = brokerContext;
     }
 
-    abstract public void clientToBrokerExec(Socket socket, BufferedReader in, PrintWriter out) throws IOException;
+    abstract public void clientToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) throws IOException;
     abstract public void clientToDnsExec(BufferedReader in, PrintWriter out);
     abstract public void serverToGatewayExec(BufferedReader in, PrintWriter out) throws IOException;
-    abstract public void serverToBrokerExec(Socket socket, BufferedReader in, PrintWriter out) throws IOException;
+    abstract public void serverToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) throws IOException;
 
     public void onHeartbeatTimeout(){}
 

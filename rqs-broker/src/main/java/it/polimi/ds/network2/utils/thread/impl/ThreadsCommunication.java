@@ -19,14 +19,16 @@ public class ThreadsCommunication {
     /**
      * This Map contains, for each follower connection handler, a Blockingqueue containing
      * all messages to send to follower
+     * @key is the brokerId
      * */
-    private final ConcurrentHashMap<Socket, BlockingQueue<String>> requestConcurrentHashMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, BlockingQueue<String>> requestConcurrentHashMap = new ConcurrentHashMap<>();
 
     /**
      * This Map contains, for each follower connection handler, a Blockingqueue containing
      * all messages received from follower
+     * @key is the brokerId
      * */
-    private final ConcurrentHashMap<Socket, BlockingQueue<String>> responseConcurrentHashMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, BlockingQueue<String>> responseConcurrentHashMap = new ConcurrentHashMap<>();
 
     private final Logger log = Logger.getLogger(ThreadsCommunication.class.getName());
 
@@ -40,24 +42,31 @@ public class ThreadsCommunication {
         return instance;
     }
 
-    public void addSocketQueue(Socket socket){
-        requestConcurrentHashMap.put(socket, new LinkedBlockingQueue<>());
-        responseConcurrentHashMap.put(socket, new LinkedBlockingQueue<>());
+    public boolean addBrokerId(String brokerId){
+        if(requestConcurrentHashMap.containsKey(brokerId) || responseConcurrentHashMap.containsKey(brokerId))
+            return false;
+
+        requestConcurrentHashMap.put(brokerId, new LinkedBlockingQueue<>());
+        responseConcurrentHashMap.put(brokerId, new LinkedBlockingQueue<>());
+
+        return true;
     }
 
     public void addRequestToAllFollowerRequestQueue(String request){
+        log.log(Level.INFO, "Adding request {0} to map with keys: {1}", new Object[]{request, requestConcurrentHashMap.keySet()});
+
         requestConcurrentHashMap.values().forEach(
                 blockingQueue-> blockingQueue.add(request)
         );
     }
 
-    public void addResponseToFollowerResponseQueue(Socket socket, String response){
-        if(!Objects.isNull(responseConcurrentHashMap.get(socket)))
-            responseConcurrentHashMap.get(socket).add(response);
+    public void addResponseToFollowerResponseQueue(String brokerId, String response){
+        if(!Objects.isNull(responseConcurrentHashMap.get(brokerId)))
+            responseConcurrentHashMap.get(brokerId).add(response);
         else
-            log.log(Level.INFO, "The socket on port {0} is not associated to a responseQueue!", socket.getPort());
+            log.log(Level.INFO, "The brokerId {0} is not associated to a responseQueue!", brokerId);
 
-        log.log(Level.INFO, "ResponseBlockingQueue of socket with port {0} is {1}!", new Object[]{socket.getPort(), responseConcurrentHashMap.get(socket)});
+        log.log(Level.INFO, "ResponseBlockingQueue is {1}!", responseConcurrentHashMap.get(brokerId));
     }
 
     public void onBrokerStateChange(){
@@ -65,11 +74,13 @@ public class ThreadsCommunication {
         responseConcurrentHashMap.values().forEach(Collection::clear);
     }
 
-    public ConcurrentHashMap<Socket, BlockingQueue<String>> getResponseConcurrentHashMap() {
+    public ConcurrentHashMap<String, BlockingQueue<String>> getResponseConcurrentHashMap() {
         return responseConcurrentHashMap;
     }
 
-    public ConcurrentHashMap<Socket, BlockingQueue<String>> getRequestConcurrentHashMap() {
-        return requestConcurrentHashMap;
+    public BlockingQueue<String> getRequestConcurrentHashMapOfBrokerId(String brokerId) {
+        //log.log(Level.INFO, "Retrieving BlockingQueue of brokerId {0}, isPresent {1}", new Object[]{brokerId, requestConcurrentHashMap.containsKey(brokerId)});
+
+        return requestConcurrentHashMap.get(brokerId);
     }
 }
