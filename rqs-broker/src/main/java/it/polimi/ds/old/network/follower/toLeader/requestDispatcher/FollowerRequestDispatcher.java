@@ -3,7 +3,7 @@ package it.polimi.ds.old.network.follower.toLeader.requestDispatcher;
 import it.polimi.ds.exception.RequestNoManagedException;
 import it.polimi.ds.message.RequestMessage;
 import it.polimi.ds.message.ResponseMessage;
-import it.polimi.ds.message.request.utils.RequestIdEnum;
+import it.polimi.ds.message.id.RequestIdEnum;
 import it.polimi.ds.broker2.model.IBrokerModel;
 import it.polimi.ds.old.network.follower.toLeader.requestHandler.FollowerRequestHandler;
 import it.polimi.ds.old.network.follower.toLeader.requestHandler.impl.FollowerAppendValueRequestHandler;

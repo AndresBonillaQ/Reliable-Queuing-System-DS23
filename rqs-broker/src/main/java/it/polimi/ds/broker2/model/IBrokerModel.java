@@ -1,6 +1,7 @@
 package it.polimi.ds.broker2.model;
 
 import it.polimi.ds.exception.model.AlreadyExistsQueueWithSameIdException;
+import it.polimi.ds.exception.model.EmptyQueueException;
 import it.polimi.ds.exception.model.QueueNotFoundException;
 
 public interface IBrokerModel {
@@ -19,5 +20,7 @@ public interface IBrokerModel {
      * During queue value append we check if the queue exists, if exists we read value.
      * If offsetMap doesn't contain the key client-queue its probable the first read of client on that queue
      * */
-    int readValueFromQueueByClient(String queueId, String clientId) throws QueueNotFoundException, IndexOutOfBoundsException;
+    int readValueFromQueueByClient(String queueId, String clientId) throws QueueNotFoundException, IndexOutOfBoundsException, EmptyQueueException;
+
+    void printState();
 }

@@ -4,14 +4,15 @@ import it.polimi.ds.broker2.BrokerContext;
 import it.polimi.ds.exception.network.ImpossibleSetUpException;
 import it.polimi.ds.message.RequestMessage;
 import it.polimi.ds.message.ResponseMessage;
-import it.polimi.ds.message.request.SetUpRequest;
-import it.polimi.ds.message.request.utils.RequestIdEnum;
-import it.polimi.ds.message.response.SetUpResponse;
-import it.polimi.ds.message.response.utils.DesStatusEnum;
-import it.polimi.ds.message.response.utils.ResponseIdEnum;
-import it.polimi.ds.message.response.utils.StatusEnum;
+import it.polimi.ds.message.raft.request.SetUpRequest;
+import it.polimi.ds.message.id.RequestIdEnum;
+import it.polimi.ds.message.raft.response.SetUpResponse;
+import it.polimi.ds.message.model.response.utils.DesStatusEnum;
+import it.polimi.ds.message.id.ResponseIdEnum;
+import it.polimi.ds.message.model.response.utils.StatusEnum;
 import it.polimi.ds.network2.utils.thread.impl.ThreadsCommunication;
 import it.polimi.ds.utils.GsonInstance;
+import it.polimi.ds.utils.NetworkMessageBuilder;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -40,18 +41,21 @@ public class BrokerHandler implements Runnable{
                 BufferedReader in = new BufferedReader(streamReader);
            ){
 
-            try{
-                final String brokerClientId = receiveFirstSetupMessage(in, out);
-                //log.log(Level.INFO, "SetUp brokerClientId {0} finished !", brokerClientId);
+            String brokerClientId = null;
 
-                while(socket.isConnected() && !socket.isClosed()){
+            try{
+                brokerClientId = receiveFirstSetupMessage(in, out);
+                ThreadsCommunication.getInstance().addBrokerId(brokerClientId);
+
+                while(true){
                     brokerContext.getBrokerState().serverToBrokerExec(brokerClientId, in, out);
                 }
 
-                log.log(Level.SEVERE, "serverToBrokerExec Connection closed");
-
-            } catch (ImpossibleSetUpException | IOException e){
-                log.log(Level.SEVERE, "ERROR in communication with broker, error: {0}", e.getMessage());
+            } catch (IOException e){
+                log.log(Level.SEVERE, "The connection with BrokerId {0} has closed, error: {1}", new Object[]{brokerClientId, e.getMessage()});
+                ThreadsCommunication.getInstance().onBrokerConnectionClose(brokerClientId);
+            } catch (ImpossibleSetUpException ex){
+                log.log(Level.SEVERE, "Impossible to setUp the broker, error: {0}", ex.getMessage());
             }
 
         }catch (IOException ex){
@@ -62,26 +66,20 @@ public class BrokerHandler implements Runnable{
     private String receiveFirstSetupMessage(BufferedReader in, PrintWriter out) throws IOException, ImpossibleSetUpException {
 
         ResponseMessage responseMessage;
-        String msg;
 
         String request = in.readLine();
-
         RequestMessage requestMessage = GsonInstance.getInstance().getGson().fromJson(request, RequestMessage.class);
+
+        log.log(Level.INFO, "Received during setUp: {0}", request);
 
         if(RequestIdEnum.SET_UP_REQUEST.equals(requestMessage.getId())){
 
             SetUpRequest setUpRequest = GsonInstance.getInstance().getGson().fromJson(requestMessage.getContent(), SetUpRequest.class);
             final String brokerClientId = setUpRequest.getBrokerId();
 
-            if(ThreadsCommunication.getInstance().addBrokerId(brokerClientId)){
-                SetUpResponse setUpResponse = new SetUpResponse();
-                setUpResponse.setStatus(StatusEnum.OK);
-                setUpResponse.setDesStatus(DesStatusEnum.SET_UP_OK.getValue());
+            if(!ThreadsCommunication.getInstance().isBrokerIdPresent(brokerClientId)){
 
-                responseMessage = new ResponseMessage(
-                        ResponseIdEnum.SET_UP_RESPONSE,
-                        GsonInstance.getInstance().getGson().toJson(setUpResponse)
-                );
+                responseMessage = NetworkMessageBuilder.Response.buildSetUpResponse(StatusEnum.OK, DesStatusEnum.SET_UP_OK.getValue());
 
                 out.println(GsonInstance.getInstance().getGson().toJson(responseMessage));
                 out.flush();
@@ -89,14 +87,7 @@ public class BrokerHandler implements Runnable{
                 return brokerClientId;
 
             } else {
-                SetUpResponse setUpResponse = new SetUpResponse();
-                setUpResponse.setStatus(StatusEnum.KO);
-                setUpResponse.setDesStatus(DesStatusEnum.SET_UP_KO.getValue());
-
-                responseMessage = new ResponseMessage(
-                        ResponseIdEnum.SET_UP_RESPONSE,
-                        GsonInstance.getInstance().getGson().toJson(setUpResponse)
-                );
+                responseMessage = NetworkMessageBuilder.Response.buildSetUpResponse(StatusEnum.KO, DesStatusEnum.SET_UP_KO.getValue());
 
                 out.println(GsonInstance.getInstance().getGson().toJson(responseMessage));
                 out.flush();

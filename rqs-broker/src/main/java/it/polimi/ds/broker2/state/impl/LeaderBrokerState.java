@@ -1,20 +1,26 @@
 package it.polimi.ds.broker2.state.impl;
 
 import it.polimi.ds.broker2.BrokerContext;
+import it.polimi.ds.broker2.raft.impl.RaftLog;
 import it.polimi.ds.broker2.state.BrokerState;
+import it.polimi.ds.exception.RequestNoManagedException;
 import it.polimi.ds.message.RequestMessage;
-import it.polimi.ds.message.raft.request.RaftLogEntryRequest;
-import it.polimi.ds.message.request.HeartbeatRequest;
-import it.polimi.ds.message.request.utils.RequestIdEnum;
+import it.polimi.ds.message.ResponseMessage;
+import it.polimi.ds.message.id.RequestIdEnum;
+import it.polimi.ds.message.id.ResponseIdEnum;
+import it.polimi.ds.message.model.response.utils.StatusEnum;
+import it.polimi.ds.message.raft.request.HeartbeatRequest;
+import it.polimi.ds.message.raft.response.RaftLogEntryResponse;
+import it.polimi.ds.network2.handler.BrokerRequestDispatcher;
 import it.polimi.ds.network2.utils.LeaderWaitingForFollowersCallable;
+import it.polimi.ds.network2.utils.LeaderWaitingForFollowersResponse;
 import it.polimi.ds.network2.utils.thread.impl.ThreadsCommunication;
-import it.polimi.ds.raftLog.RaftLog;
 import it.polimi.ds.utils.GsonInstance;
+import it.polimi.ds.utils.NetworkMessageBuilder;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.Socket;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.logging.Level;
@@ -30,14 +36,15 @@ public class LeaderBrokerState extends BrokerState {
     }
 
     /**
-     * This method handles all messages to forward to followers from the BlockingQueue
+     * This method handles all messages to forward to followers from the BlockingQueue,
+     * messages could be APPEND_LOG_ENTRY_REQUEST or COMMIT_REQUEST
      * */
     @Override
     public void clientToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) throws IOException {
 
         try{
             //blocking execution until a message to forward is available
-            String requestToForward = ThreadsCommunication.getInstance().getRequestConcurrentHashMapOfBrokerId(clientBrokerId).poll(50, TimeUnit.MILLISECONDS);
+            String requestToForward = ThreadsCommunication.getInstance().getRequestConcurrentHashMapOfBrokerId(clientBrokerId).poll(10, TimeUnit.MILLISECONDS);
 
             if(requestToForward != null && !requestToForward.isEmpty()){
                 log.log(Level.INFO, "Forwarding request to follower: {0}", requestToForward);
@@ -46,11 +53,16 @@ public class LeaderBrokerState extends BrokerState {
                 out.println(requestToForward);
                 out.flush();
 
-                String responseLine = in.readLine();
-                log.log(Level.INFO, "RESPONSE: {0}", responseLine);
+                RequestMessage requestMessage = GsonInstance.getInstance().getGson().fromJson(requestToForward, RequestMessage.class);
 
-                // add message to responseQueue
-                ThreadsCommunication.getInstance().addResponseToFollowerResponseQueue(clientBrokerId, responseLine);
+                // Se è un messaggio di COMMIT non mi aspetto una response
+                if(!RequestIdEnum.COMMIT_REQUEST.equals(requestMessage.getId())){
+                    String responseLine = in.readLine();
+                    log.log(Level.INFO, "From follower {0} response is: {1}", new Object[]{clientBrokerId, responseLine});
+                    // add message to responseQueue
+                    ThreadsCommunication.getInstance().addResponseToFollowerResponseQueue(clientBrokerId, responseLine);
+                } else
+                    log.log(Level.INFO,"Not waiting for response because sent a commit message..");
             }
 
         }catch (InterruptedException e){
@@ -60,8 +72,8 @@ public class LeaderBrokerState extends BrokerState {
     }
 
     @Override
-    public void clientToDnsExec(BufferedReader in, PrintWriter out) {
-
+    public void clientToGatewayExec(BufferedReader in, PrintWriter out) {
+        // send to gateway: HI I'M THE LEADER OF CLUSTER X !
     }
 
     /**
@@ -82,70 +94,101 @@ public class LeaderBrokerState extends BrokerState {
 
         String requestLine = in.readLine();
         log.log(Level.INFO, "Request from gateway: {0}", requestLine);
-/*
-        if(BrokerRequestDispatcher.isRequestNotManaged(requestLine)){
-            log.log(Level.SEVERE, "Request {} not managed!", requestLine);
-            return;
-        }*/
 
-        ThreadsCommunication.getInstance().addRequestToAllFollowerRequestQueue(requestLine); //tmp
-
-        //build log and append it
-        final List<RaftLog> raftLog = getBrokerContext().getBrokerRaftIntegration().buildAndAppendNewLog(requestLine);
+        // append log and take it
+        final List<RaftLog> raftLog = brokerContext.getBrokerRaftIntegration().buildAndAppendNewLog(requestLine);
 
         //build logEntryRequest to forward to all followers
-        final RaftLogEntryRequest raftLogEntryRequest = new RaftLogEntryRequest(
-                getBrokerContext().getBrokerRaftIntegration().getCurrentTerm(),
-                getBrokerContext().getMyBrokerConfig().getMyBrokerId(),
-                getBrokerContext().getBrokerRaftIntegration().getPrevLogIndex(),
-                getBrokerContext().getBrokerRaftIntegration().getPrevLogTerm(),
-                -1, //TODO capire
+        final RequestMessage raftLogMessage = NetworkMessageBuilder.Request.buildAppendEntryLogRequest(
+                brokerContext.getBrokerRaftIntegration().getCurrentTerm(),
+                brokerContext.getMyBrokerConfig().getMyBrokerId(),
+                brokerContext.getBrokerRaftIntegration().getPrevLogIndex(),
+                brokerContext.getBrokerRaftIntegration().getPrevLogTerm(),
                 raftLog
         );
 
-        final RequestMessage raftLogMessage = new RequestMessage(
-                RequestIdEnum.APPEND_ENTRY_LOG_REQUEST,
-                GsonInstance.getInstance().getGson().toJson(raftLogEntryRequest)
-        );
-
-        //pass message to each thread which handle client connection with followers
+        // passing message to each thread which handle client connection with followers
         ThreadsCommunication.getInstance().addRequestToAllFollowerRequestQueue(GsonInstance.getInstance().getGson().toJson(raftLogMessage));
 
         // start from 1 because the leader vote OK for himself
-        final int numConsensus = 1;
-        final int numFollowersThread = ThreadsCommunication.getInstance().getResponseConcurrentHashMap().size();
+        int numConsensus = 1;
+        final int numFollowersThread = brokerContext.getNumClusterBrokers() - 1;
 
-        // creo i callables dei thread che aspetteranno la response dei follower
+        // creating callables waiting for followers responses
         ExecutorService executorService = Executors.newFixedThreadPool(numFollowersThread);
-        CompletionService<String> completionService = new ExecutorCompletionService<>(executorService);
+        CompletionService<LeaderWaitingForFollowersResponse> completionService = new ExecutorCompletionService<>(executorService);
 
         ThreadsCommunication.getInstance()
                 .getResponseConcurrentHashMap()
-                .values()
-                .stream()
-                .map(LeaderWaitingForFollowersCallable::new)
-                .forEach(completionService::submit);
+                .forEach((queueId, responseQueue) -> {
+                    completionService.submit(new LeaderWaitingForFollowersCallable(queueId, responseQueue));
+                });
 
-        // consumo i risultati dei callables
+        // consuming followers responses
         for (int i = 0; i < numFollowersThread; i++) {
-            //numConsensus += completionService.take().get();
-/*
-            if(numConsensus > 100) { //consenso raggiunto
-                //SEND COMMIT MESSAGE
-                //BrokerRequestDispatcher.exec(brokerContext.getBrokerModel(), requestLine);
-            }*/
 
             try{
-                Future<String> response = completionService.take();
+                Future<LeaderWaitingForFollowersResponse> response = completionService.take();
                 log.log(Level.INFO, "Response from follower taken from queue: {0}", response.get());
-                out.println(response.get());
-                out.flush();
+
+                ResponseMessage responseMessage = GsonInstance.getInstance().getGson().fromJson(response.get().getResponse(), ResponseMessage.class);
+
+                if(ResponseIdEnum.APPEND_ENTRY_LOG_RESPONSE.equals(responseMessage.getId())) {
+                    RaftLogEntryResponse raftLogEntryResponse = GsonInstance.getInstance().getGson().fromJson(responseMessage.getContent(), RaftLogEntryResponse.class);
+
+                    if (StatusEnum.OK.equals(raftLogEntryResponse.getStatus())) {
+                        log.log(Level.INFO, "Consensus +1");
+                        numConsensus++;
+                    } else {
+
+                        //build logEntryRequest to forward to all followers TODO!!!!
+                        final RequestMessage requestMessage = NetworkMessageBuilder.Request.buildAppendEntryLogRequest(
+                                brokerContext.getBrokerRaftIntegration().getCurrentTerm(),
+                                brokerContext.getMyBrokerConfig().getMyBrokerId(),
+                                brokerContext.getBrokerRaftIntegration().getPrevLogIndexOf(raftLogEntryResponse.getLastMatchIndex()),
+                                brokerContext.getBrokerRaftIntegration().getPrevLogTermOfIndex(raftLogEntryResponse.getLastMatchIndex()),
+                                brokerContext.getBrokerRaftIntegration().getRaftLogEntriesFromIndex(raftLogEntryResponse.getLastMatchIndex())
+                        );
+
+                        String request = GsonInstance.getInstance().getGson().toJson(requestMessage);
+
+                        ThreadsCommunication.getInstance().getRequestConcurrentHashMapOfBrokerId(response.get().getBrokerId()).add(request);
+                    }
+                }
+
             } catch (InterruptedException e){
                 log.log(Level.SEVERE, "Error: {0}", e.getMessage());
             } catch (ExecutionException e) {
                 log.log(Level.INFO, "Error: {0}", e.getMessage());
             }
+        }
 
+        if(numConsensus >= (brokerContext.getNumClusterBrokers() / 2) + 1){
+
+            log.log(Level.INFO, "Consensus reached, executing command and responding to gateway..");
+
+            try {
+                // exec the request locally
+                ResponseMessage response = BrokerRequestDispatcher.exec(brokerContext.getBrokerModel(), requestLine);
+                brokerContext.getBrokerModel().printState();
+
+                // send commit to gateway
+                out.println(GsonInstance.getInstance().getGson().toJson(response));
+                out.flush();
+
+            } catch (RequestNoManagedException e) {
+                log.log(Level.SEVERE, "Request {} not managed, review logic because already checked!!!", requestLine);
+            }
+
+            // increase my lastCommitIndex
+            brokerContext.getBrokerRaftIntegration().increaseLastCommitIndex();
+            System.out.println("Last commit index: " + brokerContext.getBrokerRaftIntegration().getLastCommitIndex());
+
+            // sending commit with my lastCommitIndex
+            RequestMessage requestMessage = NetworkMessageBuilder.Request.buildCommitRequest(brokerContext.getBrokerRaftIntegration().getLastCommitIndex());
+
+            // send commit to all followers
+            ThreadsCommunication.getInstance().addRequestToAllFollowerRequestQueue(GsonInstance.getInstance().getGson().toJson(requestMessage));
         }
     }
 

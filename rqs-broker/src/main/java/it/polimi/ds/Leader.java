@@ -1,14 +1,19 @@
 package it.polimi.ds;
 
 import it.polimi.ds.broker2.BrokerContext;
-import it.polimi.ds.utils.BrokerInfo;
+import it.polimi.ds.message.RequestMessage;
+import it.polimi.ds.message.id.RequestIdEnum;
+import it.polimi.ds.message.model.request.AppendValueRequest;
+import it.polimi.ds.message.model.request.CreateQueueRequest;
+import it.polimi.ds.message.model.request.ReadValueRequest;
+import it.polimi.ds.utils.config.BrokerInfo;
+import it.polimi.ds.utils.GsonInstance;
 import it.polimi.ds.utils.config.BrokerConfig;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
@@ -26,9 +31,11 @@ public class Leader {
                         List.of(
                                 new BrokerInfo("2","127.0.0.1", 8080)
                                 //,new BrokerInfo("3","127.0.0.1", 4000)
-                        )
+                        ),
+                        null
                 ),
-                true
+                true,
+                "1"
         );
 
         leader.start();
@@ -48,9 +55,11 @@ class Follower {
                         List.of(
                                 new BrokerInfo("1","127.0.0.1", 3000)
                                 //,new BrokerInfo("3","127.0.0.1", 4000)
-                        )
+                        ),
+                        null
                 ),
-                false);
+                false,
+                "1");
 
         follower.start();
     }
@@ -69,9 +78,11 @@ class Follower2 {
                         List.of(
                                 new BrokerInfo("1","127.0.0.1", 3000),
                                 new BrokerInfo("2","127.0.0.1", 8080)
-                                )
+                                ),
+                        null
                 ),
-                false);
+                false,
+                "1");
 
         follower.start();
     }
@@ -97,9 +108,51 @@ class Test{
 
 class Test2{
     public static void main(String[] args) {
-        InetSocketAddress inetSocketAddress = new InetSocketAddress("127.0.0.1", 3000);
 
-        System.out.println("Hostname : " + inetSocketAddress.getHostString());
-        System.out.println("Port :" + inetSocketAddress.getPort());
+        CreateQueueRequest createQueueRequest = new CreateQueueRequest(
+                "1",
+                "2"
+        );
+
+        RequestMessage requestMessage = new RequestMessage(
+                RequestIdEnum.CREATE_QUEUE_REQUEST,
+                GsonInstance.getInstance().getGson().toJson(createQueueRequest)
+        );
+
+        System.out.println(GsonInstance.getInstance().getGson().toJson(requestMessage));
+    }
+}
+
+class Test3{
+    public static void main(String[] args) {
+
+        ReadValueRequest readValueRequest = new ReadValueRequest(
+                "1",
+                "2"
+        );
+
+        RequestMessage requestMessage = new RequestMessage(
+                RequestIdEnum.READ_VALUE_REQUEST,
+                GsonInstance.getInstance().getGson().toJson(readValueRequest)
+        );
+
+        System.out.println(GsonInstance.getInstance().getGson().toJson(requestMessage));
+    }
+}
+
+class Test4{
+    public static void main(String[] args) {
+
+        AppendValueRequest appendValueRequest = new AppendValueRequest(
+                "1",
+                2
+        );
+
+        RequestMessage requestMessage = new RequestMessage(
+                RequestIdEnum.APPEND_VALUE_REQUEST,
+                GsonInstance.getInstance().getGson().toJson(appendValueRequest)
+        );
+
+        System.out.println(GsonInstance.getInstance().getGson().toJson(requestMessage));
     }
 }

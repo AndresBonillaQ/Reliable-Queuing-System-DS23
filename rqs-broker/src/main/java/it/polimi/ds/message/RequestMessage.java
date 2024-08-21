@@ -1,6 +1,6 @@
 package it.polimi.ds.message;
 
-import it.polimi.ds.message.request.utils.RequestIdEnum;
+import it.polimi.ds.message.id.RequestIdEnum;
 
 import java.io.Serializable;
 

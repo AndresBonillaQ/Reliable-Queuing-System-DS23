@@ -9,12 +9,11 @@ import it.polimi.ds.broker2.state.impl.FollowerBrokerState;
 import it.polimi.ds.broker2.state.impl.LeaderBrokerState;
 import it.polimi.ds.network2.broker.client.ClientToBroker;
 import it.polimi.ds.network2.broker.server.ServerToBroker;
-import it.polimi.ds.network2.gateway.ServerToGateway;
+import it.polimi.ds.network2.gateway.client.ClientToGateway;
+import it.polimi.ds.network2.gateway.server.ServerToGateway;
 import it.polimi.ds.utils.ExecutorInstance;
-import it.polimi.ds.utils.ThreadsHealth;
 import it.polimi.ds.utils.config.BrokerConfig;
 
-import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -24,11 +23,6 @@ public class BrokerContext {
      * The cluster leader id, useful to followers
      * */
     private String leaderId;
-
-    /**
-     * The cluster leader socket, useful to followers
-     * */
-    private Socket leaderSocket;
 
     /**
      * The numClusterBrokers
@@ -57,15 +51,19 @@ public class BrokerContext {
 
     private final Logger log = Logger.getLogger(BrokerContext.class.getName());
 
-    public BrokerContext(BrokerConfig myBrokerConfig, boolean isLeader){
+    public BrokerContext(BrokerConfig myBrokerConfig, boolean isLeader, String brokerIdLeader){
         this.numClusterBrokers = myBrokerConfig.getClusterBrokerConfig().size() + 1;
 
         this.myBrokerConfig = myBrokerConfig;
 
-        if(isLeader)
+        if(isLeader){
+            leaderId = myBrokerConfig.getMyBrokerId();
             brokerState = new LeaderBrokerState(this);
-        else
+        }
+        else{
             brokerState = new FollowerBrokerState(this);
+            leaderId = brokerIdLeader;
+        }
     }
 
     /**
@@ -73,9 +71,10 @@ public class BrokerContext {
      * */
     public void start(){
         log.log(Level.INFO, "Starting broker with ID {0}", myBrokerConfig.getMyBrokerId());
-        new Thread(new ThreadsHealth()).start();
+
         ExecutorInstance.getInstance().getExecutorService().submit(new ServerToGateway(this, myBrokerConfig.getBrokerServerPortToGateway()));
         ExecutorInstance.getInstance().getExecutorService().submit(new ServerToBroker(this, myBrokerConfig.getBrokerServerPortToBrokers()));
+        ExecutorInstance.getInstance().getExecutorService().submit(new ClientToGateway(this, myBrokerConfig.getGatewayInfo()));
         myBrokerConfig.getClusterBrokerConfig().forEach(brokerInfo -> ExecutorInstance.getInstance().getExecutorService().submit(new ClientToBroker(brokerInfo, this)));
     }
 
@@ -103,16 +102,11 @@ public class BrokerContext {
         return leaderId;
     }
 
-    public Socket getLeaderSocket() {
-        return leaderSocket;
-    }
-
     public BrokerConfig getMyBrokerConfig() {
         return myBrokerConfig;
     }
 
-    public void updateNewLeaderInfo(String leaderId, Socket leaderSocket){
+    public void updateNewLeaderInfo(String leaderId){
         this.leaderId = leaderId;
-        this.leaderSocket = leaderSocket;
     }
 }

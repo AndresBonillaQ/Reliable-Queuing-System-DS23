@@ -4,7 +4,7 @@ import it.polimi.ds.old.broker.state.BrokerState;
 import it.polimi.ds.old.broker.state.impl.FollowerBrokerState;
 import it.polimi.ds.broker2.model.impl.BrokerModel;
 import it.polimi.ds.broker2.model.IBrokerModel;
-import it.polimi.ds.raftLog.RaftLog;
+import it.polimi.ds.broker2.raft.impl.RaftLog;
 
 import java.util.LinkedList;
 import java.util.Queue;

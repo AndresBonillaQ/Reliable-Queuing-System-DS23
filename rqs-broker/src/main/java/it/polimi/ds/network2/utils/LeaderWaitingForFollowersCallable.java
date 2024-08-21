@@ -3,24 +3,22 @@ package it.polimi.ds.network2.utils;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-public class LeaderWaitingForFollowersCallable implements Callable<String> {
+public class LeaderWaitingForFollowersCallable implements Callable<LeaderWaitingForFollowersResponse> {
 
+    private final String brokerId;
     private final BlockingQueue<String> responseBlockingQueue;
-    private final Logger log = Logger.getLogger(LeaderWaitingForFollowersCallable.class.getName());
 
-    public LeaderWaitingForFollowersCallable(BlockingQueue<String> responseBlockingQueue){
+    public LeaderWaitingForFollowersCallable(String brokerId, BlockingQueue<String> responseBlockingQueue){
+        this.brokerId = brokerId;
         this.responseBlockingQueue = responseBlockingQueue;
     }
 
     @Override
-    public String call() throws Exception {
-        String resp =  responseBlockingQueue.poll(7, TimeUnit.SECONDS);
-
-        log.log(Level.INFO, "ResponseBlockingQueue of callable is {0}, response {1}", new Object[]{responseBlockingQueue, resp});
-
-        return resp;
+    public LeaderWaitingForFollowersResponse call() throws Exception {
+        return new LeaderWaitingForFollowersResponse(
+                this.brokerId,
+                responseBlockingQueue.poll(7, TimeUnit.SECONDS)
+        );
     }
 }

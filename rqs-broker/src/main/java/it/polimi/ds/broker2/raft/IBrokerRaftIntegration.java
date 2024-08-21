@@ -1,9 +1,7 @@
 package it.polimi.ds.broker2.raft;
 
-import it.polimi.ds.exception.raft.LogBadRequestException;
-import it.polimi.ds.raftLog.RaftLog;
+import it.polimi.ds.broker2.raft.impl.RaftLog;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public interface IBrokerRaftIntegration {
@@ -11,12 +9,14 @@ public interface IBrokerRaftIntegration {
     /**
      * Append Log to the Queue if Logs are consistency, otherwise throw LogBadRequestException
      * */
-    void appendLog() throws LogBadRequestException;
+    void appendLog(List<RaftLog> raftLogs);
 
     /**
      * Used by Leader to create log to transmit to followers and increment the currentIndex by 1
      * */
     List<RaftLog> buildAndAppendNewLog(String request);
+
+    List<RaftLog> appendNewLogAndTakeNotCommitted(String request);
 
     List<RaftLog> getRaftLogEntriesFromIndex(int from);
 
@@ -29,4 +29,19 @@ public interface IBrokerRaftIntegration {
     int getPrevLogIndex();
 
     int getPrevLogTerm();
+
+    int getPrevLogTermOfIndex(int index);
+
+    int getPrevLogIndexOf(int index);
+
+    int getLastCommitIndex();
+
+    void increaseCurrentIndex();
+
+    void increaseLastCommitIndex();
+    void increaseLastCommitIndex(int newLastCommitIndex);
+
+    boolean isConsistent(int prevIndex, int prevTerm);
+
+    List<RaftLog> getLogsToCommit(int lastCommitIndex);
 }

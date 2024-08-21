@@ -23,7 +23,7 @@ public class CandidateBrokerState extends BrokerState {
     }
 
     @Override
-    public void clientToDnsExec(BufferedReader in, PrintWriter out) {
+    public void clientToGatewayExec(BufferedReader in, PrintWriter out) {
         log.info("clientToDnsExec: IT's candidate..");
         //deny each message
     }

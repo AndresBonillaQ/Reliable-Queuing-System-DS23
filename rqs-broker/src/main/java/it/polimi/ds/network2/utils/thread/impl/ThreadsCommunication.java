@@ -42,19 +42,16 @@ public class ThreadsCommunication {
         return instance;
     }
 
-    public boolean addBrokerId(String brokerId){
-        if(requestConcurrentHashMap.containsKey(brokerId) || responseConcurrentHashMap.containsKey(brokerId))
-            return false;
+    public boolean isBrokerIdPresent(String brokerId){
+        return requestConcurrentHashMap.containsKey(brokerId) || responseConcurrentHashMap.containsKey(brokerId);
+    }
 
+    public void addBrokerId(String brokerId){
         requestConcurrentHashMap.put(brokerId, new LinkedBlockingQueue<>());
         responseConcurrentHashMap.put(brokerId, new LinkedBlockingQueue<>());
-
-        return true;
     }
 
     public void addRequestToAllFollowerRequestQueue(String request){
-        log.log(Level.INFO, "Adding request {0} to map with keys: {1}", new Object[]{request, requestConcurrentHashMap.keySet()});
-
         requestConcurrentHashMap.values().forEach(
                 blockingQueue-> blockingQueue.add(request)
         );
@@ -65,13 +62,6 @@ public class ThreadsCommunication {
             responseConcurrentHashMap.get(brokerId).add(response);
         else
             log.log(Level.INFO, "The brokerId {0} is not associated to a responseQueue!", brokerId);
-
-        log.log(Level.INFO, "ResponseBlockingQueue is {1}!", responseConcurrentHashMap.get(brokerId));
-    }
-
-    public void onBrokerStateChange(){
-        requestConcurrentHashMap.values().forEach(Collection::clear);
-        responseConcurrentHashMap.values().forEach(Collection::clear);
     }
 
     public ConcurrentHashMap<String, BlockingQueue<String>> getResponseConcurrentHashMap() {
@@ -79,8 +69,16 @@ public class ThreadsCommunication {
     }
 
     public BlockingQueue<String> getRequestConcurrentHashMapOfBrokerId(String brokerId) {
-        //log.log(Level.INFO, "Retrieving BlockingQueue of brokerId {0}, isPresent {1}", new Object[]{brokerId, requestConcurrentHashMap.containsKey(brokerId)});
-
         return requestConcurrentHashMap.get(brokerId);
+    }
+
+    public void onBrokerConnectionClose(String brokerId){
+        requestConcurrentHashMap.remove(brokerId);
+        responseConcurrentHashMap.remove(brokerId);
+    }
+
+    public void onBrokerStateChange(){
+        requestConcurrentHashMap.values().forEach(Collection::clear);
+        responseConcurrentHashMap.values().forEach(Collection::clear);
     }
 }

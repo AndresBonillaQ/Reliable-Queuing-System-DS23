@@ -3,12 +3,12 @@ package it.polimi.ds.old.network.follower.toLeader.requestHandler.impl;
 import it.polimi.ds.exception.model.AlreadyExistsQueueWithSameIdException;
 import it.polimi.ds.message.RequestMessage;
 import it.polimi.ds.message.ResponseMessage;
-import it.polimi.ds.message.request.CreateQueueRequest;
+import it.polimi.ds.message.model.request.CreateQueueRequest;
 import it.polimi.ds.broker2.model.IBrokerModel;
 import it.polimi.ds.old.network.follower.toLeader.requestHandler.FollowerRequestHandler;
 import it.polimi.ds.utils.Const;
 import it.polimi.ds.utils.GsonInstance;
-import it.polimi.ds.utils.ResponseMessageBuilder;
+import it.polimi.ds.utils.ModelResponseMessageBuilder;
 
 import java.util.logging.Logger;
 
@@ -24,10 +24,10 @@ public class FollowerCreateQueueRequestHandler implements FollowerRequestHandler
 
         try{
             brokerModel.createNewQueue(createQueueRequest.getQueueId());
-            return ResponseMessageBuilder.OK.buildCreateQueueResponseMessage();
+            return ModelResponseMessageBuilder.OK.buildCreateQueueResponseMessage();
         } catch (AlreadyExistsQueueWithSameIdException e){
             log.severe("Error during create queue! It already exists a queue with the ID " + createQueueRequest.getQueueId());
-            return ResponseMessageBuilder.KO.buildCreateQueueResponseMessage(Const.ResponseDes.KO.CREATE_QUEUE_QUEUE_ID_ALREADY_PRESENT_KO);
+            return ModelResponseMessageBuilder.KO.buildCreateQueueResponseMessage(Const.ResponseDes.KO.CREATE_QUEUE_QUEUE_ID_ALREADY_PRESENT_KO);
         }
     }
 }
