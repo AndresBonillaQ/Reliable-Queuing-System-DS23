@@ -30,4 +30,13 @@ public class ResponseMessage implements Serializable {
     public void setContent(String content) {
         this.content = content;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("ResponseMessage{");
+        sb.append("id=").append(id);
+        sb.append(", content='").append(content).append('\'');
+        sb.append('}');
+        return sb.toString();
+    }
 }

@@ -6,6 +6,7 @@ import it.polimi.ds.broker.state.BrokerState;
 import it.polimi.ds.message.RequestMessage;
 import it.polimi.ds.message.ResponseMessage;
 import it.polimi.ds.message.election.ElectionManager;
+import it.polimi.ds.message.election.requests.VoteRequest;
 import it.polimi.ds.message.election.responses.VoteResponse;
 import it.polimi.ds.message.id.RequestIdEnum;
 import it.polimi.ds.message.id.ResponseIdEnum;
@@ -28,18 +29,19 @@ public class CandidateBrokerState extends BrokerState {
     public CandidateBrokerState(BrokerContext brokerContext) {
         super(brokerContext);
         electionManager = new ElectionManager(this.getBrokerContext());
-        electionManager.start();
-        electionStarted();
+        //electionStarted();
         isElectionOnGoing = true;
     }
 
     @Override
     public void clientToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) throws IOException {
-        log.info("clientToBrokerExec: IT's candidate..");
+        log.info("I'm candidate sending request vote..!");
         requestVote(out);
         //fetch the outcome of the vote
         String message = in.readLine();
         Gson gson = new Gson();
+
+        System.out.println("Vote outcome is " + message);
 
         ResponseMessage responseMessage = gson.fromJson(message, ResponseMessage.class);
         if (responseMessage.getId().equals(ResponseIdEnum.VOTE_OUTCOME)) {
@@ -49,19 +51,19 @@ public class CandidateBrokerState extends BrokerState {
 
     @Override
     public void clientToGatewayExec(BufferedReader in, PrintWriter out) {
-        log.info("clientToDnsExec: IT's candidate..");
+        //log.info("clientToDnsExec: IT's candidate..");
         //deny each message
     }
 
     @Override
     public void serverToGatewayExec(BufferedReader in, PrintWriter out) {
-        log.info("serverToGatewayExec: IT's candidate..");
+        //log.info("serverToGatewayExec: IT's candidate..");
         //deny ALL messages
     }
 
     @Override
     public void serverToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) throws IOException {
-        log.info("serverToBrokerExec: IT's candidate..");
+        //log.info("serverToBrokerExec: IT's candidate..");
 
         //Da togliere --> capire come Andrès gestisce come il leader/candidato ricevono le risposte dai followers
 
@@ -70,7 +72,7 @@ public class CandidateBrokerState extends BrokerState {
     @Override
     public void onWinLeaderElection(PrintWriter out) {
         isElectionOnGoing = false;
-        brokerContext.setBrokerState(new LeaderBrokerState(brokerContext));
+        brokerContext.setBrokerState(new LeaderBrokerState(brokerContext));/*
 
         final RequestMessage imNewLeader = new RequestMessage(
                 RequestIdEnum.NEW_LEADER_REQUEST,
@@ -78,7 +80,7 @@ public class CandidateBrokerState extends BrokerState {
         );
 //        ThreadsCommunication.getInstance().addRequestToAllFollowerRequestQueue(GsonInstance.getInstance().getGson().toJson(imNewLeader));
         out.println(imNewLeader);
-        log.log(Level.INFO, "Forwarding request to other followers: {0}", imNewLeader);
+        log.log(Level.INFO, "Forwarding request to other followers: {0}", imNewLeader);*/
     }
 
     @Override
@@ -88,14 +90,21 @@ public class CandidateBrokerState extends BrokerState {
 
     private void requestVote(PrintWriter out) throws IOException {
         if (isElectionOnGoing) {
+
+            VoteRequest voteRequest = new VoteRequest(brokerContext.getBrokerRaftIntegration().getCurrentTerm() + 1);
+
             final RequestMessage requestVoteMessage = new RequestMessage(
                     RequestIdEnum.VOTE_REQUEST,
-                    GsonInstance.getInstance().getGson().toJson(this.getBrokerContext().getBrokerRaftIntegration().getCurrentTerm() + 1)
+                    GsonInstance.getInstance().getGson().toJson(voteRequest)
             );
+
             this.getBrokerContext().getBrokerRaftIntegration().increaseCurrentTerm();
+
             //ThreadsCommunication.getInstance().addRequestToAllFollowerRequestQueue(GsonInstance.getInstance().getGson().toJson(requestVoteMessage));
-            out.println(requestVoteMessage);
+
             log.log(Level.INFO, "Forwarding request to other followers: {0}", requestVoteMessage);
+            out.println(GsonInstance.getInstance().getGson().toJson(requestVoteMessage));
+            out.flush();
         }
 
     }
@@ -104,10 +113,11 @@ public class CandidateBrokerState extends BrokerState {
     }
     private void fetchVote(PrintWriter out, String message) throws IOException { //Do as server
         Gson gson = new Gson();
-        String outcome = gson.toJson(message, VoteResponse.class);
-        if (isElectionOnGoing && outcome.equals("OK")) {
+        VoteResponse voteResponse = gson.fromJson(message, VoteResponse.class);
+        if (isElectionOnGoing && "OK".equals(voteResponse.getOutcome())) {
             this.electionManager.addVote();
             if (electionManager.isMajorityAchieved()) {
+                System.out.println("I'm becoming leader!!");
                 onWinLeaderElection(out);
             }
         }

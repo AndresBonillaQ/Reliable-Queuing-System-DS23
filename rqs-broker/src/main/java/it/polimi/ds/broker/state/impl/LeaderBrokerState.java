@@ -57,10 +57,14 @@ public class LeaderBrokerState extends BrokerState {
 
                 // Se è un messaggio di COMMIT non mi aspetto una response
                 if(!RequestIdEnum.COMMIT_REQUEST.equals(requestMessage.getId())){
+
                     String responseLine = in.readLine();
                     log.log(Level.INFO, "From follower {0} response is: {1}", new Object[]{clientBrokerId, responseLine});
                     // add message to responseQueue
-                    ThreadsCommunication.getInstance().addResponseToFollowerResponseQueue(clientBrokerId, responseLine);
+
+                    if(!RequestIdEnum.HEARTBEAT_REQUEST.equals(requestMessage.getId())){
+                        ThreadsCommunication.getInstance().addResponseToFollowerResponseQueue(clientBrokerId, responseLine);
+                    }
                 } else
                     log.log(Level.INFO,"Not waiting for response because sent a commit message..");
             }
@@ -204,16 +208,16 @@ public class LeaderBrokerState extends BrokerState {
     private void startHeartBeat(){
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
                 () -> {
-                    RequestMessage requestMessage = new RequestMessage(
-                            RequestIdEnum.HEARTBEAT_REQUEST,
-                            GsonInstance.getInstance().getGson().toJson(new HeartbeatRequest())
-                    );
+
+                    RequestMessage requestMessage = NetworkMessageBuilder.Request.buildHeartBeatRequest(brokerContext.getMyBrokerConfig().getMyBrokerId());
 
                     ThreadsCommunication.getInstance().addRequestToAllFollowerRequestQueue(
                             GsonInstance.getInstance().getGson().toJson(requestMessage)
                     );
 
-                }, 15, 3, TimeUnit.SECONDS
+                    System.out.println("Sending heartbeat to queue..");
+
+                }, 100, 5000, TimeUnit.MILLISECONDS
         );
     }
 }

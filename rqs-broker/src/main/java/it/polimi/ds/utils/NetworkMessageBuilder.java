@@ -23,8 +23,8 @@ public class NetworkMessageBuilder {
     public static class Request{
         private Request(){}
 
-        public static RequestMessage buildHeartBeatRequest(){
-            HeartbeatRequest heartbeatRequest = new HeartbeatRequest();
+        public static RequestMessage buildHeartBeatRequest(String leaderId){
+            HeartbeatRequest heartbeatRequest = new HeartbeatRequest(leaderId);
 
             return new RequestMessage(
                     RequestIdEnum.HEARTBEAT_REQUEST,

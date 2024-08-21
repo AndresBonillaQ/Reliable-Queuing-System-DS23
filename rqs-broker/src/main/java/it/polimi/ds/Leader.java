@@ -34,8 +34,9 @@ public class Leader {
                         ),
                         null
                 ),
-                true,
-                "1"
+                false,
+                "1",
+                true
         );
 
         leader.start();
@@ -59,7 +60,8 @@ class Follower {
                         null
                 ),
                 false,
-                "1");
+                "1",
+                false);
 
         follower.start();
     }
@@ -82,7 +84,7 @@ class Follower2 {
                         null
                 ),
                 false,
-                "1");
+                "1", false);
 
         follower.start();
     }

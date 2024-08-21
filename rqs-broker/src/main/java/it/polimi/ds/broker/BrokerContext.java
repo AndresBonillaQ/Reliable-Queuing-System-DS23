@@ -51,7 +51,7 @@ public class BrokerContext {
 
     private final Logger log = Logger.getLogger(BrokerContext.class.getName());
 
-    public BrokerContext(BrokerConfig myBrokerConfig, boolean isLeader, String brokerIdLeader){
+    public BrokerContext(BrokerConfig myBrokerConfig, boolean isLeader, String brokerIdLeader, boolean canBecomeCandidate){
         this.numClusterBrokers = myBrokerConfig.getClusterBrokerConfig().size() + 1;
 
         this.myBrokerConfig = myBrokerConfig;
@@ -74,7 +74,7 @@ public class BrokerContext {
 
         ExecutorInstance.getInstance().getExecutorService().submit(new ServerToGateway(this, myBrokerConfig.getBrokerServerPortToGateway()));
         ExecutorInstance.getInstance().getExecutorService().submit(new ServerToBroker(this, myBrokerConfig.getBrokerServerPortToBrokers()));
-        ExecutorInstance.getInstance().getExecutorService().submit(new ClientToGateway(this, myBrokerConfig.getGatewayInfo()));
+        //ExecutorInstance.getInstance().getExecutorService().submit(new ClientToGateway(this, myBrokerConfig.getGatewayInfo()));
         myBrokerConfig.getClusterBrokerConfig().forEach(brokerInfo -> ExecutorInstance.getInstance().getExecutorService().submit(new ClientToBroker(brokerInfo, this)));
     }
 
