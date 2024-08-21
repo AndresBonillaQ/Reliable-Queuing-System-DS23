@@ -15,7 +15,6 @@ import it.polimi.ds.network2.handler.BrokerRequestDispatcher;
 import it.polimi.ds.network2.utils.LeaderWaitingForFollowersCallable;
 import it.polimi.ds.network2.utils.LeaderWaitingForFollowersResponse;
 import it.polimi.ds.network2.utils.thread.impl.ThreadsCommunication;
-import it.polimi.ds.raftLog.RaftLog;
 import it.polimi.ds.utils.GsonInstance;
 import it.polimi.ds.utils.NetworkMessageBuilder;
 
@@ -170,7 +169,7 @@ public class LeaderBrokerState extends BrokerState {
 
             try {
                 // exec the request locally
-                ResponseMessage response = BrokerRequestDispatcher.exec(brokerContext.getBrokerModel(), requestLine);
+                ResponseMessage response = BrokerRequestDispatcher.exec(brokerContext, requestLine);
                 brokerContext.getBrokerModel().printState();
 
                 // send commit to gateway

@@ -1,14 +1,13 @@
 package it.polimi.ds.message.election;
 
 import com.google.gson.Gson;
-import it.polimi.ds.broker2.state.BrokerState;
 import it.polimi.ds.broker2.state.impl.FollowerBrokerState;
 import it.polimi.ds.message.RequestMessage;
 import it.polimi.ds.message.ResponseMessage;
 import it.polimi.ds.message.election.requests.RequestVote;
 import it.polimi.ds.message.election.responses.VoteResponse;
-import it.polimi.ds.message.request.utils.RequestIdEnum;
-import it.polimi.ds.message.response.utils.ResponseIdEnum;
+import it.polimi.ds.message.id.RequestIdEnum;
+import it.polimi.ds.message.id.ResponseIdEnum;
 import it.polimi.ds.utils.GsonInstance;
 
 public class RequestDispatcher {

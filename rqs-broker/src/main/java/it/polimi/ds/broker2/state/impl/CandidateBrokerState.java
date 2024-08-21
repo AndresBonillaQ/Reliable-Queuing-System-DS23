@@ -7,16 +7,14 @@ import it.polimi.ds.message.RequestMessage;
 import it.polimi.ds.message.ResponseMessage;
 import it.polimi.ds.message.election.ElectionManager;
 import it.polimi.ds.message.election.responses.VoteResponse;
-import it.polimi.ds.message.request.utils.RequestIdEnum;
-import it.polimi.ds.message.response.utils.ResponseIdEnum;
-import it.polimi.ds.network2.utils.thread.impl.ThreadsCommunication;
+import it.polimi.ds.message.id.RequestIdEnum;
+import it.polimi.ds.message.id.ResponseIdEnum;
 import it.polimi.ds.utils.ExecutorInstance;
 import it.polimi.ds.utils.GsonInstance;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 

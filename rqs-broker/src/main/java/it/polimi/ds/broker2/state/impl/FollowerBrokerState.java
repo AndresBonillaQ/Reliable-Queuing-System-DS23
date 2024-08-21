@@ -6,12 +6,11 @@ import it.polimi.ds.broker2.state.BrokerState;
 import it.polimi.ds.exception.RequestNoManagedException;
 import it.polimi.ds.message.RequestMessage;
 import it.polimi.ds.message.ResponseMessage;
-import it.polimi.ds.message.raft.request.CommitLogRequest;
-import it.polimi.ds.message.raft.request.RaftLogEntryRequest;
 import it.polimi.ds.message.model.response.utils.DesStatusEnum;
 import it.polimi.ds.message.model.response.utils.StatusEnum;
+import it.polimi.ds.message.raft.request.CommitLogRequest;
+import it.polimi.ds.message.raft.request.RaftLogEntryRequest;
 import it.polimi.ds.network2.handler.BrokerRequestDispatcher;
-import it.polimi.ds.message.election.RequestDispatcher;
 import it.polimi.ds.utils.ExecutorInstance;
 import it.polimi.ds.utils.GsonInstance;
 import it.polimi.ds.utils.NetworkMessageBuilder;
@@ -19,9 +18,9 @@ import it.polimi.ds.utils.NetworkMessageBuilder;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -128,7 +127,7 @@ public class FollowerBrokerState extends BrokerState {
                     raftLogList.forEach(raftLog -> {
                         try {
                             raftLog.setCommitted(true);
-                            BrokerRequestDispatcher.exec(brokerContext.getBrokerModel(), raftLog.getRequest());
+                            BrokerRequestDispatcher.exec(brokerContext, raftLog.getRequest());
                             brokerContext.getBrokerModel().printState();
                         } catch (RequestNoManagedException e) {
                             log.log(Level.INFO, "Request {0} cannot be executed due to error: {1}", new Object[]{raftLog.getRequest(), e.getMessage()});

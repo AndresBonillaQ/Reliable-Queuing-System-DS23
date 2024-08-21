@@ -1,14 +1,10 @@
 package it.polimi.ds.network2.handler.impl;
 
 import it.polimi.ds.broker2.BrokerContext;
-import it.polimi.ds.broker2.model.IBrokerModel;
 import it.polimi.ds.exception.model.EmptyQueueException;
 import it.polimi.ds.exception.model.QueueNotFoundException;
 import it.polimi.ds.message.RequestMessage;
 import it.polimi.ds.message.ResponseMessage;
-import it.polimi.ds.message.request.ReadValueRequest;
-
-import it.polimi.ds.network2.handler.FollowerRequestHandler;
 import it.polimi.ds.message.model.request.ReadValueRequest;
 import it.polimi.ds.network2.handler.FollowerRequestHandler;
 import it.polimi.ds.utils.Const;
