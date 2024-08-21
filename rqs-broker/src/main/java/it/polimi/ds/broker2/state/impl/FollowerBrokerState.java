@@ -2,16 +2,13 @@ package it.polimi.ds.broker2.state.impl;
 
 import it.polimi.ds.broker2.BrokerContext;
 import it.polimi.ds.broker2.state.BrokerState;
-import it.polimi.ds.message.ResponseMessage;
-import it.polimi.ds.message.response.HeartbeatResponse;
-import it.polimi.ds.message.response.utils.ResponseIdEnum;
+import it.polimi.ds.message.election.RequestDispatcher;
 import it.polimi.ds.utils.ExecutorInstance;
-import it.polimi.ds.utils.GsonInstance;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.Socket;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -19,10 +16,14 @@ public class FollowerBrokerState extends BrokerState {
 
     private final Object heartBeatTimerThreadLock = new Object();
     private final Logger log = Logger.getLogger(FollowerBrokerState.class.getName());
+    private AtomicBoolean heartBeatReceived = new AtomicBoolean(false);
+    private boolean voted;
+
 
     public FollowerBrokerState(BrokerContext brokerContext) {
         super(brokerContext);
-        //heartbeatTimerThreadStart();
+        voted = false;
+        heartbeatTimerThreadStart();
     }
 
     @Override
@@ -44,7 +45,7 @@ public class FollowerBrokerState extends BrokerState {
     }
 
     /**
-     * Followers accept messages only from leader
+     * Followers accept messages only from leader and candidate
      * */
     @Override
     public void serverToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) throws IOException {
@@ -53,10 +54,9 @@ public class FollowerBrokerState extends BrokerState {
 
         if(requestLine != null && !requestLine.isEmpty()){
             log.log(Level.INFO, "Request from Leader: {0} ; responding to brokerId {1}", new Object[]{requestLine, clientBrokerId});
-
-            //forwarding message
-            out.println("responseOf: " + requestLine);
+            out.println(RequestDispatcher.processRequest(requestLine,this.getBrokerContext().getBrokerRaftIntegration().getCurrentTerm(), this));
             out.flush();
+            //Da togliere
         }
 
         //heartBeatTimerThreadLock.notify();
@@ -69,31 +69,51 @@ public class FollowerBrokerState extends BrokerState {
 
     }
 
+    public void setHeartBeatReceived(boolean value) {
+        heartBeatReceived.set(value);
+    }
     @Override
     public void onHeartbeatTimeout(){
-        synchronized (brokerContext.getBrokerState()){
+        synchronized (heartBeatTimerThreadLock) {
+            //follower becomes candidate
             brokerContext.setBrokerState(new CandidateBrokerState(brokerContext));
-            brokerContext.getBrokerState().getStatusLock().notify();
+           // brokerContext.getBrokerState().getStatusLock().notify();
+          //  heartBeatTimerThreadLock.notify();
         }
     }
 
     private void heartbeatTimerThreadStart(){
+        //submitta ad uno dei 100 thread nel pool (qual'ora ce ne sia uno libero) il task
         ExecutorInstance.getInstance().getExecutorService().submit(
                 () -> {
-                    synchronized (heartBeatTimerThreadLock) {
+                    synchronized (heartBeatTimerThreadLock) { //to let this thread become the owner of the monitor
                         while (true) {
                             try {
                                 System.out.println("HEARTBEAT sleeping...");
-                                wait((15+3)*1000); // Attende per 1 secondo
-                                log.info("HeartBeat not received! I'm going to candidate myself..");
-                                onHeartbeatTimeout();
-                                return;
+                                heartBeatTimerThreadLock.wait(3000 + (int) (Math.random() * 3000)); //wait a random time between 3 sec and 6 sec
+                                if (!heartBeatReceived.get())
+                                    onHeartbeatTimeout();
+                                else
+                                    heartBeatReceived.set(false);
+                                //return;
                             } catch (InterruptedException e) {
-                                log.info("HeartBeat received! Restarting timer.");
+                                 log.info("HeartBeat received! Restarting timer.");
                             }
                         }
                     }
                 }
         );
+    }
+
+    public void notifyHeartbeatLock() {
+        heartBeatReceived.set(true);
+        this.heartBeatTimerThreadLock.notify();
+    }
+    public boolean isVoted() {
+        return voted;
+    }
+
+    public void setVoted(boolean voted) {
+        this.voted = voted;
     }
 }

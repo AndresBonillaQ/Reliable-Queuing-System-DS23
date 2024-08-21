@@ -10,7 +10,8 @@ public enum ResponseIdEnum {
     APPEND_VALUE_RESPONSE("appendValueResp"),
     CREATE_QUEUE_RESPONSE("createQueueResp"),
     READ_VALUE_RESPONSE("readValueResp"),
-    HEARTBEAT_RESPONSE("heartbeatResp"),;
+    HEARTBEAT_RESPONSE("heartbeatResp"),
+    VOTE_OUTCOME("voteResponse"),;
 
     private final String value;
 
