@@ -29,7 +29,7 @@ public class ServerToGateway implements Runnable {
         try(
                 ServerSocket serverSocket = new ServerSocket(serverPort)
         ){
-
+            log.log(Level.INFO, "Broker open server to gateway on port : {0} !", serverPort);
             try(
                     Socket clientSocket = serverSocket.accept();
                     PrintWriter out = new PrintWriter(clientSocket.getOutputStream());

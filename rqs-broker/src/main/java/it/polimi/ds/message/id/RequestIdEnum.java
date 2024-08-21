@@ -16,7 +16,9 @@ public enum RequestIdEnum {
     SET_UP_REQUEST("setUpReq"),
     HEARTBEAT_REQUEST("heartbeatReq"),
     COMMIT_REQUEST("commitReq"),
-    APPEND_ENTRY_LOG_REQUEST("appendEntryLogReq");
+    APPEND_ENTRY_LOG_REQUEST("appendEntryLogReq"),
+    VOTE_REQUEST("voteReq"),
+    NEW_LEADER_REQUEST("newLeaderReq");
 
     private final String value;
 

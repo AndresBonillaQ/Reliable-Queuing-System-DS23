@@ -15,6 +15,7 @@ import it.polimi.ds.network2.handler.BrokerRequestDispatcher;
 import it.polimi.ds.network2.utils.LeaderWaitingForFollowersCallable;
 import it.polimi.ds.network2.utils.LeaderWaitingForFollowersResponse;
 import it.polimi.ds.network2.utils.thread.impl.ThreadsCommunication;
+import it.polimi.ds.raftLog.RaftLog;
 import it.polimi.ds.utils.GsonInstance;
 import it.polimi.ds.utils.NetworkMessageBuilder;
 
@@ -32,7 +33,7 @@ public class LeaderBrokerState extends BrokerState {
 
     public LeaderBrokerState(BrokerContext brokerContext) {
         super(brokerContext);
-        //startHeartBeat();
+        startHeartBeat();
     }
 
     /**
@@ -200,6 +201,7 @@ public class LeaderBrokerState extends BrokerState {
         //DENY all messages
     }
 
+    //schedula un task che ogni 3 secondi invia l'heartbeat (dopo un delay iniziale di 15 secondi) a tutti i followers
     private void startHeartBeat(){
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
                 () -> {

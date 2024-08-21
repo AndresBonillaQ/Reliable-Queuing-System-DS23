@@ -17,7 +17,8 @@ public enum ResponseIdEnum {
     HEARTBEAT_RESPONSE("heartbeatResp"),
     COMMIT_RESPONSE("commitResp"),
     APPEND_ENTRY_LOG_RESPONSE("appendEntryLogResp"),
-    REQUEST_NOT_MANAGED("requestNotManaged");
+    REQUEST_NOT_MANAGED("requestNotManaged"),
+    VOTE_OUTCOME("voteResponse");
 
     private final String value;
 

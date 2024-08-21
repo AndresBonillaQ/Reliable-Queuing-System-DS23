@@ -1,6 +1,7 @@
 package it.polimi.ds.broker2.state;
 
 import it.polimi.ds.broker2.BrokerContext;
+import it.polimi.ds.message.RequestMessage;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -23,7 +24,7 @@ public abstract class BrokerState {
 
     public void onHeartbeatTimeout(){}
 
-    public void onWinLeaderElection(){}
+    public void onWinLeaderElection(PrintWriter out){}
 
     public void onLoseLeaderElection(){}
 
@@ -36,4 +37,7 @@ public abstract class BrokerState {
     public Object getStatusLock() {
         return statusLock;
     }
+
+
+
 }

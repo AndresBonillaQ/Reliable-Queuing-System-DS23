@@ -1,5 +1,6 @@
 package it.polimi.ds.network2.handler.impl;
 
+import it.polimi.ds.broker2.BrokerContext;
 import it.polimi.ds.broker2.model.IBrokerModel;
 import it.polimi.ds.exception.model.QueueNotFoundException;
 import it.polimi.ds.message.RequestMessage;
@@ -16,18 +17,19 @@ public class FollowerAppendValueRequestHandler implements FollowerRequestHandler
     private final Logger log = Logger.getLogger(FollowerAppendValueRequestHandler.class.getName());
 
     @Override
-    public ResponseMessage exec(IBrokerModel brokerModel, RequestMessage request) {
+    public ResponseMessage exec(BrokerContext brokerContext, RequestMessage request) {
         AppendValueRequest appendValueRequest = GsonInstance
                 .getInstance()
                 .getGson()
                 .fromJson(request.getContent(), AppendValueRequest.class);
-
         try{
-            brokerModel.appendValueToQueue(appendValueRequest.getQueueId(), appendValueRequest.getValue());
+            brokerContext.getBrokerModel().appendValueToQueue(appendValueRequest.getQueueId(), appendValueRequest.getValue());
             return ModelResponseMessageBuilder.OK.buildAppendValueResponseMessage();
         } catch (QueueNotFoundException e){
             log.severe("Error during appending value! It doesn't exists the queue with ID " + appendValueRequest.getQueueId());
             return ModelResponseMessageBuilder.KO.buildAppendValueResponseMessage(Const.ResponseDes.KO.APPEND_VALUE_QUEUE_ID_NOT_EXISTS_KO);
         }
     }
+
+
 }

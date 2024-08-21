@@ -106,7 +106,7 @@ public class BrokerContext {
         return myBrokerConfig;
     }
 
-    public void updateNewLeaderInfo(String leaderId){
+    public void updateNewLeaderInfo(String leaderId, Socket leaderSocket){
         this.leaderId = leaderId;
     }
 }
