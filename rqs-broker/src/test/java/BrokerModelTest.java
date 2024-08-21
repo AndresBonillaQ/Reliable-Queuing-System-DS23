@@ -1,4 +1,4 @@
-import it.polimi.ds.broker2.model.impl.BrokerModel;
+import it.polimi.ds.broker.model.impl.BrokerModel;
 import it.polimi.ds.exception.model.AlreadyExistsQueueWithSameIdException;
 import it.polimi.ds.exception.model.EmptyQueueException;
 import it.polimi.ds.exception.model.QueueNotFoundException;

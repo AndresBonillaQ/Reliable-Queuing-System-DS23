@@ -1,7 +1,6 @@
 package it.polimi.ds.message.election;
 
-import it.polimi.ds.broker2.BrokerContext;
-import it.polimi.ds.broker2.model.IBrokerModel;
+import it.polimi.ds.broker.BrokerContext;
 
 public class ElectionManager extends  Thread {
 

@@ -1,7 +1,7 @@
 package it.polimi.ds.message.election;
 
 import com.google.gson.Gson;
-import it.polimi.ds.broker2.state.impl.FollowerBrokerState;
+import it.polimi.ds.broker.state.impl.FollowerBrokerState;
 import it.polimi.ds.message.RequestMessage;
 import it.polimi.ds.message.ResponseMessage;
 import it.polimi.ds.message.election.requests.RequestVote;

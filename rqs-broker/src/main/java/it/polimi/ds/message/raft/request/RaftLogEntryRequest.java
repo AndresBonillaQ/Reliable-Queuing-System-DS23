@@ -1,6 +1,6 @@
 package it.polimi.ds.message.raft.request;
 
-import it.polimi.ds.broker2.raft.impl.RaftLog;
+import it.polimi.ds.broker.raft.impl.RaftLog;
 
 import java.io.Serializable;
 import java.util.List;

@@ -1,13 +1,13 @@
 package it.polimi.ds.message.election.requestHandler;
 
 import com.google.gson.Gson;
-import it.polimi.ds.broker2.BrokerContext;
+import it.polimi.ds.broker.BrokerContext;
 import it.polimi.ds.message.RequestMessage;
 import it.polimi.ds.message.ResponseMessage;
 import it.polimi.ds.message.election.requests.RequestVote;
 import it.polimi.ds.message.election.responses.VoteResponse;
 import it.polimi.ds.message.id.ResponseIdEnum;
-import it.polimi.ds.network2.handler.FollowerRequestHandler;
+import it.polimi.ds.network.handler.FollowerRequestHandler;
 import it.polimi.ds.utils.GsonInstance;
 
 public class FollowerVoteRequestHandler implements FollowerRequestHandler {

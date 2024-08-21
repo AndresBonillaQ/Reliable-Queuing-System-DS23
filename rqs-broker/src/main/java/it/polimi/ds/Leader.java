@@ -1,6 +1,6 @@
 package it.polimi.ds;
 
-import it.polimi.ds.broker2.BrokerContext;
+import it.polimi.ds.broker.BrokerContext;
 import it.polimi.ds.message.RequestMessage;
 import it.polimi.ds.message.id.RequestIdEnum;
 import it.polimi.ds.message.model.request.AppendValueRequest;
