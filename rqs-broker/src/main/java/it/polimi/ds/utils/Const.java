@@ -21,6 +21,7 @@ public class Const {
             public static final String APPEND_VALUE_QUEUE_ID_NOT_EXISTS_KO = "The value has been impossible to append because the queueId doesn't exists";
             public static final String READ_VALUE_QUEUE_ID_NOT_EXISTS_KO = "The values has been impossible to read because the queueId doesn't exists";
             public static final String READ_VALUE_QUEUE_ID_INDEX_OUT_OF_BOUND_KO = "The values has been impossible to read because of index out of bound";
+            public static final String READ_VALUE_QUEUE_EMPTY_KO = "The queue is empty!";
         }
     }
 }

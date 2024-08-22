@@ -1,6 +1,6 @@
 package it.polimi.ds.message.election.requests;
 
-import it.polimi.ds.broker2.BrokerContext;
+import it.polimi.ds.broker.BrokerContext;
 
 import java.io.Serializable;
 

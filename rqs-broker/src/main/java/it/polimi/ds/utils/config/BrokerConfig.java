@@ -1,7 +1,5 @@
 package it.polimi.ds.utils.config;
 
-import it.polimi.ds.utils.BrokerInfo;
-
 import java.util.List;
 
 public class BrokerConfig {
@@ -11,7 +9,7 @@ public class BrokerConfig {
     private final String myClusterId;
 
     /**
-     * Number of brokers which compose the cluster
+     * Broker info which compose the cluster
      * */
     private final List<BrokerInfo> clusterBrokerConfig;
 
@@ -20,17 +18,20 @@ public class BrokerConfig {
      * */
     private final int brokerServerPortToBrokers;
 
+    private final GatewayInfo gatewayInfo;
+
     /**
      * The broker server port to gateway
      * */
     private final int brokerServerPortToGateway;
 
-    public BrokerConfig(String myBrokerId, String myClusterId, int brokerServerPortToBrokers, int brokerServerPortToGateway, List<BrokerInfo> clusterBrokerConfig) {
+    public BrokerConfig(String myBrokerId, String myClusterId, int brokerServerPortToBrokers, int brokerServerPortToGateway, List<BrokerInfo> clusterBrokerConfig, GatewayInfo gatewayInfo) {
         this.myBrokerId = myBrokerId;
         this.myClusterId = myClusterId;
         this.clusterBrokerConfig = clusterBrokerConfig;
         this.brokerServerPortToBrokers = brokerServerPortToBrokers;
         this.brokerServerPortToGateway = brokerServerPortToGateway;
+        this.gatewayInfo = gatewayInfo;
     }
 
     public List<BrokerInfo> getClusterBrokerConfig() {
@@ -51,5 +52,9 @@ public class BrokerConfig {
 
     public String getMyClusterId() {
         return myClusterId;
+    }
+
+    public GatewayInfo getGatewayInfo() {
+        return gatewayInfo;
     }
 }
