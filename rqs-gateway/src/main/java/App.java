@@ -16,8 +16,6 @@ public class App {
         ReadConfigFile.initialization();
 
         //apro le connessioni con i broker
-        ConnectionManager connectionManager = new ConnectionManager();
-        connectionManager.startConnection();
 
         //For testing
         Gateway.getInstance().setPortNumber(8090, "cluster1");

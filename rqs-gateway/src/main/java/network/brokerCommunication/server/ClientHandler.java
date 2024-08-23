@@ -29,10 +29,9 @@ public class ClientHandler implements Runnable {
                 String inputLine;
                 while ((inputLine = reader.readLine()) != null) {
                     try {
-                        MessageResponse jsonData = gson.fromJson(inputLine, MessageResponse.class);
+                        MessageResponse messageResponse = gson.fromJson(inputLine, MessageResponse.class);
                         synchronized (Gateway.getInstance()) {
-
-                            Gateway.getInstance().processResponse(jsonData);
+                            Gateway.getInstance().processResponse(messageResponse);
                         }
                     } catch (JsonSyntaxException e) {
                         e.printStackTrace();

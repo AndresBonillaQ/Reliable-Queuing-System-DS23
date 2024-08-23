@@ -8,7 +8,8 @@ import java.util.Optional;
 public enum ResponseIdEnum {
     APPEND_VALUE_RESPONSE("appendValueResp"),
     CREATE_QUEUE_RESPONSE("createQueueResp"),
-    READ_VALUE_RESPONSE("readValueResp");
+    READ_VALUE_RESPONSE("readValueResp"),
+    RECONNECTION_MESSAGE("reconnection");
 
     private final String value;
 
