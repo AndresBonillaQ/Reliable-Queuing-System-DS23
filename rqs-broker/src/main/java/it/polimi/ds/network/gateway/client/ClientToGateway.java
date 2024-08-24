@@ -47,7 +47,7 @@ public class ClientToGateway implements Runnable {
 
                     //sendFirstSetupMessage(in, out);
 
-                    while (true) {
+                    while (socket.isConnected() && !socket.isClosed()) {
                         brokerContext.getBrokerState().clientToGatewayExec(in, out);
                     }
 

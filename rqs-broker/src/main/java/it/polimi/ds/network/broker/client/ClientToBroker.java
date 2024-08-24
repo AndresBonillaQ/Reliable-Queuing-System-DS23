@@ -9,7 +9,7 @@ import it.polimi.ds.message.model.response.utils.StatusEnum;
 import it.polimi.ds.network.utils.thread.impl.ThreadsCommunication;
 import it.polimi.ds.utils.config.BrokerInfo;
 import it.polimi.ds.utils.GsonInstance;
-import it.polimi.ds.utils.NetworkMessageBuilder;
+import it.polimi.ds.utils.builder.NetworkMessageBuilder;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -56,7 +56,7 @@ public class ClientToBroker implements Runnable {
 
                     sendFirstSetupMessage(in, out);
 
-                    while (true) {
+                    while (socket.isConnected() && !socket.isClosed()) {
                         brokerContext.getBrokerState().clientToBrokerExec(brokerInfo.getClientBrokerId(), in, out);
                     }
 
@@ -76,7 +76,6 @@ public class ClientToBroker implements Runnable {
     }
 
     private void sendFirstSetupMessage(BufferedReader in, PrintWriter out) throws IOException, ImpossibleSetUpException {
-
         RequestMessage requestMessage = NetworkMessageBuilder.Request.buildSetUpRequest(brokerContext.getMyBrokerConfig().getMyBrokerId());
         String request = GsonInstance.getInstance().getGson().toJson(requestMessage);
 
@@ -88,12 +87,12 @@ public class ClientToBroker implements Runnable {
         ResponseMessage responseMessage = GsonInstance.getInstance().getGson().fromJson(response, ResponseMessage.class);
         SetUpResponse setUpResponse = GsonInstance.getInstance().getGson().fromJson(responseMessage.getContent(), SetUpResponse.class);
 
-        log.log(Level.INFO, "Setting up the client, received {0}", response);
-
         if (StatusEnum.KO.equals(setUpResponse.getStatus())) {
             log.log(Level.SEVERE, "Impossible to setUp client, error: {0}, finishing connection..", setUpResponse.getDesStatus());
             throw new ImpossibleSetUpException("Impossible to setUp with broker as client!");
         }
+
+        brokerContext.setIsBrokerSetUp(true);
     }
 }
 

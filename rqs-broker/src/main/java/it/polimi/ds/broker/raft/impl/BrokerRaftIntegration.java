@@ -4,10 +4,13 @@ import it.polimi.ds.broker.raft.IBrokerRaftIntegration;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  * This class contains the information about the Raft consensus protocol
+ * Term starts from 0
+ * Index starts from -1
  * */
 public class BrokerRaftIntegration implements IBrokerRaftIntegration {
 
@@ -108,6 +111,13 @@ public class BrokerRaftIntegration implements IBrokerRaftIntegration {
         return currentTerm - 1;
     }
 
+    public int getPrevLogTerm(int prevLogIndex){
+        if(prevLogIndex < 0)
+            return 0;
+
+        return raftLogQueue.get(prevLogIndex).getTerm();
+    }
+
     public synchronized int getPrevLogTermOfIndex(int index){
         return raftLogQueue.get(index).getTerm();
     }
@@ -133,6 +143,8 @@ public class BrokerRaftIntegration implements IBrokerRaftIntegration {
      * @param prevTerm must be equal to term of last log entry
      * */
     public boolean isConsistent(int prevIndex, int prevTerm){
+        log.log(Level.INFO, "Checking consistency of prevIndex: {0} and prevTerm : {1}, raftLogQueue is {2}", new Object[]{prevIndex, prevTerm, raftLogQueue});
+
         if(raftLogQueue.isEmpty())
             return prevIndex == -1 && prevTerm == 0;
 
@@ -142,25 +154,32 @@ public class BrokerRaftIntegration implements IBrokerRaftIntegration {
     }
 
     public List<RaftLog> getLogsToCommit(int newLastCommitIndex){
-        System.out.format("Committing from %s to %s in queue with size %s\n", new Object[]{this.lastCommitIndex + 1, newLastCommitIndex + 1, raftLogQueue.size()});
         return raftLogQueue.subList(this.lastCommitIndex + 1, newLastCommitIndex + 1);
     }
 
     private void printLogs(){
-        System.out.println("+------+----------+-----------+");
-        System.out.println("| Term | Request  | Committed |");
-        System.out.println("+------+----------+-----------+");
+        System.out.println("+------+---------------------------------------------------------------+-----------+");
+        System.out.printf("| %-4s | %-60s | %-9s |\n",
+                "Term",
+                "Request",
+                "Committed");
+        System.out.println("+------+---------------------------------------------------------------+-----------+");
 
         for (RaftLog log : raftLogQueue) {
-            System.out.printf("| %-4d | %-67s | %-9s |\n",
+            String request = log.getRequest();
+
+            // Truncate the request if it exceeds the desired length
+            if (request.length() > 60) {
+                request = request + "...";  // Add ellipsis to show truncation
+            }
+
+            System.out.printf("| %-4d | %-60s | %-9s |\n",
                     log.getTerm(),
-                    log.getRequest(),
+                    request,
                     log.isCommitted() ? "Yes" : "No");
         }
+        System.out.println("+------+---------------------------------------------------------------+-----------+");
 
-        System.out.println("+------+----------+-----------+");
-
-        System.out.println("======================================================================================================================");
         System.out.format("currentTerm: %d, currentIndex: %d \n", new Object[]{currentTerm, currentIndex});
         System.out.println("---------------------------------------------------------------------------------------------------------------------");
     }

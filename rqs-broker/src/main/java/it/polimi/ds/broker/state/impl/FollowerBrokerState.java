@@ -7,43 +7,40 @@ import it.polimi.ds.exception.RequestNoManagedException;
 import it.polimi.ds.message.RequestMessage;
 import it.polimi.ds.message.ResponseMessage;
 import it.polimi.ds.message.election.requests.VoteRequest;
-import it.polimi.ds.message.election.responses.VoteResponse;
-import it.polimi.ds.message.id.ResponseIdEnum;
 import it.polimi.ds.message.model.response.utils.DesStatusEnum;
 import it.polimi.ds.message.model.response.utils.StatusEnum;
 import it.polimi.ds.message.raft.request.CommitLogRequest;
 import it.polimi.ds.message.raft.request.HeartbeatRequest;
 import it.polimi.ds.message.raft.request.RaftLogEntryRequest;
 import it.polimi.ds.network.handler.BrokerRequestDispatcher;
-import it.polimi.ds.utils.ExecutorInstance;
 import it.polimi.ds.utils.GsonInstance;
-import it.polimi.ds.utils.NetworkMessageBuilder;
+import it.polimi.ds.utils.builder.NetworkMessageBuilder;
+import it.polimi.ds.utils.config.Timing;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.Set;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class FollowerBrokerState extends BrokerState {
 
-    private final Object heartBeatTimerThreadLock = new Object();
     private final Logger log = Logger.getLogger(FollowerBrokerState.class.getName());
+
     private final AtomicBoolean heartBeatReceived = new AtomicBoolean(false);
-    private boolean voted;
-    private Long random = 5500 + (long) (Math.random() * 15000);
+
+    private final Set<Integer> hasAlreadyVoteInTerm = new ConcurrentSkipListSet<>();
+
+    private final Long random = Timing.HEARTBEAT_PERIOD_CHECKING_FROM + (long) (Math.random() * Timing.HEARTBEAT_PERIOD_CHECKING_FROM_TO_SUM);
 
     public FollowerBrokerState(BrokerContext brokerContext) {
         super(brokerContext);
-        voted = false;
         heartbeatTimerThreadStart();
-        System.out.println("random: " + random);
     }
 
     /**
@@ -52,17 +49,14 @@ public class FollowerBrokerState extends BrokerState {
      * */
     @Override
     public void clientToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) throws InterruptedException {
-
     }
 
     @Override
     public void clientToGatewayExec(BufferedReader in, PrintWriter out) {
-
     }
 
     @Override
     public void serverToGatewayExec(BufferedReader in, PrintWriter out) throws IOException {
-        // request not managed..
     }
 
     /**
@@ -74,13 +68,15 @@ public class FollowerBrokerState extends BrokerState {
         String requestLine = in.readLine();
 
         if(requestLine != null && !requestLine.isEmpty()){
-            log.log(Level.INFO, "Request from Leader: {0} ; responding to brokerId {1}", new Object[]{requestLine, clientBrokerId});
+            //log.log(Level.INFO, "Request from broker {0}: {1}", new Object[]{clientBrokerId, requestLine});
 
             RequestMessage requestMessage = GsonInstance.getInstance().getGson().fromJson(requestLine, RequestMessage.class);
             ResponseMessage responseMessage;
 
             switch (requestMessage.getId()) {
                 case APPEND_ENTRY_LOG_REQUEST -> {
+
+                    log.log(Level.INFO, "Request from broker {0}: {1}", new Object[]{clientBrokerId, requestLine});
 
                     RaftLogEntryRequest raftLogEntryRequest = GsonInstance.getInstance().getGson().fromJson(requestMessage.getContent(), RaftLogEntryRequest.class);
 
@@ -125,9 +121,8 @@ public class FollowerBrokerState extends BrokerState {
 
                     CommitLogRequest commitLogRequest = GsonInstance.getInstance().getGson().fromJson(requestMessage.getContent(), CommitLogRequest.class);
                     List<RaftLog> raftLogList = brokerContext.getBrokerRaftIntegration().getLogsToCommit(commitLogRequest.getLastCommitIndex());
-                    System.out.println("RaftLostList size: " + raftLogList.size());
+                    System.out.println("getLogsToCommit size: " + raftLogList.toString());
                     brokerContext.getBrokerRaftIntegration().increaseLastCommitIndex(commitLogRequest.getLastCommitIndex());
-                    System.out.println("Last commit index: " + brokerContext.getBrokerRaftIntegration().getLastCommitIndex());
 
                     raftLogList.forEach(raftLog -> {
                         try {
@@ -144,7 +139,7 @@ public class FollowerBrokerState extends BrokerState {
 
                 case HEARTBEAT_REQUEST -> {
                     HeartbeatRequest heartbeatRequest = GsonInstance.getInstance().getGson().fromJson(requestMessage.getContent(), HeartbeatRequest.class);
-                    log.log(Level.INFO, "HeartBeat of leader {0} received!", heartbeatRequest.getLeaderId());
+                    //log.log(Level.INFO, "HeartBeat of leader {0} received!", heartbeatRequest.getLeaderId());
 
                     brokerContext.updateNewLeaderInfo(heartbeatRequest.getLeaderId());
 
@@ -158,16 +153,19 @@ public class FollowerBrokerState extends BrokerState {
                 case VOTE_REQUEST -> {
 
                     VoteRequest voteRequest = GsonInstance.getInstance().getGson().fromJson(requestMessage.getContent(), VoteRequest.class);
-                    log.log(Level.INFO, "VoteRequest is: {0}", requestLine);
+                    log.log(Level.INFO, "Received from candidate a term: {0}, myCurrentTerm {1}, hasAlreadyVoteInTerm {2}", new Object[]{voteRequest.getTerm(), brokerContext.getBrokerRaftIntegration().getCurrentTerm(), hasAlreadyVoteInTerm.contains(voteRequest.getTerm())});
 
-                    VoteResponse voteResponse = new VoteResponse();
-                    voteResponse.setOutcome("OK");
+                    if(voteRequest.getTerm() > brokerContext.getBrokerRaftIntegration().getCurrentTerm()){
+                        if(!hasAlreadyVoteInTerm.contains(voteRequest.getTerm())){
+                            hasAlreadyVoteInTerm.add(voteRequest.getTerm());
+                            responseMessage = NetworkMessageBuilder.Response.buildVoteResponse(StatusEnum.OK, "");
+                        } else
+                            responseMessage = NetworkMessageBuilder.Response.buildVoteResponse(StatusEnum.KO, "Already voted for this term");
+                    } else
+                        responseMessage = NetworkMessageBuilder.Response.buildVoteResponse(StatusEnum.KO, "CurrentTerm greater");
 
-                    ResponseMessage responseMessage1 = new ResponseMessage();
-                    responseMessage1.setId(ResponseIdEnum.VOTE_OUTCOME);
-                    responseMessage1.setContent(GsonInstance.getInstance().getGson().toJson(voteResponse));
 
-                    out.println(GsonInstance.getInstance().getGson().toJson(responseMessage1));
+                    out.println(GsonInstance.getInstance().getGson().toJson(responseMessage));
                     out.flush();
                 }
 
@@ -187,14 +185,13 @@ public class FollowerBrokerState extends BrokerState {
 
     }
 
-    public void setHeartBeatReceived(boolean value) {
-        heartBeatReceived.set(value);
-    }
     @Override
     public void onHeartbeatTimeout(){
-        System.out.println("Becoming a candidate..");
         //follower becomes candidate
-        brokerContext.setBrokerState(new CandidateBrokerState(brokerContext));
+        synchronized (brokerContext.getBrokerState()){
+            log.log(Level.INFO, "I'm going to elect myself");
+            brokerContext.setBrokerState(new CandidateBrokerState(brokerContext));
+        }
         // brokerContext.getBrokerState().getStatusLock().notify();
         //  heartBeatTimerThreadLock.notify();
     }
@@ -204,7 +201,7 @@ public class FollowerBrokerState extends BrokerState {
         scheduler.scheduleAtFixedRate(
                 () -> {
 
-                    if (scheduler.isShutdown()) {
+                    if (scheduler.isShutdown() || !brokerContext.isBrokerSetUp()) {
                         return;
                     }
 
@@ -216,21 +213,9 @@ public class FollowerBrokerState extends BrokerState {
                     else
                         heartBeatReceived.set(false);
                 },
-                5000,
+                Timing.HEARTBEAT_DELAY_CHECKING,
                 random,
                 TimeUnit.MILLISECONDS
         );
-    }
-
-    public void notifyHeartbeatLock() {
-        heartBeatReceived.set(true);
-        this.heartBeatTimerThreadLock.notify();
-    }
-    public boolean isVoted() {
-        return voted;
-    }
-
-    public void setVoted(boolean voted) {
-        this.voted = voted;
     }
 }

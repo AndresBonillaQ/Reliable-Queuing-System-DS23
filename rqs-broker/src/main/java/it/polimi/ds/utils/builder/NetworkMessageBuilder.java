@@ -1,18 +1,19 @@
-package it.polimi.ds.utils;
+package it.polimi.ds.utils.builder;
 
 import it.polimi.ds.broker.raft.impl.RaftLog;
 import it.polimi.ds.message.RequestMessage;
 import it.polimi.ds.message.ResponseMessage;
+import it.polimi.ds.message.election.requests.VoteRequest;
+import it.polimi.ds.message.election.responses.VoteResponse;
 import it.polimi.ds.message.id.RequestIdEnum;
 import it.polimi.ds.message.id.ResponseIdEnum;
 import it.polimi.ds.message.model.response.utils.StatusEnum;
-import it.polimi.ds.message.raft.request.CommitLogRequest;
-import it.polimi.ds.message.raft.request.HeartbeatRequest;
-import it.polimi.ds.message.raft.request.RaftLogEntryRequest;
-import it.polimi.ds.message.raft.request.SetUpRequest;
+import it.polimi.ds.message.raft.request.*;
 import it.polimi.ds.message.raft.response.HeartbeatResponse;
+import it.polimi.ds.message.raft.response.NewLeaderToGatewayResponse;
 import it.polimi.ds.message.raft.response.RaftLogEntryResponse;
 import it.polimi.ds.message.raft.response.SetUpResponse;
+import it.polimi.ds.utils.GsonInstance;
 
 import java.util.List;
 
@@ -64,6 +65,24 @@ public class NetworkMessageBuilder {
                     GsonInstance.getInstance().getGson().toJson(commitLogRequest)
             );
         }
+
+        public static RequestMessage buildVoteRequest(int currentTerm){
+            VoteRequest voteRequest = new VoteRequest(currentTerm);
+
+            return new RequestMessage(
+                    RequestIdEnum.VOTE_REQUEST,
+                    GsonInstance.getInstance().getGson().toJson(voteRequest)
+            );
+        }
+
+        public static RequestMessage buildNewLeaderToGatewayRequest(String clusterId, String brokerId, String hostName, int port){
+            NewLeaderToGatewayRequest newLeaderToGatewayRequest = new NewLeaderToGatewayRequest(clusterId, brokerId, hostName, port);
+
+            return new RequestMessage(
+                    RequestIdEnum.NEW_LEADER_TO_GATEWAY_REQUEST,
+                    GsonInstance.getInstance().getGson().toJson(newLeaderToGatewayRequest)
+            );
+        }
     }
 
     public static class Response{
@@ -96,6 +115,30 @@ public class NetworkMessageBuilder {
             return new ResponseMessage(
                     ResponseIdEnum.APPEND_ENTRY_LOG_RESPONSE,
                     GsonInstance.getInstance().getGson().toJson(raftLogEntryResponse)
+            );
+        }
+
+        public static ResponseMessage buildVoteResponse(StatusEnum statusEnum, String desStatus){
+            VoteResponse voteResponse = new VoteResponse();
+
+            voteResponse.setStatus(statusEnum);
+            voteResponse.setDesStatus(desStatus);
+
+            return new ResponseMessage(
+                    ResponseIdEnum.VOTE_RESPONSE,
+                    GsonInstance.getInstance().getGson().toJson(voteResponse)
+            );
+        }
+
+        public static ResponseMessage buildNewLeaderToGatewayResponse(StatusEnum statusEnum, String desStatus){
+            NewLeaderToGatewayResponse newLeaderToGatewayResponse = new NewLeaderToGatewayResponse();
+
+            newLeaderToGatewayResponse.setStatus(statusEnum);
+            newLeaderToGatewayResponse.setDesStatus(desStatus);
+
+            return new ResponseMessage(
+                    ResponseIdEnum.NEW_LEADER_TO_GATEWAY_RESPONSE,
+                    GsonInstance.getInstance().getGson().toJson(newLeaderToGatewayResponse)
             );
         }
     }

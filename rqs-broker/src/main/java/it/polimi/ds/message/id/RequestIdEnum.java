@@ -18,7 +18,9 @@ public enum RequestIdEnum {
     COMMIT_REQUEST("commitReq"),
     APPEND_ENTRY_LOG_REQUEST("appendEntryLogReq"),
     VOTE_REQUEST("voteReq"),
-    NEW_LEADER_REQUEST("newLeaderReq");
+    NEW_LEADER_REQUEST("newLeaderReq"),
+    NEW_LEADER_TO_GATEWAY_REQUEST("newLeaderToGatewayReq")
+    ;
 
     private final String value;
 

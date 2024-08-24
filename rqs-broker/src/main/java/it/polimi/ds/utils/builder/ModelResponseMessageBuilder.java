@@ -1,4 +1,4 @@
-package it.polimi.ds.utils;
+package it.polimi.ds.utils.builder;
 
 import it.polimi.ds.message.ResponseMessage;
 import it.polimi.ds.message.id.ResponseIdEnum;
@@ -6,6 +6,8 @@ import it.polimi.ds.message.model.response.AppendValueResponse;
 import it.polimi.ds.message.model.response.CreateQueueResponse;
 import it.polimi.ds.message.model.response.ReadValueResponse;
 import it.polimi.ds.message.model.response.utils.StatusEnum;
+import it.polimi.ds.utils.Const;
+import it.polimi.ds.utils.GsonInstance;
 
 public class ModelResponseMessageBuilder {
 

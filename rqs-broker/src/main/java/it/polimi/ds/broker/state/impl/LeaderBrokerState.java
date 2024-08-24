@@ -9,30 +9,38 @@ import it.polimi.ds.message.ResponseMessage;
 import it.polimi.ds.message.id.RequestIdEnum;
 import it.polimi.ds.message.id.ResponseIdEnum;
 import it.polimi.ds.message.model.response.utils.StatusEnum;
-import it.polimi.ds.message.raft.request.HeartbeatRequest;
 import it.polimi.ds.message.raft.response.RaftLogEntryResponse;
+import it.polimi.ds.network.gateway.client.ClientToGateway;
+import it.polimi.ds.network.gateway.server.ServerToGateway;
 import it.polimi.ds.network.handler.BrokerRequestDispatcher;
 import it.polimi.ds.network.utils.LeaderWaitingForFollowersCallable;
 import it.polimi.ds.network.utils.LeaderWaitingForFollowersResponse;
 import it.polimi.ds.network.utils.thread.impl.ThreadsCommunication;
+import it.polimi.ds.utils.ExecutorInstance;
 import it.polimi.ds.utils.GsonInstance;
-import it.polimi.ds.utils.NetworkMessageBuilder;
+import it.polimi.ds.utils.builder.NetworkMessageBuilder;
+import it.polimi.ds.utils.config.Timing;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class LeaderBrokerState extends BrokerState {
 
     private final Logger log = Logger.getLogger(LeaderBrokerState.class.getName());
+    private final AtomicBoolean hasAlreadyNotifyGateway = new AtomicBoolean(false);
 
     public LeaderBrokerState(BrokerContext brokerContext) {
         super(brokerContext);
         startHeartBeat();
+        brokerContext.getBrokerRaftIntegration().increaseCurrentTerm();
+        ExecutorInstance.getInstance().getExecutorService().submit(new ServerToGateway(brokerContext, brokerContext.getMyBrokerConfig().getBrokerServerPortToGateway()));
+        //ExecutorInstance.getInstance().getExecutorService().submit(new ClientToGateway(brokerContext, brokerContext.getMyBrokerConfig().getGatewayInfo()));
     }
 
     /**
@@ -43,30 +51,33 @@ public class LeaderBrokerState extends BrokerState {
     public void clientToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) throws IOException {
 
         try{
-            //blocking execution until a message to forward is available
-            String requestToForward = ThreadsCommunication.getInstance().getRequestConcurrentHashMapOfBrokerId(clientBrokerId).poll(10, TimeUnit.MILLISECONDS);
 
-            if(requestToForward != null && !requestToForward.isEmpty()){
-                log.log(Level.INFO, "Forwarding request to follower: {0}", requestToForward);
+            if(ThreadsCommunication.getInstance().getRequestConcurrentHashMapOfBrokerId(clientBrokerId) != null){
+                //blocking execution until a message to forward is available
+                String requestToForward = ThreadsCommunication.getInstance().getRequestConcurrentHashMapOfBrokerId(clientBrokerId).poll(10, TimeUnit.MILLISECONDS);
 
-                //forwarding message
-                out.println(requestToForward);
-                out.flush();
+                if(requestToForward != null && !requestToForward.isEmpty()){
+                    //log.log(Level.INFO, "Forwarding request to follower: {0}", requestToForward);
 
-                RequestMessage requestMessage = GsonInstance.getInstance().getGson().fromJson(requestToForward, RequestMessage.class);
+                    //forwarding message
+                    out.println(requestToForward);
+                    out.flush();
 
-                // Se è un messaggio di COMMIT non mi aspetto una response
-                if(!RequestIdEnum.COMMIT_REQUEST.equals(requestMessage.getId())){
+                    RequestMessage requestMessage = GsonInstance.getInstance().getGson().fromJson(requestToForward, RequestMessage.class);
 
-                    String responseLine = in.readLine();
-                    log.log(Level.INFO, "From follower {0} response is: {1}", new Object[]{clientBrokerId, responseLine});
-                    // add message to responseQueue
+                    // Se è un messaggio di COMMIT non mi aspetto una response
+                    if(!RequestIdEnum.COMMIT_REQUEST.equals(requestMessage.getId())){
 
-                    if(!RequestIdEnum.HEARTBEAT_REQUEST.equals(requestMessage.getId())){
-                        ThreadsCommunication.getInstance().addResponseToFollowerResponseQueue(clientBrokerId, responseLine);
-                    }
-                } else
-                    log.log(Level.INFO,"Not waiting for response because sent a commit message..");
+                        String responseLine = in.readLine();
+                        //log.log(Level.INFO, "From follower {0} response is: {1}", new Object[]{clientBrokerId, responseLine});
+                        // add message to responseQueue
+
+                        if(!RequestIdEnum.HEARTBEAT_REQUEST.equals(requestMessage.getId())){
+                            ThreadsCommunication.getInstance().addResponseToFollowerResponseQueue(clientBrokerId, responseLine);
+                        }
+                    } else
+                        log.log(Level.INFO,"Not waiting for response because sent a commit message..");
+                }
             }
 
         }catch (InterruptedException e){
@@ -76,23 +87,27 @@ public class LeaderBrokerState extends BrokerState {
     }
 
     @Override
-    public void clientToGatewayExec(BufferedReader in, PrintWriter out) {
-        // send to gateway: HI I'M THE LEADER OF CLUSTER X !
+    public void clientToGatewayExec(BufferedReader in, PrintWriter out) throws IOException {
+        if(Boolean.FALSE.equals(hasAlreadyNotifyGateway.get())){
+            RequestMessage requestMessage = NetworkMessageBuilder.Request.buildNewLeaderToGatewayRequest(
+                    brokerContext.getMyBrokerConfig().getMyClusterId(),
+                    brokerContext.getMyBrokerConfig().getMyBrokerId(),
+                    brokerContext.getMyBrokerConfig().getMyHostName(),
+                    brokerContext.getMyBrokerConfig().getBrokerServerPortToGateway()
+            );
+
+            log.log(Level.INFO, "Notifying gateway about new leader... {0}", requestMessage);
+
+            out.println(GsonInstance.getInstance().getGson().toJson(requestMessage));
+            out.flush();
+
+            String responseLine = in.readLine();
+            log.log(Level.INFO, "Response of notify gateway about new leader... {0}", responseLine);
+
+            hasAlreadyNotifyGateway.set(true);
+        }
     }
 
-    /**
-     * This method handles all messages coming from the gateway to the cluster Leader.
-     * All messages follow these steps:
-     *  - Message is appended in the leader log queue
-     *  - Log is redirected to all followers
-     *  - Wait for all followers OK
-     *      - if consensus reached:
-     *          - exec operation request
-     *          - confirm followers to exec request
-     *          - response OK to gateway
-     *      - otherwhise:
-     *          -
-     * */
     @Override
     public void serverToGatewayExec(BufferedReader in, PrintWriter out) throws IOException {
 
@@ -107,7 +122,7 @@ public class LeaderBrokerState extends BrokerState {
                 brokerContext.getBrokerRaftIntegration().getCurrentTerm(),
                 brokerContext.getMyBrokerConfig().getMyBrokerId(),
                 brokerContext.getBrokerRaftIntegration().getPrevLogIndex(),
-                brokerContext.getBrokerRaftIntegration().getPrevLogTerm(),
+                brokerContext.getBrokerRaftIntegration().getPrevLogTerm(brokerContext.getBrokerRaftIntegration().getPrevLogIndex()),
                 raftLog
         );
 
@@ -186,7 +201,6 @@ public class LeaderBrokerState extends BrokerState {
 
             // increase my lastCommitIndex
             brokerContext.getBrokerRaftIntegration().increaseLastCommitIndex();
-            System.out.println("Last commit index: " + brokerContext.getBrokerRaftIntegration().getLastCommitIndex());
 
             // sending commit with my lastCommitIndex
             RequestMessage requestMessage = NetworkMessageBuilder.Request.buildCommitRequest(brokerContext.getBrokerRaftIntegration().getLastCommitIndex());
@@ -201,13 +215,18 @@ public class LeaderBrokerState extends BrokerState {
      * */
     @Override
     public void serverToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) throws IOException {
-        //DENY all messages
+
     }
 
-    //schedula un task che ogni 3 secondi invia l'heartbeat (dopo un delay iniziale di 15 secondi) a tutti i followers
+    /**
+     * This method handle logic to send HeartBeat to followers
+     * */
     private void startHeartBeat(){
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
                 () -> {
+
+                    if(!brokerContext.isBrokerSetUp())
+                        return;
 
                     RequestMessage requestMessage = NetworkMessageBuilder.Request.buildHeartBeatRequest(brokerContext.getMyBrokerConfig().getMyBrokerId());
 
@@ -215,9 +234,7 @@ public class LeaderBrokerState extends BrokerState {
                             GsonInstance.getInstance().getGson().toJson(requestMessage)
                     );
 
-                    System.out.println("Sending heartbeat to queue..");
-
-                }, 100, 5000, TimeUnit.MILLISECONDS
+                }, Timing.HEARTBEAT_DELAY_SENDING, Timing.HEARTBEAT_PERIOD_SENDING, TimeUnit.MILLISECONDS
         );
     }
 }

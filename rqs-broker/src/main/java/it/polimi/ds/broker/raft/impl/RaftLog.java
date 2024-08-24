@@ -38,4 +38,14 @@ public class RaftLog implements Serializable {
     public void setCommitted(boolean committed) {
         this.committed = committed;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("RaftLog{");
+        sb.append("term=").append(term);
+        sb.append(", request='").append(request).append('\'');
+        sb.append(", committed=").append(committed);
+        sb.append('}');
+        return sb.toString();
+    }
 }

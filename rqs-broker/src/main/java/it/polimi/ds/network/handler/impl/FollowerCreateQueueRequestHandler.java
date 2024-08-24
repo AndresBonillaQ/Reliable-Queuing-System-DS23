@@ -8,7 +8,7 @@ import it.polimi.ds.message.model.request.CreateQueueRequest;
 import it.polimi.ds.network.handler.FollowerRequestHandler;
 import it.polimi.ds.utils.Const;
 import it.polimi.ds.utils.GsonInstance;
-import it.polimi.ds.utils.ModelResponseMessageBuilder;
+import it.polimi.ds.utils.builder.ModelResponseMessageBuilder;
 
 import java.util.logging.Logger;
 

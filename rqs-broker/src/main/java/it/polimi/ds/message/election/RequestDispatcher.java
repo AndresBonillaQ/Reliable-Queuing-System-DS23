@@ -8,6 +8,7 @@ import it.polimi.ds.message.election.requests.VoteRequest;
 import it.polimi.ds.message.election.responses.VoteResponse;
 import it.polimi.ds.message.id.RequestIdEnum;
 import it.polimi.ds.message.id.ResponseIdEnum;
+import it.polimi.ds.message.model.response.utils.StatusEnum;
 import it.polimi.ds.utils.GsonInstance;
 
 public class RequestDispatcher {
@@ -20,23 +21,21 @@ public class RequestDispatcher {
             VoteRequest voteRequest = gson1.fromJson(gson1.fromJson(request, RequestMessage.class).getContent(), VoteRequest.class);
             ResponseMessage responseMessage = new ResponseMessage();
             VoteResponse voteResponse = new VoteResponse();
-            responseMessage.setId(ResponseIdEnum.VOTE_OUTCOME);
+            responseMessage.setId(ResponseIdEnum.VOTE_RESPONSE);
 
             String response = gson2.toJson(responseMessage.getContent(), ResponseMessage.class);
 
             if (termNumber <= voteRequest.getTerm()) {
-                voteResponse.setOutcome("OK");
+                voteResponse.setStatus(StatusEnum.OK);
                 responseMessage.setContent(GsonInstance.getInstance().getGson().toJson(voteResponse));
-                brokerState.setVoted(true);
             } else {
-                voteResponse.setOutcome("KO");
+                voteResponse.setStatus(StatusEnum.KO);
                 responseMessage.setContent(GsonInstance.getInstance().getGson().toJson(voteResponse));
-                brokerState.setVoted(true);
             }
 
             return gson2.toJson(responseMessage.getContent(), ResponseMessage.class);
         }if (gson1.fromJson(request, RequestMessage.class).getId().equals(RequestIdEnum.HEARTBEAT_REQUEST.getValue())) {
-            brokerState.notifyHeartbeatLock();
+
         }
         return "";
     }

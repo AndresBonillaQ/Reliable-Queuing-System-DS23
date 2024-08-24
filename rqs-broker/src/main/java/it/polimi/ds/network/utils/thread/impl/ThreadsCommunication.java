@@ -46,6 +46,7 @@ public class ThreadsCommunication {
     }
 
     public void addBrokerId(String brokerId){
+        log.log(Level.INFO, "Registering in the request and response QUEUE the brokerId {0}", brokerId);
         requestConcurrentHashMap.put(brokerId, new LinkedBlockingQueue<>());
         responseConcurrentHashMap.put(brokerId, new LinkedBlockingQueue<>());
     }

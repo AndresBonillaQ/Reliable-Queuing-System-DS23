@@ -9,6 +9,7 @@ import it.polimi.ds.message.model.request.ReadValueRequest;
 import it.polimi.ds.utils.config.BrokerInfo;
 import it.polimi.ds.utils.GsonInstance;
 import it.polimi.ds.utils.config.BrokerConfig;
+import it.polimi.ds.utils.config.GatewayInfo;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -32,11 +33,15 @@ public class Leader {
                                 new BrokerInfo("2","127.0.0.1", 8080)
                                 //,new BrokerInfo("3","127.0.0.1", 4000)
                         ),
-                        null
+                        new GatewayInfo(
+                                "127.0.1",
+                                5000
+                        ),
+                        "127.0.0.1"
                 ),
-                false,
+                true,
                 "1",
-                true
+                false
         );
 
         leader.start();
@@ -57,7 +62,11 @@ class Follower {
                                 new BrokerInfo("1","127.0.0.1", 3000)
                                 //,new BrokerInfo("3","127.0.0.1", 4000)
                         ),
-                        null
+                        new GatewayInfo(
+                                "127.0.1",
+                                5000
+                        ),
+                        "127.0.0.1"
                 ),
                 false,
                 "1",
@@ -81,7 +90,8 @@ class Follower2 {
                                 new BrokerInfo("1","127.0.0.1", 3000),
                                 new BrokerInfo("2","127.0.0.1", 8080)
                                 ),
-                        null
+                        null,
+                        "127.0.0.1"
                 ),
                 false,
                 "1", false);

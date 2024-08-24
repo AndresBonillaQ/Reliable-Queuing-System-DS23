@@ -18,7 +18,8 @@ public enum ResponseIdEnum {
     COMMIT_RESPONSE("commitResp"),
     APPEND_ENTRY_LOG_RESPONSE("appendEntryLogResp"),
     REQUEST_NOT_MANAGED("requestNotManaged"),
-    VOTE_OUTCOME("voteResponse");
+    VOTE_RESPONSE("voteResponse"),
+    NEW_LEADER_TO_GATEWAY_RESPONSE("newLeaderToGatewayResp");
 
     private final String value;
 

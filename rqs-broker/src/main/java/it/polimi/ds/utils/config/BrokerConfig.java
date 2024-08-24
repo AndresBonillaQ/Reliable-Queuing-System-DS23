@@ -13,25 +13,28 @@ public class BrokerConfig {
      * */
     private final List<BrokerInfo> clusterBrokerConfig;
 
+    private final GatewayInfo gatewayInfo;
+
     /**
      * The broker server port to follower
      * */
     private final int brokerServerPortToBrokers;
-
-    private final GatewayInfo gatewayInfo;
 
     /**
      * The broker server port to gateway
      * */
     private final int brokerServerPortToGateway;
 
-    public BrokerConfig(String myBrokerId, String myClusterId, int brokerServerPortToBrokers, int brokerServerPortToGateway, List<BrokerInfo> clusterBrokerConfig, GatewayInfo gatewayInfo) {
+    private final String myHostName;
+
+    public BrokerConfig(String myBrokerId, String myClusterId, int brokerServerPortToBrokers, int brokerServerPortToGateway, List<BrokerInfo> clusterBrokerConfig, GatewayInfo gatewayInfo, String myHostName) {
         this.myBrokerId = myBrokerId;
         this.myClusterId = myClusterId;
         this.clusterBrokerConfig = clusterBrokerConfig;
         this.brokerServerPortToBrokers = brokerServerPortToBrokers;
         this.brokerServerPortToGateway = brokerServerPortToGateway;
         this.gatewayInfo = gatewayInfo;
+        this.myHostName = myHostName;
     }
 
     public List<BrokerInfo> getClusterBrokerConfig() {
@@ -56,5 +59,9 @@ public class BrokerConfig {
 
     public GatewayInfo getGatewayInfo() {
         return gatewayInfo;
+    }
+
+    public String getMyHostName() {
+        return myHostName;
     }
 }

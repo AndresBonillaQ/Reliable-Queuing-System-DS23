@@ -28,7 +28,7 @@ public interface IBrokerRaftIntegration {
 
     int getPrevLogIndex();
 
-    int getPrevLogTerm();
+    int getPrevLogTerm(int prevLogIndex);
 
     int getPrevLogTermOfIndex(int index);
 

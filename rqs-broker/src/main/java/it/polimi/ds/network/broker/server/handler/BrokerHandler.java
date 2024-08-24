@@ -10,13 +10,14 @@ import it.polimi.ds.message.model.response.utils.DesStatusEnum;
 import it.polimi.ds.message.model.response.utils.StatusEnum;
 import it.polimi.ds.network.utils.thread.impl.ThreadsCommunication;
 import it.polimi.ds.utils.GsonInstance;
-import it.polimi.ds.utils.NetworkMessageBuilder;
+import it.polimi.ds.utils.builder.NetworkMessageBuilder;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -43,10 +44,13 @@ public class BrokerHandler implements Runnable{
 
             try{
                 brokerClientId = receiveFirstSetupMessage(in, out);
-                ThreadsCommunication.getInstance().addBrokerId(brokerClientId);
 
-                while(true){
-                    brokerContext.getBrokerState().serverToBrokerExec(brokerClientId, in, out);
+                while(socket.isConnected() && !socket.isClosed()){
+                    try{
+                        brokerContext.getBrokerState().serverToBrokerExec(brokerClientId, in, out);
+                    }catch (SocketTimeoutException e){
+                        System.out.println("Not received any message, socket TIMEOUT");
+                    }
                 }
 
             } catch (IOException e){
@@ -68,8 +72,6 @@ public class BrokerHandler implements Runnable{
         String request = in.readLine();
         RequestMessage requestMessage = GsonInstance.getInstance().getGson().fromJson(request, RequestMessage.class);
 
-        log.log(Level.INFO, "Received during setUp: {0}", request);
-
         if(RequestIdEnum.SET_UP_REQUEST.equals(requestMessage.getId())){
 
             SetUpRequest setUpRequest = GsonInstance.getInstance().getGson().fromJson(requestMessage.getContent(), SetUpRequest.class);
@@ -77,14 +79,17 @@ public class BrokerHandler implements Runnable{
 
             if(!ThreadsCommunication.getInstance().isBrokerIdPresent(brokerClientId)){
 
-                responseMessage = NetworkMessageBuilder.Response.buildSetUpResponse(StatusEnum.OK, DesStatusEnum.SET_UP_OK.getValue());
+                ThreadsCommunication.getInstance().addBrokerId(brokerClientId);
 
+                responseMessage = NetworkMessageBuilder.Response.buildSetUpResponse(StatusEnum.OK, DesStatusEnum.SET_UP_OK.getValue());
                 out.println(GsonInstance.getInstance().getGson().toJson(responseMessage));
                 out.flush();
 
                 return brokerClientId;
 
             } else {
+
+                log.log(Level.INFO, "Impossible to register the brokerId {0}, already present", brokerClientId);
                 responseMessage = NetworkMessageBuilder.Response.buildSetUpResponse(StatusEnum.KO, DesStatusEnum.SET_UP_KO.getValue());
 
                 out.println(GsonInstance.getInstance().getGson().toJson(responseMessage));

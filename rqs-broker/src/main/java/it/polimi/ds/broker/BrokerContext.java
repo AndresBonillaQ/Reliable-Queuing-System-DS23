@@ -9,11 +9,11 @@ import it.polimi.ds.broker.state.impl.FollowerBrokerState;
 import it.polimi.ds.broker.state.impl.LeaderBrokerState;
 import it.polimi.ds.network.broker.client.ClientToBroker;
 import it.polimi.ds.network.broker.server.ServerToBroker;
-import it.polimi.ds.network.gateway.client.ClientToGateway;
 import it.polimi.ds.network.gateway.server.ServerToGateway;
 import it.polimi.ds.utils.ExecutorInstance;
 import it.polimi.ds.utils.config.BrokerConfig;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -49,20 +49,19 @@ public class BrokerContext {
      * */
     private final BrokerConfig myBrokerConfig;
 
+    protected final AtomicBoolean isBrokerSetUp = new AtomicBoolean(false);
+
     private final Logger log = Logger.getLogger(BrokerContext.class.getName());
 
     public BrokerContext(BrokerConfig myBrokerConfig, boolean isLeader, String brokerIdLeader, boolean canBecomeCandidate){
         this.numClusterBrokers = myBrokerConfig.getClusterBrokerConfig().size() + 1;
-
         this.myBrokerConfig = myBrokerConfig;
+        //brokerState = new FollowerBrokerState(this);
 
         if(isLeader){
-            leaderId = myBrokerConfig.getMyBrokerId();
             brokerState = new LeaderBrokerState(this);
-        }
-        else{
+        } else {
             brokerState = new FollowerBrokerState(this);
-            leaderId = brokerIdLeader;
         }
     }
 
@@ -71,10 +70,7 @@ public class BrokerContext {
      * */
     public void start(){
         log.log(Level.INFO, "Starting broker with ID {0}", myBrokerConfig.getMyBrokerId());
-
-        ExecutorInstance.getInstance().getExecutorService().submit(new ServerToGateway(this, myBrokerConfig.getBrokerServerPortToGateway()));
         ExecutorInstance.getInstance().getExecutorService().submit(new ServerToBroker(this, myBrokerConfig.getBrokerServerPortToBrokers()));
-        //ExecutorInstance.getInstance().getExecutorService().submit(new ClientToGateway(this, myBrokerConfig.getGatewayInfo()));
         myBrokerConfig.getClusterBrokerConfig().forEach(brokerInfo -> ExecutorInstance.getInstance().getExecutorService().submit(new ClientToBroker(brokerInfo, this)));
     }
 
@@ -108,5 +104,13 @@ public class BrokerContext {
 
     public void updateNewLeaderInfo(String leaderId){
         this.leaderId = leaderId;
+    }
+
+    public void setIsBrokerSetUp(boolean isBrokerSetUp){
+        this.isBrokerSetUp.set(isBrokerSetUp);
+    }
+
+    public boolean isBrokerSetUp() {
+        return isBrokerSetUp.get();
     }
 }

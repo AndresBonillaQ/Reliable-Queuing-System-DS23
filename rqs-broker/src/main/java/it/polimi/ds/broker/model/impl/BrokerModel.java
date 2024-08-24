@@ -71,6 +71,7 @@ public class BrokerModel implements IBrokerModel{
 
     @Override
     public void printState() {
+        System.out.println("After execution of request:");
         System.out.println("+---------+-------------------------+");
         System.out.println("| QueueID | Elements                |");
         System.out.println("+---------+-------------------------+");
