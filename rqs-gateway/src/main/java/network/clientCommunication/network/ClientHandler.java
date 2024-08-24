@@ -24,6 +24,8 @@ public class ClientHandler implements Runnable {
     }
     @Override
     public void run() {
+
+
         while (!clientSocket.isClosed()) {
             try {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -31,9 +33,9 @@ public class ClientHandler implements Runnable {
                 String inputLine;
                 while ( ( inputLine =  reader.readLine() ) != null) {
                     try {
-                        MessageRequest jsonData = gson.fromJson(inputLine, MessageRequest.class);
+                        MessageRequest messageRequest = gson.fromJson(inputLine, MessageRequest.class);
                         synchronized (Gateway.getInstance()) {
-                            clientID = Gateway.getInstance().processRequest(jsonData);
+                            clientID = Gateway.getInstance().processRequest(messageRequest);
                         }
                     } catch (JsonSyntaxException e) {
                         e.printStackTrace();

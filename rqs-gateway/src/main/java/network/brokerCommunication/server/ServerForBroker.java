@@ -1,6 +1,6 @@
 package network.brokerCommunication.server;
 
-import network.clientCommunication.network.ClientHandler;
+import network.brokerCommunication.server.ClientHandler;
 
 import java.io.IOException;
 import java.net.ServerSocket;

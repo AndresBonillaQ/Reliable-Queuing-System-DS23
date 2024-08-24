@@ -3,6 +3,7 @@ package network.brokerCommunication.server;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import messages.MessageResponse;
+import messages.connectionSetUp.SetUpConnectionMessage;
 import network.clientCommunication.model.Gateway;
 
 import java.io.BufferedReader;
@@ -29,11 +30,11 @@ public class ClientHandler implements Runnable {
                 String inputLine;
                 while ((inputLine = reader.readLine()) != null) {
                     try {
-                        MessageResponse jsonData = gson.fromJson(inputLine, MessageResponse.class);
+                        SetUpConnectionMessage setUpConnectionMessage = gson.fromJson(inputLine, SetUpConnectionMessage.class);
                         synchronized (Gateway.getInstance()) {
-
-                            Gateway.getInstance().processResponse(jsonData);
+                            Gateway.getInstance().setUpConnectionWithNewLeader(setUpConnectionMessage);
                         }
+                        System.out.println("New leader connected");
                     } catch (JsonSyntaxException e) {
                         e.printStackTrace();
                     }

@@ -10,7 +10,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class RequestMessageMap {
 
-    private Map<String, BlockingQueue<MessageRequest>> requestMap = new HashMap<>();//<ClientId, Queue>
+    private Map<String, BlockingQueue<MessageRequest>> requestMap = new HashMap<>();//<clusterID, Coda dei messaggi da inviare al cluster con clusterUD>
     private ArrayList<String> clustersID = new ArrayList<>();
 
 

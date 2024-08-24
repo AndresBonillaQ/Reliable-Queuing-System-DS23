@@ -20,10 +20,4 @@ public class ResponseMessageMap {
     public void putOnResponseQueue(String clientID, MessageResponse message) {
         responseMap.get(clientID).add(message);
     }
-    public void addClientID(String clientID) {
-        if (!clientIDlist.contains(clientID)) {
-            clientIDlist.add(clientID);
-            responseMap.put(clientID, new LinkedBlockingQueue<>());
-        }
-    }
 }

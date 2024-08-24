@@ -2,6 +2,7 @@ package network.brokerCommunication.client;
 
 import com.google.gson.Gson;
 import messages.MessageRequest;
+import messages.MessageResponse;
 import network.clientCommunication.model.Gateway;
 
 import java.io.*;
@@ -29,11 +30,21 @@ public class CommunicationThread extends Thread {
                 BufferedReader reader = new BufferedReader(streamReader);
 
                 PrintWriter writer = new PrintWriter(socket.getOutputStream());
-                //messaggio da inviare al broker
+                //messaggio arrivato dal CLIENT da inviare al BROKER
                 if ((messageRequest = Gateway.getInstance().pollRequest(this.clusterID)) != null) {
                     writer.println(gson.toJson(messageRequest));
                     writer.flush();
+
+                    //risposta dal BROKER
+                    String readLine = reader.readLine();
+                    Gson gson1 = new Gson();
+                    MessageResponse messageResponse = gson1.fromJson(readLine, MessageResponse.class);
+                    String clientID = messageResponse.getClientID();
+                    //inoltra la risposta del BROKER al CLIENT
+                    Gateway.getInstance().putOnResponseMap(clientID, messageResponse);
+
                 }
+
             } catch (IOException e) {
                 if (listener != null) {
                     try {
