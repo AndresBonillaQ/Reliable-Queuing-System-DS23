@@ -1,7 +1,5 @@
 package network.clientCommunication.network;
 
-import network.clientCommunication.network.ClientHandler;
-
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -10,15 +8,17 @@ import java.net.Socket;
  * Questa classe attende connessioni dai client, per ogni client che si connette crea un thread (clientHandler).
  */
 
-public class ServerForClient {
+public class ServerForClient implements Runnable{
 
     private final int portNumber;
     public ServerForClient(int portNumber) {
         this.portNumber = portNumber;
     }
 
-    public void start() throws IOException {
+    @Override
+    public void run() {
 
+    try {
         ServerSocket serverSocket = new ServerSocket(portNumber);
         System.out.println("Gateway server is awaiting connections...");
         while (true) {
@@ -36,5 +36,8 @@ public class ServerForClient {
         }
         System.out.println("Closing Gateway server");
         serverSocket.close();
+    } catch (IOException e) {
+        throw new RuntimeException(e);
+    }
     }
 }

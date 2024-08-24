@@ -1,15 +1,15 @@
 package messages;
 
-import java.io.Serializable;
-
-
-
-import java.io.Serializable;
-
 public class MessageResponse {
     private String id = null;
     private String content = null;
-    private String clientID;
+    private String clientId;
+
+    public MessageResponse(String id, String content, String clientId) {
+        this.id = id;
+        this.content = content;
+        this.clientId = clientId;
+    }
 
     public String getId() {
         return id;
@@ -27,11 +27,11 @@ public class MessageResponse {
         this.content = content;
     }
 
-    public String getClientID() {
-        return clientID;
+    public String getClientId() {
+        return clientId;
     }
 
-    public void setClientID(String clientID) {
-        this.clientID = clientID;
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
     }
 }

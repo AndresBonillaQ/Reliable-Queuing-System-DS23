@@ -2,8 +2,9 @@ package network.brokerCommunication.server;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import messages.MessageResponse;
+import messages.MessageRequest;
 import messages.connectionSetUp.SetUpConnectionMessage;
+import messages.id.RequestIdEnum;
 import network.clientCommunication.model.Gateway;
 
 import java.io.BufferedReader;
@@ -16,9 +17,7 @@ public class ClientHandler implements Runnable {
     private String clientID;
 
     public ClientHandler(Socket socket) throws IOException {
-
         this.clientSocket = socket;
-        System.out.println("Client connected...");
     }
 
     @Override
@@ -30,11 +29,16 @@ public class ClientHandler implements Runnable {
                 String inputLine;
                 while ((inputLine = reader.readLine()) != null) {
                     try {
-                        SetUpConnectionMessage setUpConnectionMessage = gson.fromJson(inputLine, SetUpConnectionMessage.class);
-                        synchronized (Gateway.getInstance()) {
-                            Gateway.getInstance().setUpConnectionWithNewLeader(setUpConnectionMessage);
-                        }
-                        System.out.println("New leader connected");
+                        MessageRequest requestMessage = gson.fromJson(inputLine, MessageRequest.class);
+
+                        if(RequestIdEnum.NEW_LEADER_TO_GATEWAY_REQUEST.equals(requestMessage.getId())){
+                            SetUpConnectionMessage setUpConnectionMessage = gson.fromJson(requestMessage.getContent(), SetUpConnectionMessage.class);
+                            synchronized (Gateway.getInstance()) {
+                                Gateway.getInstance().setUpConnectionWithNewLeader(setUpConnectionMessage);
+                            }
+                            System.out.println("New leader connected");
+                        } else
+                            System.out.println("Not managed");
                     } catch (JsonSyntaxException e) {
                         e.printStackTrace();
                     }

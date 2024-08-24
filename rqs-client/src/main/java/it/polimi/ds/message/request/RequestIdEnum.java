@@ -8,7 +8,8 @@ import java.util.Optional;
 public enum RequestIdEnum {
     APPEND_VALUE_REQUEST("appendValueReq"),
     CREATE_QUEUE_REQUEST("createQueueReq"),
-    READ_VALUE_REQUEST("readValueReq");
+    READ_VALUE_REQUEST("readValueReq"),
+    SET_UP_REQUEST("setUpReq");
 
     private final String value;
 

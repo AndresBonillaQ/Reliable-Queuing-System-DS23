@@ -113,7 +113,6 @@ public class CandidateBrokerState extends BrokerState {
      * */
     @Override
     public void onWinLeaderElection(PrintWriter out) {
-        log.log(Level.INFO, "I'm becoming leader..!");
         synchronized (brokerContext.getBrokerState()){
             brokerContext.setBrokerState(new LeaderBrokerState(brokerContext));
         }

@@ -3,7 +3,7 @@ package messages.responses;
 import java.io.Serializable;
 
 
-public class ReadValueResponse implements Serializable {
+public class ReadValueResponse extends Response implements Serializable {
     private Integer value;
 
     public Integer getValue() {

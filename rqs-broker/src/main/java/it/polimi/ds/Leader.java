@@ -30,12 +30,12 @@ public class Leader {
                         3000,
                         3001,
                         List.of(
-                                new BrokerInfo("2","127.0.0.1", 8080)
+                                //new BrokerInfo("2","127.0.0.1", 8080)
                                 //,new BrokerInfo("3","127.0.0.1", 4000)
                         ),
                         new GatewayInfo(
                                 "127.0.1",
-                                5000
+                                5001
                         ),
                         "127.0.0.1"
                 ),
@@ -64,7 +64,7 @@ class Follower {
                         ),
                         new GatewayInfo(
                                 "127.0.1",
-                                5000
+                                5001
                         ),
                         "127.0.0.1"
                 ),

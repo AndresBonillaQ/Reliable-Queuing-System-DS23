@@ -1,4 +1,4 @@
-package messages.responses;
+package messages.id;
 
 import java.util.Optional;
 
@@ -9,7 +9,8 @@ public enum ResponseIdEnum {
     APPEND_VALUE_RESPONSE("appendValueResp"),
     CREATE_QUEUE_RESPONSE("createQueueResp"),
     READ_VALUE_RESPONSE("readValueResp"),
-    RECONNECTION_MESSAGE("reconnection");
+    RECONNECTION_MESSAGE("reconnection"),
+    SET_UP_RESPONSE("setUpResp");
 
     private final String value;
 

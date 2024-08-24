@@ -2,7 +2,7 @@ package messages.responses;
 
 import java.io.Serializable;
 
-public class CreateQueueResponse implements Serializable {
+public class CreateQueueResponse extends Response implements Serializable {
     private String queueId;
 
     public String getQueueId() {

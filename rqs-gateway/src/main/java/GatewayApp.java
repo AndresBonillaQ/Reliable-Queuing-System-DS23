@@ -1,20 +1,15 @@
-import network.brokerCommunication.client.ConnectionManager;
 import network.brokerCommunication.server.ServerForBroker;
 import network.clientCommunication.network.ServerForClient;
-import network.clientCommunication.model.Gateway;
-import network.clientCommunication.model.initialization.ReadConfigFile;
 
 import java.io.IOException;
 
-public class App {
+public class GatewayApp {
     public static void main(String[] args) throws IOException {
 
         //apro il server per i clients
-        ServerForClient gateWayServer = new ServerForClient(8081);
-        gateWayServer.start();
+        new Thread(new ServerForClient(6666)).start();
 
-        ServerForBroker serverForBroker = new ServerForBroker(8090);
-        serverForBroker.start();
+        new Thread(new ServerForBroker(5001)).start();
         //inizializzo il gateway con gli ip e porte dei broker
        // ReadConfigFile.initialization();
 

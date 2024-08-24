@@ -1,4 +1,4 @@
-package messages.requests;
+package messages.id;
 
 
 import java.util.Optional;
@@ -9,7 +9,9 @@ import java.util.Optional;
 public enum RequestIdEnum {
     APPEND_VALUE_REQUEST("appendValueReq"),
     CREATE_QUEUE_REQUEST("createQueueReq"),
-    READ_VALUE_REQUEST("readValueReq");
+    READ_VALUE_REQUEST("readValueReq"),
+    NEW_LEADER_TO_GATEWAY_REQUEST("newLeaderToGatewayReq"),
+    SET_UP_REQUEST("setUpReq");;
 
     private final String value;
 

@@ -37,10 +37,11 @@ public class LeaderBrokerState extends BrokerState {
 
     public LeaderBrokerState(BrokerContext brokerContext) {
         super(brokerContext);
+        log.log(Level.INFO, "I'm becoming leader!!");
         startHeartBeat();
         brokerContext.getBrokerRaftIntegration().increaseCurrentTerm();
         ExecutorInstance.getInstance().getExecutorService().submit(new ServerToGateway(brokerContext, brokerContext.getMyBrokerConfig().getBrokerServerPortToGateway()));
-        //ExecutorInstance.getInstance().getExecutorService().submit(new ClientToGateway(brokerContext, brokerContext.getMyBrokerConfig().getGatewayInfo()));
+        ExecutorInstance.getInstance().getExecutorService().submit(new ClientToGateway(brokerContext, brokerContext.getMyBrokerConfig().getGatewayInfo()));
     }
 
     /**
@@ -133,56 +134,61 @@ public class LeaderBrokerState extends BrokerState {
         int numConsensus = 1;
         final int numFollowersThread = brokerContext.getNumClusterBrokers() - 1;
 
-        // creating callables waiting for followers responses
-        ExecutorService executorService = Executors.newFixedThreadPool(numFollowersThread);
-        CompletionService<LeaderWaitingForFollowersResponse> completionService = new ExecutorCompletionService<>(executorService);
+        if(numFollowersThread > 0){
 
-        ThreadsCommunication.getInstance()
-                .getResponseConcurrentHashMap()
-                .forEach((queueId, responseQueue) -> {
-                    completionService.submit(new LeaderWaitingForFollowersCallable(queueId, responseQueue));
-                });
+            // creating callables waiting for followers responses
+            ExecutorService executorService = Executors.newFixedThreadPool(numFollowersThread);
+            CompletionService<LeaderWaitingForFollowersResponse> completionService = new ExecutorCompletionService<>(executorService);
 
-        // consuming followers responses
-        for (int i = 0; i < numFollowersThread; i++) {
+            ThreadsCommunication.getInstance()
+                    .getResponseConcurrentHashMap()
+                    .forEach((queueId, responseQueue) -> {
+                        completionService.submit(new LeaderWaitingForFollowersCallable(queueId, responseQueue));
+                    });
 
-            try{
-                Future<LeaderWaitingForFollowersResponse> response = completionService.take();
-                log.log(Level.INFO, "Response from follower taken from queue: {0}", response.get());
+            // consuming followers responses
+            for (int i = 0; i < numFollowersThread; i++) {
 
-                ResponseMessage responseMessage = GsonInstance.getInstance().getGson().fromJson(response.get().getResponse(), ResponseMessage.class);
+                try{
+                    Future<LeaderWaitingForFollowersResponse> response = completionService.take();
+                    log.log(Level.INFO, "Response from follower taken from queue: {0}", response.get());
 
-                if(ResponseIdEnum.APPEND_ENTRY_LOG_RESPONSE.equals(responseMessage.getId())) {
-                    RaftLogEntryResponse raftLogEntryResponse = GsonInstance.getInstance().getGson().fromJson(responseMessage.getContent(), RaftLogEntryResponse.class);
+                    ResponseMessage responseMessage = GsonInstance.getInstance().getGson().fromJson(response.get().getResponse(), ResponseMessage.class);
 
-                    if (StatusEnum.OK.equals(raftLogEntryResponse.getStatus())) {
-                        log.log(Level.INFO, "Consensus +1");
-                        numConsensus++;
-                    } else {
+                    if(ResponseIdEnum.APPEND_ENTRY_LOG_RESPONSE.equals(responseMessage.getId())) {
+                        RaftLogEntryResponse raftLogEntryResponse = GsonInstance.getInstance().getGson().fromJson(responseMessage.getContent(), RaftLogEntryResponse.class);
 
-                        //build logEntryRequest to forward to all followers TODO!!!!
-                        final RequestMessage requestMessage = NetworkMessageBuilder.Request.buildAppendEntryLogRequest(
-                                brokerContext.getBrokerRaftIntegration().getCurrentTerm(),
-                                brokerContext.getMyBrokerConfig().getMyBrokerId(),
-                                brokerContext.getBrokerRaftIntegration().getPrevLogIndexOf(raftLogEntryResponse.getLastMatchIndex()),
-                                brokerContext.getBrokerRaftIntegration().getPrevLogTermOfIndex(raftLogEntryResponse.getLastMatchIndex()),
-                                brokerContext.getBrokerRaftIntegration().getRaftLogEntriesFromIndex(raftLogEntryResponse.getLastMatchIndex())
-                        );
+                        if (StatusEnum.OK.equals(raftLogEntryResponse.getStatus())) {
+                            log.log(Level.INFO, "Consensus +1");
+                            numConsensus++;
+                        } else {
 
-                        String request = GsonInstance.getInstance().getGson().toJson(requestMessage);
+                            //build logEntryRequest to forward to all followers TODO!!!!
+                            final RequestMessage requestMessage = NetworkMessageBuilder.Request.buildAppendEntryLogRequest(
+                                    brokerContext.getBrokerRaftIntegration().getCurrentTerm(),
+                                    brokerContext.getMyBrokerConfig().getMyBrokerId(),
+                                    brokerContext.getBrokerRaftIntegration().getPrevLogIndexOf(raftLogEntryResponse.getLastMatchIndex()),
+                                    brokerContext.getBrokerRaftIntegration().getPrevLogTermOfIndex(raftLogEntryResponse.getLastMatchIndex()),
+                                    brokerContext.getBrokerRaftIntegration().getRaftLogEntriesFromIndex(raftLogEntryResponse.getLastMatchIndex())
+                            );
 
-                        ThreadsCommunication.getInstance().getRequestConcurrentHashMapOfBrokerId(response.get().getBrokerId()).add(request);
+                            String request = GsonInstance.getInstance().getGson().toJson(requestMessage);
+
+                            ThreadsCommunication.getInstance().getRequestConcurrentHashMapOfBrokerId(response.get().getBrokerId()).add(request);
+                        }
                     }
-                }
 
-            } catch (InterruptedException e){
-                log.log(Level.SEVERE, "Error: {0}", e.getMessage());
-            } catch (ExecutionException e) {
-                log.log(Level.INFO, "Error: {0}", e.getMessage());
+                } catch (InterruptedException e){
+                    log.log(Level.SEVERE, "Error: {0}", e.getMessage());
+                } catch (ExecutionException e) {
+                    log.log(Level.INFO, "Error: {0}", e.getMessage());
+                }
             }
+
         }
 
-        if(numConsensus >= (brokerContext.getNumClusterBrokers() / 2) + 1){
+        // considering case of cluster with only one broker
+        if((numFollowersThread > 0 && numConsensus >= (brokerContext.getNumClusterBrokers() / 2) + 1) || numFollowersThread == 0){
 
             log.log(Level.INFO, "Consensus reached, executing command and responding to gateway..");
 
