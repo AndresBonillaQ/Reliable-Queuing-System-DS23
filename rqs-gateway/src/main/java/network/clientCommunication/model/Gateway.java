@@ -3,20 +3,17 @@ package network.clientCommunication.model;
 import com.google.gson.Gson;
 import messages.MessageRequest;
 import messages.MessageResponse;
+import messages.connectionSetUp.SetUpConnectionMessage;
 import messages.requests.AppendValueRequest;
 import messages.requests.CreateQueueRequest;
 import messages.requests.ReadValueRequest;
-import messages.requests.RequestIdEnum;
 import messages.responses.*;
 import network.brokerCommunication.client.ConnectionManager;
 import network.clientCommunication.model.utils.RequestMessageMap;
 import network.clientCommunication.model.utils.ResponseMessageMap;
 import java.io.IOException;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.BlockingQueue;
 
 /**
  * Assunzioni: Il gateway, quando viene instanziato ha la lista dei clusterId, una mappa che associa queueID e clusterID e le porte
@@ -146,16 +143,13 @@ public class Gateway {
 
     }
 
-    public String processResponse(MessageResponse messageResponse) throws IOException {
-        String messageId = messageResponse.getId();
-        String clientId = messageResponse.getClientID();
+    public void setUpConnectionWithNewLeader(SetUpConnectionMessage setUpConnectionMessage) throws IOException {
+       // String clientId = messageResponse.getClientID();
 
-        if (ResponseIdEnum.RECONNECTION_MESSAGE.equals(messageId) ) {
 
-                ReconnectionMessage response =  (new Gson() ).fromJson( (new Gson()).toJson(messageResponse.getContent()) , ReconnectionMessage.class);
-                String clusterID = response.getClusterId();
-                String ipAddress = response.getIpAddress();
-                Integer portNumber = response.getPortNumber();
+                String clusterID = setUpConnectionMessage.getClusterId();
+                String ipAddress = setUpConnectionMessage.getIpAddress();
+                Integer portNumber = setUpConnectionMessage.getPortNumber();
 
                 clustersID.add(clusterID);
                 clusterIdToAddressMap.put(clusterID, ipAddress);
@@ -167,11 +161,7 @@ public class Gateway {
                     nextCluster.put(clusterID, 0);
 
                 connectionManager.startConnection(clusterID);
-            }
-        else {
-            putOnResponseMap(clientId, messageResponse);
-        }
-        return clientId;
+
     }
 
 public void putOnResponseMap(String clientID, MessageResponse messageResponse) {

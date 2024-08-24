@@ -1,4 +1,5 @@
 import network.brokerCommunication.client.ConnectionManager;
+import network.brokerCommunication.server.ServerForBroker;
 import network.clientCommunication.network.ServerForClient;
 import network.clientCommunication.model.Gateway;
 import network.clientCommunication.model.initialization.ReadConfigFile;
@@ -12,14 +13,16 @@ public class App {
         ServerForClient gateWayServer = new ServerForClient(8081);
         gateWayServer.start();
 
+        ServerForBroker serverForBroker = new ServerForBroker(8090);
+        serverForBroker.start();
         //inizializzo il gateway con gli ip e porte dei broker
-        ReadConfigFile.initialization();
+       // ReadConfigFile.initialization();
 
         //apro le connessioni con i broker
 
         //For testing
-        Gateway.getInstance().setPortNumber(8090, "cluster1");
-        Gateway.getInstance().addToQueueToClusterMap("queue1", "cluster1");
+       // Gateway.getInstance().setPortNumber(8090, "cluster1");
+        // Gateway.getInstance().addToQueueToClusterMap("queue1", "cluster1");
 
 
     }

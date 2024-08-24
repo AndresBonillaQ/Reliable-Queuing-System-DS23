@@ -1,8 +1,8 @@
-package messages.responses;
+package messages.connectionSetUp;
 
 import java.io.Serializable;
 
-public class ReconnectionMessage implements Serializable {
+public class SetUpConnectionMessage implements Serializable {
     private String ipAddress;
     private Integer portNumber;
     private String clusterId;

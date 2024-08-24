@@ -18,7 +18,6 @@ public  class ConnectionManager implements ConnectionListener {
         ExecutorInstance.getInstance().getExecutorService().submit(
                 () -> {
                     while (!Thread.currentThread().isInterrupted()) {
-
                         try {
                             if (Gateway.getInstance().isUpdated(clusterID)) {
                                 Socket newSocket = new Socket(Gateway.getInstance().getIp(clusterID), Gateway.getInstance().getPortNumber(clusterID));
@@ -38,7 +37,6 @@ public  class ConnectionManager implements ConnectionListener {
                         System.err.println("Thread interrupted.");
                         break;
                     }
-
                     }
                 }
         );
