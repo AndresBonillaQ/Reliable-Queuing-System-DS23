@@ -53,7 +53,7 @@ public class BrokerContext {
 
     private final Logger log = Logger.getLogger(BrokerContext.class.getName());
 
-    public BrokerContext(BrokerConfig myBrokerConfig, boolean isLeader, String brokerIdLeader, boolean canBecomeCandidate){
+    public BrokerContext(BrokerConfig myBrokerConfig, boolean isLeader){
         this.numClusterBrokers = myBrokerConfig.getClusterBrokerConfig().size() + 1;
         this.myBrokerConfig = myBrokerConfig;
         //brokerState = new FollowerBrokerState(this);

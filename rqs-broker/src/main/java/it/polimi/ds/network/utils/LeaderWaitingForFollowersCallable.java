@@ -15,7 +15,7 @@ public class LeaderWaitingForFollowersCallable implements Callable<LeaderWaiting
     }
 
     @Override
-    public LeaderWaitingForFollowersResponse call() throws Exception {
+    public LeaderWaitingForFollowersResponse call() throws InterruptedException {
         return new LeaderWaitingForFollowersResponse(
                 this.brokerId,
                 responseBlockingQueue.poll(7, TimeUnit.SECONDS)

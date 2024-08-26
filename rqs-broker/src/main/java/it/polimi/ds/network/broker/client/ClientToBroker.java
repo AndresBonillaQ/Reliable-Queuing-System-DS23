@@ -43,45 +43,53 @@ public class ClientToBroker implements Runnable {
 
     private void connectToBroker() {
         scheduler.schedule(() -> {
-            try {
-                try (
-                        Socket socket = new Socket(brokerInfo.getHostName(), brokerInfo.getPort());
-                        InputStreamReader streamReader = new InputStreamReader(socket.getInputStream());
-                        BufferedReader in = new BufferedReader(streamReader);
-                        PrintWriter out = new PrintWriter(socket.getOutputStream())
-                ) {
+            try (
+                    Socket socket = new Socket(brokerInfo.getHostName(), brokerInfo.getPort());
+                    InputStreamReader streamReader = new InputStreamReader(socket.getInputStream());
+                    BufferedReader in = new BufferedReader(streamReader);
+                    PrintWriter out = new PrintWriter(socket.getOutputStream())
+            ) {
 
-                    log.log(Level.INFO, "Connected to BrokerID {0} on hostName: {1} and port {2}",
-                            new Object[]{brokerInfo.getClientBrokerId(), brokerInfo.getHostName(), brokerInfo.getPort()});
+                log.log(Level.INFO, "Connecting to BrokerID {0} on hostName: {1} and port {2}",
+                        new Object[]{brokerInfo.getClientBrokerId(), brokerInfo.getHostName(), brokerInfo.getPort()});
 
-                    sendFirstSetupMessage(in, out);
+                sendFirstSetupMessage(in, out);
 
-                    while (socket.isConnected() && !socket.isClosed()) {
-                        brokerContext.getBrokerState().clientToBrokerExec(brokerInfo.getClientBrokerId(), in, out);
-                    }
-
-                } catch (ImpossibleSetUpException ex){
-                    log.log(Level.SEVERE, "Impossible to setUp the broker, error: {0}, closing broker..", ex.getMessage());
-                } catch (IOException ex) {
-                    log.log(Level.SEVERE, "Error {0}! IOException in clientToBroker connection, retrying connection..", ex.getMessage());
-                    ThreadsCommunication.getInstance().onBrokerConnectionClose(brokerInfo.getClientBrokerId());
-                    // Retry connection after a delay
-                    connectToBroker();
+                while (socket.isConnected() && !socket.isClosed()) {
+                    brokerContext.getBrokerState().clientToBrokerExec(brokerInfo.getClientBrokerId(), in, out);
                 }
 
-            } catch (Exception e) {
-                log.severe("Unexpected error occurred: " + e.getMessage());
+                log.log(Level.INFO, "Connection with {} closed, trying to reconnect", brokerInfo.getClientBrokerId());
+                retryReconnection();
+
+            } catch (ImpossibleSetUpException ex){
+                log.log(Level.SEVERE, "Impossible to setUp the broker, error: {0}, closing broker..", ex.getMessage());
+            } catch (IOException ex) {
+                log.log(Level.SEVERE, "IOException in clientToBroker connection, error {0}, retrying connection..", ex.getMessage());
+                retryReconnection();
             }
         }, 5, TimeUnit.SECONDS);
     }
 
+    private void retryReconnection(){
+        ThreadsCommunication.getInstance().onBrokerConnectionClose(brokerInfo.getClientBrokerId());
+        connectToBroker();
+    }
+
     private void sendFirstSetupMessage(BufferedReader in, PrintWriter out) throws IOException, ImpossibleSetUpException {
+        handleSetUpRequestToSend(out);
+        handleSetUpResponse(in);
+    }
+
+    private void handleSetUpRequestToSend(PrintWriter out){
         RequestMessage requestMessage = NetworkMessageBuilder.Request.buildSetUpRequest(brokerContext.getMyBrokerConfig().getMyBrokerId());
         String request = GsonInstance.getInstance().getGson().toJson(requestMessage);
 
         out.println(request);
         out.flush();
+    }
 
+    private void handleSetUpResponse(BufferedReader in) throws IOException, ImpossibleSetUpException {
         String response = in.readLine();
 
         ResponseMessage responseMessage = GsonInstance.getInstance().getGson().fromJson(response, ResponseMessage.class);

@@ -72,6 +72,10 @@ public class ThreadsCommunication {
         return requestConcurrentHashMap.get(brokerId);
     }
 
+    public BlockingQueue<String> getResponseConcurrentHashMapOfBrokerId(String brokerId) {
+        return responseConcurrentHashMap.get(brokerId);
+    }
+
     public void onBrokerConnectionClose(String brokerId){
         requestConcurrentHashMap.remove(brokerId);
         responseConcurrentHashMap.remove(brokerId);
@@ -80,5 +84,9 @@ public class ThreadsCommunication {
     public void onBrokerStateChange(){
         requestConcurrentHashMap.values().forEach(Collection::clear);
         responseConcurrentHashMap.values().forEach(Collection::clear);
+    }
+
+    public int getNumThreadsOfAliveBrokers() {
+        return requestConcurrentHashMap.size();
     }
 }

@@ -46,11 +46,7 @@ public class BrokerHandler implements Runnable{
                 brokerClientId = receiveFirstSetupMessage(in, out);
 
                 while(socket.isConnected() && !socket.isClosed()){
-                    try{
-                        brokerContext.getBrokerState().serverToBrokerExec(brokerClientId, in, out);
-                    }catch (SocketTimeoutException e){
-                        System.out.println("Not received any message, socket TIMEOUT");
-                    }
+                    brokerContext.getBrokerState().serverToBrokerExec(brokerClientId, in, out);
                 }
 
             } catch (IOException e){
@@ -71,6 +67,8 @@ public class BrokerHandler implements Runnable{
 
         String request = in.readLine();
         RequestMessage requestMessage = GsonInstance.getInstance().getGson().fromJson(request, RequestMessage.class);
+
+        log.log(Level.INFO, "receiveFirstSetupMessage: {0}", request);
 
         if(RequestIdEnum.SET_UP_REQUEST.equals(requestMessage.getId())){
 

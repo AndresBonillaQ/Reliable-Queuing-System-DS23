@@ -44,4 +44,8 @@ public interface IBrokerRaftIntegration {
     boolean isConsistent(int prevIndex, int prevTerm);
 
     List<RaftLog> getLogsToCommit(int lastCommitIndex);
+
+    void printLogs();
+
+    int getLogQueueSize();
 }

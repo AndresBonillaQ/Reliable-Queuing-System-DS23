@@ -17,4 +17,14 @@ public class RaftLogEntryResponse extends Response implements Serializable {
     public int getLastMatchIndex() {
         return lastMatchIndex;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("RaftLogEntryResponse{");
+        sb.append("lastMatchIndex=").append(lastMatchIndex);
+        sb.append(", status=").append(status);
+        sb.append(", desStatus='").append(desStatus).append('\'');
+        sb.append('}');
+        return sb.toString();
+    }
 }

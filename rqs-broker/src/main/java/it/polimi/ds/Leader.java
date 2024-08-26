@@ -30,8 +30,8 @@ public class Leader {
                         3000,
                         3001,
                         List.of(
-                                //new BrokerInfo("2","127.0.0.1", 8080)
-                                //,new BrokerInfo("3","127.0.0.1", 4000)
+                                new BrokerInfo("2","127.0.0.1", 8080)
+                                ,new BrokerInfo("3","127.0.0.1", 4000)
                         ),
                         new GatewayInfo(
                                 "127.0.1",
@@ -39,9 +39,7 @@ public class Leader {
                         ),
                         "127.0.0.1"
                 ),
-                true,
-                "1",
-                false
+                true
         );
 
         leader.start();
@@ -60,7 +58,7 @@ class Follower {
                         8081,
                         List.of(
                                 new BrokerInfo("1","127.0.0.1", 3000)
-                                //,new BrokerInfo("3","127.0.0.1", 4000)
+                                ,new BrokerInfo("3","127.0.0.1", 4000)
                         ),
                         new GatewayInfo(
                                 "127.0.1",
@@ -68,9 +66,8 @@ class Follower {
                         ),
                         "127.0.0.1"
                 ),
-                false,
-                "1",
-                false);
+                false
+        );
 
         follower.start();
     }
@@ -93,8 +90,8 @@ class Follower2 {
                         null,
                         "127.0.0.1"
                 ),
-                false,
-                "1", false);
+                false
+        );
 
         follower.start();
     }

@@ -57,6 +57,7 @@ public class BrokerRaftIntegration implements IBrokerRaftIntegration {
         raftLogQueue.add(raftLog);
         currentIndex++;
 
+        log.log(Level.INFO, "After appended new log:");
         printLogs();
 
         return List.of(raftLog);
@@ -93,16 +94,11 @@ public class BrokerRaftIntegration implements IBrokerRaftIntegration {
     }
 
     public synchronized int getPrevLogIndex(){
-        if(currentIndex < 0)
-            return -1;
-        return currentIndex - 1;
+        return Math.max(-1, currentIndex - 1);
     }
 
     public synchronized int getPrevLogIndexOf(int index){
-        if(index < 0)
-            return -1;
-
-        return index - 1;
+        return Math.max(-1, index - 1);
     }
 
     public synchronized int getPrevLogTerm(){
@@ -118,8 +114,11 @@ public class BrokerRaftIntegration implements IBrokerRaftIntegration {
         return raftLogQueue.get(prevLogIndex).getTerm();
     }
 
-    public synchronized int getPrevLogTermOfIndex(int index){
-        return raftLogQueue.get(index).getTerm();
+    public int getPrevLogTermOfIndex(int index){
+        if(index - 1 < 0)
+            return 0;
+
+        return raftLogQueue.get(index - 1).getTerm();
     }
 
     public void increaseLastCommitIndex(){
@@ -157,7 +156,7 @@ public class BrokerRaftIntegration implements IBrokerRaftIntegration {
         return raftLogQueue.subList(this.lastCommitIndex + 1, newLastCommitIndex + 1);
     }
 
-    private void printLogs(){
+    public void printLogs(){
         System.out.println("+------+---------------------------------------------------------------+-----------+");
         System.out.printf("| %-4s | %-60s | %-9s |\n",
                 "Term",
@@ -182,5 +181,9 @@ public class BrokerRaftIntegration implements IBrokerRaftIntegration {
 
         System.out.format("currentTerm: %d, currentIndex: %d \n", new Object[]{currentTerm, currentIndex});
         System.out.println("---------------------------------------------------------------------------------------------------------------------");
+    }
+
+    public int getLogQueueSize(){
+        return raftLogQueue.size();
     }
 }
