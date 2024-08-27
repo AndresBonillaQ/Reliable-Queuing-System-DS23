@@ -20,6 +20,7 @@ public interface IBrokerRaftIntegration {
     List<RaftLog> getRaftLogEntriesFromIndex(int from);
 
     void increaseCurrentTerm();
+    void increaseCurrentTerm(int newCurrentTerm);
 
     int getCurrentTerm();
 

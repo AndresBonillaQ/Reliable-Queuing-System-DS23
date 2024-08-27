@@ -39,7 +39,7 @@ public class Leader {
                         ),
                         "127.0.0.1"
                 ),
-                true
+                false
         );
 
         leader.start();

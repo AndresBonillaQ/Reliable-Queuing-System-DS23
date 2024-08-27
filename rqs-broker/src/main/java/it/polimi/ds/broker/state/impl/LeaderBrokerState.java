@@ -6,8 +6,10 @@ import it.polimi.ds.broker.state.BrokerState;
 import it.polimi.ds.exception.RequestNoManagedException;
 import it.polimi.ds.message.RequestMessage;
 import it.polimi.ds.message.ResponseMessage;
+import it.polimi.ds.message.election.requests.VoteRequest;
 import it.polimi.ds.message.id.ResponseIdEnum;
 import it.polimi.ds.message.model.response.utils.StatusEnum;
+import it.polimi.ds.message.raft.request.HeartbeatRequest;
 import it.polimi.ds.message.raft.response.RaftLogEntryResponse;
 import it.polimi.ds.network.gateway.server.ServerToGateway;
 import it.polimi.ds.network.handler.BrokerRequestDispatcher;
@@ -41,7 +43,6 @@ public class LeaderBrokerState extends BrokerState {
         super(brokerContext);
         log.log(Level.INFO, "I'm becoming leader!!");
         startHeartBeat();
-        brokerContext.getBrokerRaftIntegration().increaseCurrentTerm(); //TODO aggiornarlo sul follower
         ExecutorInstance.getInstance().getExecutorService().submit(new ServerToGateway(brokerContext, brokerContext.getMyBrokerConfig().getBrokerServerPortToGateway()));
         //ExecutorInstance.getInstance().getExecutorService().submit(new ClientToGateway(brokerContext, brokerContext.getMyBrokerConfig().getGatewayInfo()));
     }
@@ -287,7 +288,31 @@ public class LeaderBrokerState extends BrokerState {
      * */
     @Override
     public void serverToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) throws IOException {
+        String requestLine = in.readLine();
 
+        RequestMessage requestMessage = GsonInstance.getInstance().getGson().fromJson(requestLine, RequestMessage.class);
+
+        ResponseMessage responseMessage;
+        switch (requestMessage.getId()){
+
+            case VOTE_REQUEST -> {
+                VoteRequest voteRequest = GsonInstance.getInstance().getGson().fromJson(requestMessage.getContent(), VoteRequest.class);
+
+                if(voteRequest.getTerm() <= brokerContext.getBrokerRaftIntegration().getCurrentTerm()){
+                    log.log(Level.INFO, "Someone tries to become a leader with VOTE_REQUEST but I'm the leader!");
+                    responseMessage = NetworkMessageBuilder.Response.buildVoteResponse(StatusEnum.KO, "I'm the leader!");
+                } else {
+                    responseMessage = NetworkMessageBuilder.Response.buildVoteResponse(StatusEnum.OK, "");
+                    log.log(Level.INFO, "I am the leader but has received a VOTE_REQUEST with higher Term! my is {}, received {}", new Object[]{brokerContext.getBrokerRaftIntegration().getCurrentTerm(), voteRequest.getTerm()});
+                    log.log(Level.INFO, "Becoming follower...");
+                    brokerContext.setBrokerState(new FollowerBrokerState(brokerContext));
+                }
+
+                out.println(GsonInstance.getInstance().getGson().toJson(responseMessage));
+                out.flush();
+            }
+
+        }
     }
 
     /**
@@ -300,7 +325,7 @@ public class LeaderBrokerState extends BrokerState {
                     if(!brokerContext.isBrokerSetUp())
                         return;
 
-                    RequestMessage requestMessage = NetworkMessageBuilder.Request.buildHeartBeatRequest(brokerContext.getMyBrokerConfig().getMyBrokerId());
+                    RequestMessage requestMessage = NetworkMessageBuilder.Request.buildHeartBeatRequest(brokerContext.getMyBrokerConfig().getMyBrokerId(), brokerContext.getBrokerRaftIntegration().getCurrentTerm());
 
                     ThreadsCommunication.getInstance().addRequestToAllFollowerRequestQueue(
                             GsonInstance.getInstance().getGson().toJson(requestMessage)

@@ -16,11 +16,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.sql.Time;
+import java.net.SocketTimeoutException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -59,9 +58,9 @@ public class ClientToBroker implements Runnable {
                 sendFirstSetupMessage(in, out);
 
                 while (socket.isConnected() && !socket.isClosed()) {
-                    try {
+                    try{
                         brokerContext.getBrokerState().clientToBrokerExec(brokerInfo.getClientBrokerId(), in, out);
-                    } catch (TimeoutException ignored){}
+                    } catch (SocketTimeoutException ignored){}
                 }
 
                 log.log(Level.INFO, "Connection with {} closed, trying to reconnect", brokerInfo.getClientBrokerId());
@@ -70,9 +69,10 @@ public class ClientToBroker implements Runnable {
             } catch (ImpossibleSetUpException ex){
                 log.log(Level.SEVERE, "Impossible to setUp the broker, error: {0}, closing broker..", ex.getMessage());
             } catch (IOException ex) {
-                log.log(Level.SEVERE, "error: {0} with in clientToBroker of {1} connection retrying connection..", new Object[]{ex.getMessage(), brokerInfo.getClientBrokerId()});
+                //log.log(Level.SEVERE, "IOException in clientToBroker of {1}, retrying connection..", new Object[]{ex.getMessage(), brokerInfo.getClientBrokerId()});
                 retryReconnection();
             }
+
         }, 5, TimeUnit.SECONDS);
     }
 
@@ -89,8 +89,6 @@ public class ClientToBroker implements Runnable {
     private void handleSetUpRequestToSend(PrintWriter out){
         RequestMessage requestMessage = NetworkMessageBuilder.Request.buildSetUpRequest(brokerContext.getMyBrokerConfig().getMyBrokerId());
         String request = GsonInstance.getInstance().getGson().toJson(requestMessage);
-
-        log.log(Level.INFO, "sendingFirstSetUpRequest: {0}", request);
 
         out.println(request);
         out.flush();

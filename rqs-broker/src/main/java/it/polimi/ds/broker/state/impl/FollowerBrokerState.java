@@ -51,8 +51,9 @@ public class FollowerBrokerState extends BrokerState {
      * in.readLine used to know when server goes down
      * */
     @Override
-    public void clientToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) throws TimeoutException, IOException {
-
+    public void clientToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) throws IOException {
+        in.readLine();
+        /*
         Callable<String> task = new Callable<String>() {
             @Override
             public String call() throws IOException {
@@ -65,10 +66,10 @@ public class FollowerBrokerState extends BrokerState {
         try {
             readLine.get(200, TimeUnit.MILLISECONDS);
         } catch (TimeoutException  e) {
-            throw new TimeoutException("TimeoutException throw by clientToBroker");
+            return;
         } catch (InterruptedException | ExecutionException e) {
             throw new IOException("IOException throw by clientToBroker");
-        }
+        }*/
     }
 
     @Override
@@ -145,11 +146,17 @@ public class FollowerBrokerState extends BrokerState {
                 HeartbeatRequest heartbeatRequest = GsonInstance.getInstance().getGson().fromJson(requestMessage.getContent(), HeartbeatRequest.class);
                 //log.log(Level.INFO, "HeartBeat of leader {0} received!", heartbeatRequest.getLeaderId());
 
-                brokerContext.updateNewLeaderInfo(heartbeatRequest.getLeaderId());
-                heartBeatReceived.set(true);
+                if(heartbeatRequest.getTerm() >= brokerContext.getBrokerRaftIntegration().getCurrentTerm()){
+                    brokerContext.updateNewLeaderInfo(heartbeatRequest.getLeaderId());
+                    brokerContext.getBrokerRaftIntegration().increaseCurrentTerm(heartbeatRequest.getTerm());
+                    heartBeatReceived.set(true);
 
-                ResponseMessage responseMessage1 = NetworkMessageBuilder.Response.buildHeartBeatResponse();
-                out.println(GsonInstance.getInstance().getGson().toJson(responseMessage1));
+                    responseMessage = NetworkMessageBuilder.Response.buildHeartBeatResponse(StatusEnum.OK, "");
+                } else
+                    responseMessage = NetworkMessageBuilder.Response.buildHeartBeatResponse(StatusEnum.KO, "My currentTerm is greater, you are not the leader!");
+
+
+                out.println(GsonInstance.getInstance().getGson().toJson(responseMessage));
                 out.flush();
             }
 
@@ -165,7 +172,7 @@ public class FollowerBrokerState extends BrokerState {
                     } else
                         responseMessage = NetworkMessageBuilder.Response.buildVoteResponse(StatusEnum.KO, "Already voted for this term");
                 } else
-                    responseMessage = NetworkMessageBuilder.Response.buildVoteResponse(StatusEnum.KO, "CurrentTerm greater");
+                    responseMessage = NetworkMessageBuilder.Response.buildVoteResponse(StatusEnum.KO, "CurrentTerm of follower is greater");
 
 
                 out.println(GsonInstance.getInstance().getGson().toJson(responseMessage));
@@ -196,7 +203,7 @@ public class FollowerBrokerState extends BrokerState {
                         return;
                     }
 
-                    log.log(Level.INFO, "heartBeatReceived is {0}", heartBeatReceived);
+                    log.log(Level.INFO, "Is leader alive {0}", heartBeatReceived);
                     if(!heartBeatReceived.get()) {
                         onHeartbeatTimeout();
                         scheduler.shutdownNow();

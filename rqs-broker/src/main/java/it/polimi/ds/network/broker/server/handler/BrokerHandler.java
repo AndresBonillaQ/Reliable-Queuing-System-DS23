@@ -41,12 +41,15 @@ public class BrokerHandler implements Runnable{
            ){
 
             String brokerClientId = null;
+            socket.setSoTimeout(500);
 
             try{
                 brokerClientId = receiveFirstSetupMessage(in, out);
 
                 while(socket.isConnected() && !socket.isClosed()){
-                    brokerContext.getBrokerState().serverToBrokerExec(brokerClientId, in, out);
+                    try{
+                        brokerContext.getBrokerState().serverToBrokerExec(brokerClientId, in, out);
+                    }catch (SocketTimeoutException ignored){}
                 }
 
             } catch (IOException e){
@@ -67,8 +70,6 @@ public class BrokerHandler implements Runnable{
 
         String request = in.readLine();
         RequestMessage requestMessage = GsonInstance.getInstance().getGson().fromJson(request, RequestMessage.class);
-
-        log.log(Level.INFO, "receiveFirstSetupMessage: {0}", request);
 
         if(RequestIdEnum.SET_UP_REQUEST.equals(requestMessage.getId())){
 

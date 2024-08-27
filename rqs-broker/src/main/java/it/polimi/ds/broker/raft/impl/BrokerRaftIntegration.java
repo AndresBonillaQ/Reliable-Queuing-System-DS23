@@ -3,7 +3,6 @@ package it.polimi.ds.broker.raft.impl;
 import it.polimi.ds.broker.raft.IBrokerRaftIntegration;
 import it.polimi.ds.message.raft.request.RaftLogEntryRequest;
 
-import javax.sound.midi.Soundbank;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -87,6 +86,10 @@ public class BrokerRaftIntegration implements IBrokerRaftIntegration {
 
     public synchronized void increaseCurrentTerm(){
         currentTerm++;
+    }
+
+    public void increaseCurrentTerm(int newCurrentTerm){
+        currentTerm = newCurrentTerm;
     }
 
     public synchronized int getCurrentTerm() {

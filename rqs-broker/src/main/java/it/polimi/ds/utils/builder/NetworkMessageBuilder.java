@@ -21,8 +21,8 @@ public class NetworkMessageBuilder {
     public static class Request{
         private Request(){}
 
-        public static RequestMessage buildHeartBeatRequest(String leaderId){
-            HeartbeatRequest heartbeatRequest = new HeartbeatRequest(leaderId);
+        public static RequestMessage buildHeartBeatRequest(String leaderId, int leaderTerm){
+            HeartbeatRequest heartbeatRequest = new HeartbeatRequest(leaderId, leaderTerm);
 
             return new RequestMessage(
                     RequestIdEnum.HEARTBEAT_REQUEST,
@@ -85,8 +85,11 @@ public class NetworkMessageBuilder {
     public static class Response{
         private Response(){}
 
-        public static ResponseMessage buildHeartBeatResponse(){
+        public static ResponseMessage buildHeartBeatResponse(StatusEnum statusEnum, String desStatus){
             HeartbeatResponse heartbeatResponse = new HeartbeatResponse();
+
+            heartbeatResponse.setStatus(statusEnum);
+            heartbeatResponse.setDesStatus(desStatus);
 
             return new ResponseMessage(
                     ResponseIdEnum.HEARTBEAT_RESPONSE,

@@ -36,6 +36,7 @@ public class CandidateBrokerState extends BrokerState {
 
     public CandidateBrokerState(BrokerContext brokerContext) {
         super(brokerContext);
+        brokerContext.getBrokerRaftIntegration().increaseCurrentTerm();
         hasAlreadySetRequestVote = new ConcurrentSkipListSet<>();
     }
 
@@ -46,10 +47,7 @@ public class CandidateBrokerState extends BrokerState {
     public void clientToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) throws IOException {
 
         if(!hasAlreadySetRequestVote.contains(clientBrokerId)){
-            log.log(Level.INFO, "I'm candidate sending request vote to client " + clientBrokerId);
-
             hasAlreadySetRequestVote.add(clientBrokerId);
-
             sendVoteRequest(clientBrokerId, out);
             receiveVoteResponse(clientBrokerId, in, out);
         }
@@ -81,11 +79,12 @@ public class CandidateBrokerState extends BrokerState {
             RequestMessage requestMessage = GsonInstance.getInstance().getGson().fromJson(requestLine, RequestMessage.class);
 
             switch (requestMessage.getId()){
+
                 case VOTE_REQUEST -> {
                     VoteRequest voteRequest = GsonInstance.getInstance().getGson().fromJson(requestMessage.getContent(), VoteRequest.class);
                     log.log(Level.INFO, "VoteRequest received during my candidate with term {0}, voting KO!!!", voteRequest.getTerm());
 
-                    ResponseMessage responseMessage = NetworkMessageBuilder.Response.buildVoteResponse(StatusEnum.KO, "");
+                    ResponseMessage responseMessage = NetworkMessageBuilder.Response.buildVoteResponse(StatusEnum.KO, "Already voted for myself!");
 
                     out.println(GsonInstance.getInstance().getGson().toJson(responseMessage));
                     out.flush();
@@ -95,13 +94,16 @@ public class CandidateBrokerState extends BrokerState {
                     HeartbeatRequest heartbeatRequest = GsonInstance.getInstance().getGson().fromJson(requestMessage.getContent(), HeartbeatRequest.class);
                     log.log(Level.INFO, "HeartBeat of leader {0} received! Another Candidate has become Leader before me!!!", heartbeatRequest.getLeaderId());
 
-                    brokerContext.updateNewLeaderInfo(heartbeatRequest.getLeaderId());
+                    ResponseMessage responseMessage;
+                    if(heartbeatRequest.getTerm() >= brokerContext.getBrokerRaftIntegration().getCurrentTerm()){
+                        responseMessage = NetworkMessageBuilder.Response.buildHeartBeatResponse(StatusEnum.OK, "");
+                        brokerContext.updateNewLeaderInfo(heartbeatRequest.getLeaderId());
+                        onLoseLeaderElection();
+                    } else
+                        responseMessage = NetworkMessageBuilder.Response.buildHeartBeatResponse(StatusEnum.KO, "My currentTerm is greater, you are not the leader!");
 
-                    ResponseMessage responseMessage = NetworkMessageBuilder.Response.buildHeartBeatResponse();
                     out.println(GsonInstance.getInstance().getGson().toJson(responseMessage));
                     out.flush();
-
-                    onLoseLeaderElection();
                 }
 
                 default -> log.log(Level.INFO, "AS CANDIDATE REQUEST NOT MANAGED: {0}", requestLine);
@@ -125,11 +127,9 @@ public class CandidateBrokerState extends BrokerState {
         brokerContext.setBrokerState(new FollowerBrokerState(brokerContext));
     }
 
-    private void sendVoteRequest(String clientBrokerId, PrintWriter out) throws IOException {
-        RequestMessage requestVoteMessage = NetworkMessageBuilder.Request.buildVoteRequest(brokerContext.getBrokerRaftIntegration().getCurrentTerm() + 1);
-
+    private void sendVoteRequest(String clientBrokerId, PrintWriter out) {
+        RequestMessage requestVoteMessage = NetworkMessageBuilder.Request.buildVoteRequest(brokerContext.getBrokerRaftIntegration().getCurrentTerm());
         log.log(Level.INFO, "Forwarding request to followers {0} : {1}", new Object[]{clientBrokerId, requestVoteMessage});
-
         out.println(GsonInstance.getInstance().getGson().toJson(requestVoteMessage));
         out.flush();
     }
@@ -142,6 +142,7 @@ public class CandidateBrokerState extends BrokerState {
 
         if (responseMessage.getId().equals(ResponseIdEnum.VOTE_RESPONSE)) {
             VoteResponse voteResponse = GsonInstance.getInstance().getGson().fromJson(responseMessage.getContent(), VoteResponse.class);
+
             if(StatusEnum.OK.equals(voteResponse.getStatus()))
                 electionManager.addVote();
 
