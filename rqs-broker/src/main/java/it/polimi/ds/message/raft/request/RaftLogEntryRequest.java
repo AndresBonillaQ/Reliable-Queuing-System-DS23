@@ -39,4 +39,16 @@ public class RaftLogEntryRequest implements Serializable {
     public List<RaftLog> getRafLogEntries() {
         return raftLogs;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("RaftLogEntryRequest{");
+        sb.append("term=").append(term);
+        sb.append(", leaderId='").append(leaderId).append('\'');
+        sb.append(", prevLogIndex=").append(prevLogIndex);
+        sb.append(", prevLogTerm=").append(prevLogTerm);
+        sb.append(", raftLogs=").append(raftLogs);
+        sb.append('}');
+        return sb.toString();
+    }
 }

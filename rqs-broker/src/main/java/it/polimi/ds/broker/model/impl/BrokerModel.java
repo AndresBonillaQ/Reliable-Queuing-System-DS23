@@ -70,7 +70,7 @@ public class BrokerModel implements IBrokerModel{
     }
 
     @Override
-    public void printState() {
+    public void printState() {/*
         System.out.println("After execution of request:");
         System.out.println("+---------+-------------------------+");
         System.out.println("| QueueID | Elements                |");
@@ -99,7 +99,7 @@ public class BrokerModel implements IBrokerModel{
                     offset);
         }
 
-        System.out.println("+-------------+-------------+---------+");
+        System.out.println("+-------------+-------------+---------+");*/
     }
 
     public Map<String, List<Integer>> getQueuesMap() {

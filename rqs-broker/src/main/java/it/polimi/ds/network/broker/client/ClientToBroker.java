@@ -4,24 +4,25 @@ import it.polimi.ds.broker.BrokerContext;
 import it.polimi.ds.exception.network.ImpossibleSetUpException;
 import it.polimi.ds.message.RequestMessage;
 import it.polimi.ds.message.ResponseMessage;
-import it.polimi.ds.message.raft.response.SetUpResponse;
 import it.polimi.ds.message.model.response.utils.StatusEnum;
+import it.polimi.ds.message.raft.response.SetUpResponse;
 import it.polimi.ds.network.utils.thread.impl.ThreadsCommunication;
-import it.polimi.ds.utils.config.BrokerInfo;
 import it.polimi.ds.utils.GsonInstance;
 import it.polimi.ds.utils.builder.NetworkMessageBuilder;
+import it.polimi.ds.utils.config.BrokerInfo;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
+import java.sql.Time;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ClientToBroker implements Runnable {
 
@@ -50,13 +51,17 @@ public class ClientToBroker implements Runnable {
                     PrintWriter out = new PrintWriter(socket.getOutputStream())
             ) {
 
-                log.log(Level.INFO, "Connecting to BrokerID {0} on hostName: {1} and port {2}",
+                socket.setSoTimeout(500);
+
+                log.log(Level.INFO, "Trying connection to BrokerID {0} on hostName: {1} and port {2}",
                         new Object[]{brokerInfo.getClientBrokerId(), brokerInfo.getHostName(), brokerInfo.getPort()});
 
                 sendFirstSetupMessage(in, out);
 
                 while (socket.isConnected() && !socket.isClosed()) {
-                    brokerContext.getBrokerState().clientToBrokerExec(brokerInfo.getClientBrokerId(), in, out);
+                    try {
+                        brokerContext.getBrokerState().clientToBrokerExec(brokerInfo.getClientBrokerId(), in, out);
+                    } catch (TimeoutException ignored){}
                 }
 
                 log.log(Level.INFO, "Connection with {} closed, trying to reconnect", brokerInfo.getClientBrokerId());
@@ -65,7 +70,7 @@ public class ClientToBroker implements Runnable {
             } catch (ImpossibleSetUpException ex){
                 log.log(Level.SEVERE, "Impossible to setUp the broker, error: {0}, closing broker..", ex.getMessage());
             } catch (IOException ex) {
-                log.log(Level.SEVERE, "IOException in clientToBroker connection, error {0}, retrying connection..", ex.getMessage());
+                log.log(Level.SEVERE, "error: {0} with in clientToBroker of {1} connection retrying connection..", new Object[]{ex.getMessage(), brokerInfo.getClientBrokerId()});
                 retryReconnection();
             }
         }, 5, TimeUnit.SECONDS);
@@ -84,6 +89,8 @@ public class ClientToBroker implements Runnable {
     private void handleSetUpRequestToSend(PrintWriter out){
         RequestMessage requestMessage = NetworkMessageBuilder.Request.buildSetUpRequest(brokerContext.getMyBrokerConfig().getMyBrokerId());
         String request = GsonInstance.getInstance().getGson().toJson(requestMessage);
+
+        log.log(Level.INFO, "sendingFirstSetUpRequest: {0}", request);
 
         out.println(request);
         out.flush();

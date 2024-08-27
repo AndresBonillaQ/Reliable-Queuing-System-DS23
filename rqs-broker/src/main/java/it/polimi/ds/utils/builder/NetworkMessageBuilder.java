@@ -9,10 +9,7 @@ import it.polimi.ds.message.id.RequestIdEnum;
 import it.polimi.ds.message.id.ResponseIdEnum;
 import it.polimi.ds.message.model.response.utils.StatusEnum;
 import it.polimi.ds.message.raft.request.*;
-import it.polimi.ds.message.raft.response.HeartbeatResponse;
-import it.polimi.ds.message.raft.response.NewLeaderToGatewayResponse;
-import it.polimi.ds.message.raft.response.RaftLogEntryResponse;
-import it.polimi.ds.message.raft.response.SetUpResponse;
+import it.polimi.ds.message.raft.response.*;
 import it.polimi.ds.utils.GsonInstance;
 
 import java.util.List;
@@ -141,5 +138,18 @@ public class NetworkMessageBuilder {
                     GsonInstance.getInstance().getGson().toJson(newLeaderToGatewayResponse)
             );
         }
+
+        public static ResponseMessage buildServiceUnavailableResponse(StatusEnum statusEnum, String desStatus){
+            ServiceUnavailableResponse serviceUnavailableResponse = new ServiceUnavailableResponse();
+
+            serviceUnavailableResponse.setStatus(statusEnum);
+            serviceUnavailableResponse.setDesStatus(desStatus);
+
+            return new ResponseMessage(
+                    ResponseIdEnum.NEW_LEADER_TO_GATEWAY_RESPONSE,
+                    GsonInstance.getInstance().getGson().toJson(serviceUnavailableResponse)
+            );
+        }
+
     }
 }

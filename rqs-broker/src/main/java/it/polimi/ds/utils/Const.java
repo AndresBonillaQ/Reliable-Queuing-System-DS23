@@ -22,6 +22,8 @@ public class Const {
             public static final String READ_VALUE_QUEUE_ID_NOT_EXISTS_KO = "The values has been impossible to read because the queueId doesn't exists";
             public static final String READ_VALUE_QUEUE_ID_INDEX_OUT_OF_BOUND_KO = "The values has been impossible to read because of index out of bound";
             public static final String READ_VALUE_QUEUE_EMPTY_KO = "The queue is empty!";
+
+            public static final String UNAVAILABLE_SERVICE_KO = "The service is unavailable, the request has been registered and will be executed when service become live!";
         }
     }
 }

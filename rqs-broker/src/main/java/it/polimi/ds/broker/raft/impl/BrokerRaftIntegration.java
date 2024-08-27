@@ -1,11 +1,14 @@
 package it.polimi.ds.broker.raft.impl;
 
 import it.polimi.ds.broker.raft.IBrokerRaftIntegration;
+import it.polimi.ds.message.raft.request.RaftLogEntryRequest;
 
+import javax.sound.midi.Soundbank;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * This class contains the information about the Raft consensus protocol
@@ -37,14 +40,19 @@ public class BrokerRaftIntegration implements IBrokerRaftIntegration {
     private final Logger log = Logger.getLogger(BrokerRaftIntegration.class.getName());
 
     /**
-     * Append Log to the Queue if Logs are consistency, otherwise throw LogBadRequestException
+     * Append Log to the Queue if Logs are consistency
      * When received request from leader as follower
      * */
-    public void appendLog(List<RaftLog> raftLogs) {
-        raftLogQueue.addAll(raftLogs);
-        currentIndex += raftLogs.size();
+    public void appendLog(int prevLogIndex, List<RaftLog> raftLogs) {
 
-        printLogs();
+        if(raftLogQueue.size() <= 1 && prevLogIndex == -1){
+            raftLogQueue.addAll(raftLogs);
+            currentIndex += raftLogs.size();
+        } else if (raftLogQueue.size() >= 2 && prevLogIndex == raftLogQueue.size() - 2) {
+            raftLogQueue.addAll(raftLogs);
+            currentIndex += raftLogs.size();
+        }
+
     }
 
     /**
@@ -57,13 +65,9 @@ public class BrokerRaftIntegration implements IBrokerRaftIntegration {
         raftLogQueue.add(raftLog);
         currentIndex++;
 
-        log.log(Level.INFO, "After appended new log:");
-        printLogs();
-
         return List.of(raftLog);
     }
 
-    // non necessario con la logica di retry quando prev non coincide
     public List<RaftLog> appendNewLogAndTakeNotCommitted(String request){
 
         RaftLog raftLog = new RaftLog(currentTerm, request);
@@ -157,33 +161,94 @@ public class BrokerRaftIntegration implements IBrokerRaftIntegration {
     }
 
     public void printLogs(){
-        System.out.println("+------+---------------------------------------------------------------+-----------+");
-        System.out.printf("| %-4s | %-60s | %-9s |\n",
-                "Term",
-                "Request",
-                "Committed");
-        System.out.println("+------+---------------------------------------------------------------+-----------+");
-
-        for (RaftLog log : raftLogQueue) {
-            String request = log.getRequest();
-
-            // Truncate the request if it exceeds the desired length
-            if (request.length() > 60) {
-                request = request + "...";  // Add ellipsis to show truncation
-            }
-
-            System.out.printf("| %-4d | %-60s | %-9s |\n",
-                    log.getTerm(),
-                    request,
-                    log.isCommitted() ? "Yes" : "No");
+        System.out.println("------------------------------------ RAFT LOG QUEUE ------------------------------------------------");
+        for(RaftLog log : raftLogQueue){
+            System.out.println(raftLogQueue.indexOf(log) + ": " + log);
         }
-        System.out.println("+------+---------------------------------------------------------------+-----------+");
-
-        System.out.format("currentTerm: %d, currentIndex: %d \n", new Object[]{currentTerm, currentIndex});
-        System.out.println("---------------------------------------------------------------------------------------------------------------------");
+        System.out.format("CurrentTerm: %s, CurrentIndex: %s, LastCommitIndex: %s\n", currentTerm, currentIndex, lastCommitIndex);
+        System.out.println("----------------------------------------------------------------------------------------------------");
     }
 
     public int getLogQueueSize(){
         return raftLogQueue.size();
+    }
+
+    public boolean processRaftLogEntryRequest(RaftLogEntryRequest request){
+        log.log(Level.INFO, "Processing request {0}", request);
+
+        if(isConsistent(request.getPrevLogIndex(), request.getPrevLogTerm(), request.getTerm())){
+            log.log(Level.INFO, "LogRequest is consistent");
+
+            currentIndex += request.getRafLogEntries().size();
+            mergeNewLogEntries(request.getPrevLogIndex(), request.getRafLogEntries());
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean isConsistent(int prevIndex, int prevTerm, int requestTerm) {
+
+        log.log(Level.INFO, "Checking consistency of prevIndex:{0}, prevTerm:{1}, requestTerm:{2}", new Object[]{prevIndex, prevTerm, requestTerm});
+
+        if(prevIndex < -1 || prevTerm < 0){
+            log.log(Level.SEVERE, "Impossible to manage request");
+            return false;
+        }
+
+        if(requestTerm < currentTerm){
+            log.log(Level.SEVERE, "Term of request {0} is lower than currentTerm of broker {1}", new Object[]{requestTerm, currentTerm});
+            return false;
+        }
+
+        if(raftLogQueue.isEmpty()){
+            log.log(Level.SEVERE, "RaftLogQueue is empty and prevIndex:{0}, prevTerm:{1}", new Object[]{prevIndex, prevTerm});
+            return prevIndex == - 1 && prevTerm == 0;
+        }
+
+        if(prevIndex >= raftLogQueue.size()){
+            log.log(Level.SEVERE, "Impossible to append Log due to inconsistency, prevIndex {0} is greater than logQueueSize {1}", new Object[]{prevIndex, raftLogQueue.size()});
+            return false;
+        }
+
+        RaftLog raftLogToCheck = raftLogQueue.get(prevIndex);
+        log.log(Level.INFO, "Checking consistency of term of log {0}", raftLogToCheck);
+
+        return raftLogToCheck.getTerm() == prevTerm;
+    }
+
+    /**
+     * @param prevIndex must be >= 0
+     * */
+    private void mergeNewLogEntries(int prevIndex, List<RaftLog> logsToAppend){
+        // Something to merge
+        int k = 0;
+        if(prevIndex < raftLogQueue.size() - 1){
+            for(int i = prevIndex + 1; i < raftLogQueue.size(); i++){
+                raftLogQueue.set(i, logsToAppend.get(k));
+                k++;
+            }
+        }
+
+        // Something to add
+        raftLogQueue.addAll(logsToAppend.subList(k, logsToAppend.size()));
+    }
+
+    public List<String> processCommitRequestAndGetRequestsToExec(int newLastCommitIndex){
+
+        if (newLastCommitIndex < this.lastCommitIndex || newLastCommitIndex >= raftLogQueue.size()) {
+            throw new IndexOutOfBoundsException("newLastCommitIndex: " + newLastCommitIndex + " is out of bounds."); //TODO catch
+        }
+
+        List<RaftLog> raftLogsToCommit = raftLogQueue.subList(this.lastCommitIndex + 1, newLastCommitIndex + 1);
+        raftLogsToCommit.forEach(log -> log.setCommitted(true));
+        this.lastCommitIndex = newLastCommitIndex;
+
+        return raftLogsToCommit.stream().map(RaftLog::getRequest).collect(Collectors.toList());
+    }
+
+    public void commitLastLogAppended(){
+        raftLogQueue.get(raftLogQueue.size() - 1).setCommitted(true);
     }
 }

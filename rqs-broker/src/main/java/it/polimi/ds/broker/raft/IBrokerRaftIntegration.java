@@ -1,6 +1,7 @@
 package it.polimi.ds.broker.raft;
 
 import it.polimi.ds.broker.raft.impl.RaftLog;
+import it.polimi.ds.message.raft.request.RaftLogEntryRequest;
 
 import java.util.List;
 
@@ -9,14 +10,12 @@ public interface IBrokerRaftIntegration {
     /**
      * Append Log to the Queue if Logs are consistency, otherwise throw LogBadRequestException
      * */
-    void appendLog(List<RaftLog> raftLogs);
+    void appendLog(int prevLogIndex, List<RaftLog> raftLogs);
 
     /**
      * Used by Leader to create log to transmit to followers and increment the currentIndex by 1
      * */
     List<RaftLog> buildAndAppendNewLog(String request);
-
-    List<RaftLog> appendNewLogAndTakeNotCommitted(String request);
 
     List<RaftLog> getRaftLogEntriesFromIndex(int from);
 
@@ -48,4 +47,10 @@ public interface IBrokerRaftIntegration {
     void printLogs();
 
     int getLogQueueSize();
+
+    boolean processRaftLogEntryRequest(RaftLogEntryRequest request);
+
+    List<String> processCommitRequestAndGetRequestsToExec(int lastCommitIndex);
+
+    void commitLastLogAppended();
 }

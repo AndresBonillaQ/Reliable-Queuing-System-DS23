@@ -14,6 +14,7 @@ import it.polimi.ds.network.handler.BrokerRequestDispatcher;
 import it.polimi.ds.network.utils.LeaderWaitingForFollowersCallable;
 import it.polimi.ds.network.utils.LeaderWaitingForFollowersResponse;
 import it.polimi.ds.network.utils.thread.impl.ThreadsCommunication;
+import it.polimi.ds.utils.Const;
 import it.polimi.ds.utils.ExecutorInstance;
 import it.polimi.ds.utils.GsonInstance;
 import it.polimi.ds.utils.builder.NetworkMessageBuilder;
@@ -40,7 +41,7 @@ public class LeaderBrokerState extends BrokerState {
         super(brokerContext);
         log.log(Level.INFO, "I'm becoming leader!!");
         startHeartBeat();
-        brokerContext.getBrokerRaftIntegration().increaseCurrentTerm();
+        brokerContext.getBrokerRaftIntegration().increaseCurrentTerm(); //TODO aggiornarlo sul follower
         ExecutorInstance.getInstance().getExecutorService().submit(new ServerToGateway(brokerContext, brokerContext.getMyBrokerConfig().getBrokerServerPortToGateway()));
         //ExecutorInstance.getInstance().getExecutorService().submit(new ClientToGateway(brokerContext, brokerContext.getMyBrokerConfig().getGatewayInfo()));
     }
@@ -77,6 +78,10 @@ public class LeaderBrokerState extends BrokerState {
                         case APPEND_ENTRY_LOG_REQUEST -> {
                             String responseLine = in.readLine();
                             ThreadsCommunication.getInstance().addResponseToFollowerResponseQueue(clientBrokerId, responseLine);
+                        }
+
+                        case COMMIT_REQUEST -> {
+
                         }
 
                         default -> {}
@@ -192,9 +197,6 @@ public class LeaderBrokerState extends BrokerState {
                                 );
 
                                 log.log(Level.INFO, "AppendLogEntryRequest new to solve is {0}", requestMessage);
-
-                                brokerContext.getBrokerRaftIntegration().printLogs();
-
                                 ThreadsCommunication.getInstance().getRequestConcurrentHashMapOfBrokerId(brokerIdOfResponse).add(GsonInstance.getInstance().getGson().toJson(requestMessage));
 
                                 Future<LeaderWaitingForFollowersResponse> responseCallableRetry = executorService.submit(
@@ -262,13 +264,22 @@ public class LeaderBrokerState extends BrokerState {
 
             // increase my lastCommitIndex
             brokerContext.getBrokerRaftIntegration().increaseLastCommitIndex();
-
-            // TODO Aggiungere logica per settare a TRUE il campo committed dei log! (c'è bisogno del campo?)
+            brokerContext.getBrokerRaftIntegration().commitLastLogAppended();
 
             // send commit to all followers that voted ok!
             RequestMessage requestMessage = NetworkMessageBuilder.Request.buildCommitRequest(brokerContext.getBrokerRaftIntegration().getLastCommitIndex());
             brokerIdSetVotedOk.forEach(x -> ThreadsCommunication.getInstance().getRequestConcurrentHashMapOfBrokerId(x).add(GsonInstance.getInstance().getGson().toJson(requestMessage)));
+
+        } else {
+
+            // No consensus reached
+            ResponseMessage responseMessage = NetworkMessageBuilder.Response.buildServiceUnavailableResponse(StatusEnum.KO, Const.ResponseDes.KO.UNAVAILABLE_SERVICE_KO);
+            out.println(GsonInstance.getInstance().getGson().toJson(responseMessage));
+            out.flush();
+
         }
+
+        brokerContext.getBrokerRaftIntegration().printLogs();
     }
 
     /**

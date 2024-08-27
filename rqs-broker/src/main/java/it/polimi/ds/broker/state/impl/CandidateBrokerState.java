@@ -32,10 +32,11 @@ public class CandidateBrokerState extends BrokerState {
 
     private final ElectionManager electionManager = new ElectionManager(brokerContext);
 
-    private final Set<String> hasAlreadySetRequestVote = new ConcurrentSkipListSet<>();
+    private final Set<String> hasAlreadySetRequestVote;
 
     public CandidateBrokerState(BrokerContext brokerContext) {
         super(brokerContext);
+        hasAlreadySetRequestVote = new ConcurrentSkipListSet<>();
     }
 
     /**
