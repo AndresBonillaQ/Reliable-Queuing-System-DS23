@@ -1,15 +1,15 @@
 package network.brokerCommunication.client;
 import it.polimi.ds.utils.ExecutorInstance;
-import network.clientCommunication.model.Gateway;
+import model.Gateway;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.logging.Level;
 
 public  class ConnectionManager implements ConnectionListener {
 
     public ConnectionManager() {
     }
+
 
     @Override
     public void onConnectionLost(String clusterID) throws IOException {

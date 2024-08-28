@@ -1,4 +1,4 @@
-package network.clientCommunication.model;
+package model;
 
 import com.google.gson.Gson;
 import messages.MessageRequest;
@@ -8,8 +8,8 @@ import messages.requests.AppendValueRequest;
 import messages.requests.CreateQueueRequest;
 import messages.requests.ReadValueRequest;
 import network.brokerCommunication.client.ConnectionManager;
-import network.clientCommunication.model.utils.RequestMessageMap;
-import network.clientCommunication.model.utils.ResponseMessageMap;
+import model.utils.RequestMessageMap;
+import model.utils.ResponseMessageMap;
 import utils.GsonInstance;
 
 import java.io.IOException;
@@ -31,7 +31,6 @@ public class Gateway {
     private HashMap<String, Integer> nextCluster = new HashMap<>();
     private HashMap<String, Integer> clusterConnected = new HashMap<>();
     private static ConnectionManager connectionManager;
-
     private int queueSequenceNumber = -1 ;
 
     public static Gateway getInstance() {
@@ -91,11 +90,9 @@ public class Gateway {
         clusterConnected.replace(clusterID, 0);
     }
     public boolean isUpdated(String clusterID) {
-
         if (clusterConnected.get(clusterID) == null)
             return false;
         return (clusterConnected.get(clusterID) == 1);
-
 
     }
     public MessageResponse fetchResponse(String clientID) {
@@ -113,6 +110,7 @@ public class Gateway {
             case APPEND_VALUE_REQUEST -> {
                 AppendValueRequest request = GsonInstance.getInstance().getGson().fromJson(messageRequest.getContent(), AppendValueRequest.class);
                 requestsMap.putOnRequestQueue(queueToClusterIdMap.get (request.getQueueId() ), messageRequest);
+                return messageRequest.getClientId();
             }
 
             // La richiesta di creazione di una queue viene inviata al broker scelto secondo la logica "round robin"
@@ -133,15 +131,16 @@ public class Gateway {
                         break;
                     }
                 }
+                return messageRequest.getClientId();
             }
 
             case READ_VALUE_REQUEST -> {
                 ReadValueRequest request = GsonInstance.getInstance().getGson().fromJson(messageRequest.getContent(), ReadValueRequest.class);
                 requestsMap.putOnRequestQueue(queueToClusterIdMap.get (request.getQueueId() ), messageRequest);
+                return messageRequest.getClientId();
             }
         }
         return null;
-
     }
 
     public void setUpConnectionWithNewLeader(SetUpConnectionMessage setUpConnectionMessage) throws IOException {
@@ -167,18 +166,17 @@ public class Gateway {
     }
 
     public boolean registerClientOnResponseMap(String clientId){
-        if(responseMessageMap.isClientIdPresent(clientId))
+        if(responseMessageMap.isClientIdPresent(clientId)) {
+            System.out.println("client already present");
             return false;
+        }
+
 
         responseMessageMap.addClientId(clientId);
         return true;
     }
 
-public void putOnResponseMap(String clientID, MessageResponse messageResponse) {
-    this.responseMessageMap.putOnResponseQueue(clientID, messageResponse);
-}
-
-
-
-
+    public void putOnResponseMap(String clientId, MessageResponse messageResponse) {
+       responseMessageMap.putOnResponseQueue(clientId, messageResponse);
+    }
 }

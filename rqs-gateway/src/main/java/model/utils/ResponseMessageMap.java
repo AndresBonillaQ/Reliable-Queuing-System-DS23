@@ -1,4 +1,4 @@
-package network.clientCommunication.model.utils;
+package model.utils;
 
 import messages.MessageResponse;
 
@@ -23,7 +23,8 @@ public class ResponseMessageMap {
         return responseMap.get(clientID);
     }
 
-    public void putOnResponseQueue(String clientID, MessageResponse message) {
-        responseMap.get(clientID).add(message);
+    public void putOnResponseQueue(String clientId, MessageResponse message) {
+        System.out.println("Il clientId é: " + clientId);
+        responseMap.get(clientId).add(message);
     }
 }

@@ -3,7 +3,7 @@ package network.brokerCommunication.client;
 import com.google.gson.Gson;
 import messages.MessageRequest;
 import messages.MessageResponse;
-import network.clientCommunication.model.Gateway;
+import model.Gateway;
 import utils.GsonInstance;
 
 import java.io.*;
@@ -29,7 +29,6 @@ public class CommunicationThread extends Thread {
         try {
             InputStreamReader streamReader = new InputStreamReader(socket.getInputStream());
             BufferedReader reader = new BufferedReader(streamReader);
-
             PrintWriter writer = new PrintWriter(socket.getOutputStream());
 
             while (!socket.isClosed()) {
@@ -45,10 +44,10 @@ public class CommunicationThread extends Thread {
                     //risposta dal BROKER
                     String readLine = reader.readLine();
 
-                    System.out.println("Ricevuto dal leader: " + readLine);
+                    System.out.println("Response from the leader: " + readLine);
                     MessageResponse messageResponse = GsonInstance.getInstance().getGson().fromJson(readLine, MessageResponse.class);
 
-                    String clientID = messageResponse.getClientId();
+                    String clientID = messageRequest.getClientId();
                     //inoltra la risposta del BROKER al CLIENT
                     Gateway.getInstance().putOnResponseMap(clientID, messageResponse);
                 }
