@@ -67,16 +67,6 @@ public class BrokerRaftIntegration implements IBrokerRaftIntegration {
         return List.of(raftLog);
     }
 
-    public List<RaftLog> appendNewLogAndTakeNotCommitted(String request){
-
-        RaftLog raftLog = new RaftLog(currentTerm, request);
-
-        raftLogQueue.add(raftLog);
-        currentIndex++;
-
-        return raftLogQueue.subList(lastCommitIndex + 1, raftLogQueue.size() - 1);
-    }
-
     public synchronized List<RaftLog> getRaftLogEntriesFromIndex(int from){
         if (from < 0 || from >= raftLogQueue.size())
             throw new IndexOutOfBoundsException("Index: " + from + ", Size: " + raftLogQueue.size()); //TODO
@@ -182,8 +172,8 @@ public class BrokerRaftIntegration implements IBrokerRaftIntegration {
         if(isConsistent(request.getPrevLogIndex(), request.getPrevLogTerm(), request.getTerm())){
             log.log(Level.INFO, "LogRequest is consistent");
 
-            currentIndex += request.getRafLogEntries().size();
             mergeNewLogEntries(request.getPrevLogIndex(), request.getRafLogEntries());
+            currentIndex = raftLogQueue.size() - 1;
 
             return true;
         }
@@ -222,20 +212,17 @@ public class BrokerRaftIntegration implements IBrokerRaftIntegration {
     }
 
     /**
-     * @param prevIndex must be >= 0
+     * This method is used to merge new logs as Follower
      * */
     private void mergeNewLogEntries(int prevIndex, List<RaftLog> logsToAppend){
-        // Something to merge
-        int k = 0;
-        if(prevIndex < raftLogQueue.size() - 1){
-            for(int i = prevIndex + 1; i < raftLogQueue.size(); i++){
-                raftLogQueue.set(i, logsToAppend.get(k));
-                k++;
-            }
-        }
 
-        // Something to add
-        raftLogQueue.addAll(logsToAppend.subList(k, logsToAppend.size()));
+        int offset = Math.min(raftLogQueue.size(), prevIndex + 1);
+
+        raftLogQueue.subList(offset, raftLogQueue.size()).clear();
+
+        for(int i = offset; i < logsToAppend.size(); i++)
+            raftLogQueue.set(i, logsToAppend.get(i));
+
     }
 
     public List<String> processCommitRequestAndGetRequestsToExec(int newLastCommitIndex){

@@ -45,8 +45,6 @@ public class ClientToGateway implements Runnable {
                     log.log(Level.INFO, "Connected to gateway on hostName: {0} and port {1}",
                             new Object[]{gatewayInfo.getHostName(), gatewayInfo.getPort()});
 
-                    //sendFirstSetupMessage(in, out);
-
                     while (socket.isConnected() && !socket.isClosed()) {
                         brokerContext.getBrokerState().clientToGatewayExec(in, out);
                     }
