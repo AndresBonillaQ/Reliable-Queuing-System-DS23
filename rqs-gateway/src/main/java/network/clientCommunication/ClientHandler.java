@@ -1,8 +1,10 @@
-package network.clientCommunication.network;
+package network.clientCommunication;
 
 import java.io.*;
 import java.net.Socket;
-import java.sql.SQLOutput;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import messages.MessageRequest;
 import messages.MessageResponse;
@@ -10,7 +12,7 @@ import messages.requests.SetUpRequest;
 import messages.id.ResponseIdEnum;
 import messages.responses.SetUpResponse;
 import messages.responses.StatusEnum;
-import network.clientCommunication.model.Gateway;
+import model.Gateway;
 import utils.GsonInstance;
 
 
@@ -32,28 +34,40 @@ public class ClientHandler implements Runnable {
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             PrintWriter outputStream = new PrintWriter(clientSocket.getOutputStream());
+            ExecutorService executorService = Executors.newFixedThreadPool(1);
 
+
+        //
+
+            // the first message a client send is the "set_up" message
             setUpClient(reader, outputStream);
+
+
 
             while (!clientSocket.isClosed()) {
 
+                //gateway reads the request from the client
                 String inputLine;
-                while ( ( inputLine =  reader.readLine() ) != null) {
-                    MessageRequest messageRequest = GsonInstance.getInstance().getGson().fromJson(inputLine, MessageRequest.class);
-                    System.out.println("Request from client: " + messageRequest.toString());
-                    synchronized (Gateway.getInstance()) {
-                        clientID = Gateway.getInstance().processRequest(messageRequest);
-                    }
-                }
-                if (Gateway.getInstance().fetchResponse(clientID) != null) {
-                    outputStream.println(GsonInstance.getInstance().getGson().toJson(Gateway.getInstance().fetchResponse(clientID) ));
-                    outputStream.flush();
+                inputLine =  reader.readLine();
+                MessageRequest messageRequest = GsonInstance.getInstance().getGson().fromJson(inputLine, MessageRequest.class);
+                System.out.println("Request from client: " + messageRequest.toString());
+                synchronized (Gateway.getInstance()) {
+                    clientID = Gateway.getInstance().processRequest(messageRequest);
                 }
 
+
+                fetchBrokerResponse(executorService, outputStream, clientSocket);
+
+
+                //ogni volta che la risposta per un determinato client diventa disponibile viene inoltrata al suddetto client
+
             }
+            System.out.println("Socket chiuso, task terminato.");
+            executorService.shutdown();
 
         } catch (IOException e) {
             System.out.println("ERROR ON CLIENT CONNECTION: " + e.getMessage());
+
             throw new RuntimeException(e);
         }
     }
@@ -70,9 +84,10 @@ public class ClientHandler implements Runnable {
 
         if(Gateway.getInstance().registerClientOnResponseMap(setUpRequest.getClientId())){
 
+            System.out.println("Registering client" + setUpRequest.getClientId());
             SetUpResponse setUpResponse = new SetUpResponse(StatusEnum.OK, "", setUpRequest.getClientId());
             responseMessage = new MessageResponse(
-                    ResponseIdEnum.SET_UP_RESPONSE.getValue(),
+                    ResponseIdEnum.SET_UP_RESPONSE,
                     GsonInstance.getInstance().getGson().toJson(setUpResponse),
                     setUpRequest.getClientId()
             );
@@ -81,7 +96,7 @@ public class ClientHandler implements Runnable {
 
             SetUpResponse setUpResponse = new SetUpResponse(StatusEnum.KO, "ClientId already registered!", setUpRequest.getClientId());
             responseMessage = new MessageResponse(
-                    ResponseIdEnum.SET_UP_RESPONSE.getValue(),
+                    ResponseIdEnum.SET_UP_RESPONSE,
                     GsonInstance.getInstance().getGson().toJson(setUpResponse),
                     setUpRequest.getClientId()
             );
@@ -90,5 +105,27 @@ public class ClientHandler implements Runnable {
 
         out.println(GsonInstance.getInstance().getGson().toJson(responseMessage));
         out.flush();
+    }
+
+    private void fetchBrokerResponse(ExecutorService executorService,PrintWriter outputStream, Socket clientSocket ) {
+        executorService.submit(() -> {
+            while (!clientSocket.isClosed()) {
+                // synchronized (Gateway.getInstance()) {
+                while (Gateway.getInstance().newMessageOnQueue(clientID)) {
+                    outputStream.println(GsonInstance.getInstance().getGson().toJson(Gateway.getInstance().fetchResponse(clientID)));
+                    outputStream.flush();
+                    System.out.println("Risposta inoltrata al client");
+                }
+                try {
+                    // Attende un breve periodo per ridurre il consumo di CPU
+                    Thread.sleep(500);  // attende 500 ms
+                } catch (InterruptedException e) {
+                    System.out.println("Thread interrotto.");
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+
+            }
+        });
     }
 }

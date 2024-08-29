@@ -36,7 +36,6 @@ public class ResponseDispatcher {
      * */
     public static void exec(String line){
         ResponseMessage response = convertMessage(line);
-
         if(responseHandlerMap.containsKey(response.getId())){
             responseHandlerMap.get(response.getId()).exec(response);
         } else {

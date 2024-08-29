@@ -1,10 +1,10 @@
 package it.polimi.ds.broker.state.impl;
 
 import it.polimi.ds.broker.BrokerContext;
+import it.polimi.ds.broker.election.ElectionManager;
 import it.polimi.ds.broker.state.BrokerState;
 import it.polimi.ds.message.RequestMessage;
 import it.polimi.ds.message.ResponseMessage;
-import it.polimi.ds.message.election.ElectionManager;
 import it.polimi.ds.message.election.requests.VoteRequest;
 import it.polimi.ds.message.election.responses.VoteResponse;
 import it.polimi.ds.message.id.RequestIdEnum;

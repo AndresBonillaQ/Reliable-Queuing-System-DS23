@@ -1,4 +1,4 @@
-package it.polimi.ds.message.election;
+package it.polimi.ds.broker.election;
 
 import it.polimi.ds.broker.BrokerContext;
 

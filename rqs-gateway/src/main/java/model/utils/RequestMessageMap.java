@@ -1,4 +1,4 @@
-package network.clientCommunication.model.utils;
+package model.utils;
 
 import messages.MessageRequest;
 
