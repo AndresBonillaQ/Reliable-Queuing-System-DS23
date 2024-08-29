@@ -66,9 +66,8 @@ class Leader2 {
                         ),
                         "127.0.0.1"
                 ),
-                true,
-                "2",
-                false
+                true
+
         );
 
         leader2.start();
