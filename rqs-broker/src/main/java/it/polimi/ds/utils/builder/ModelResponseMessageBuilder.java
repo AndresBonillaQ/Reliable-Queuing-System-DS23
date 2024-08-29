@@ -14,7 +14,7 @@ public class ModelResponseMessageBuilder {
     private ModelResponseMessageBuilder(){}
 
     public static class OK {
-        public static ResponseMessage buildCreateQueueResponseMessage() {
+        public static ResponseMessage buildCreateQueueResponseMessage(String clientId) {
             ResponseMessage responseMessage = new ResponseMessage();
 
             CreateQueueResponse createQueueResponse = new CreateQueueResponse();
@@ -23,11 +23,12 @@ public class ModelResponseMessageBuilder {
 
             responseMessage.setId(ResponseIdEnum.CREATE_QUEUE_RESPONSE);
             responseMessage.setContent(GsonInstance.getInstance().getGson().toJson(createQueueResponse));
+            responseMessage.setClientId(clientId);
 
             return responseMessage;
         }
 
-        public static ResponseMessage buildAppendValueResponseMessage() {
+        public static ResponseMessage buildAppendValueResponseMessage(String clientId) {
             ResponseMessage responseMessage = new ResponseMessage();
 
             AppendValueResponse appendValueResponse = new AppendValueResponse();
@@ -36,11 +37,13 @@ public class ModelResponseMessageBuilder {
 
             responseMessage.setId(ResponseIdEnum.APPEND_VALUE_RESPONSE);
             responseMessage.setContent(GsonInstance.getInstance().getGson().toJson(appendValueResponse));
+            responseMessage.setClientId(clientId);
+
 
             return responseMessage;
         }
 
-        public static ResponseMessage buildReadValueResponseMessage(int value) {
+        public static ResponseMessage buildReadValueResponseMessage(int value,String clientId) {
             ResponseMessage responseMessage = new ResponseMessage();
 
             ReadValueResponse readValueResponse = new ReadValueResponse();
@@ -50,6 +53,8 @@ public class ModelResponseMessageBuilder {
 
             responseMessage.setId(ResponseIdEnum.CREATE_QUEUE_RESPONSE);
             responseMessage.setContent(GsonInstance.getInstance().getGson().toJson(readValueResponse));
+            responseMessage.setClientId(clientId);
+
 
             return responseMessage;
         }

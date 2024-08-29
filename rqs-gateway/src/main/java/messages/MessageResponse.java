@@ -1,21 +1,25 @@
 package messages;
 
-public class MessageResponse {
-    private String id = null;
-    private String content = null;
-    private String clientId;
+import messages.id.ResponseIdEnum;
 
-    public MessageResponse(String id, String content, String clientId) {
+import java.io.Serializable;
+
+public class MessageResponse implements Serializable {
+    private ResponseIdEnum id = null;
+    private String content = null;
+    private String clientId = null;
+
+    public MessageResponse(ResponseIdEnum id, String content, String clientId) {
         this.id = id;
         this.content = content;
         this.clientId = clientId;
     }
 
-    public String getId() {
+    public ResponseIdEnum getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(ResponseIdEnum id) {
         this.id = id;
     }
 

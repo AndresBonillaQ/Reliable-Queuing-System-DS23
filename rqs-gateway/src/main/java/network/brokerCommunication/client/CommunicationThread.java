@@ -1,6 +1,7 @@
 package network.brokerCommunication.client;
 
 import com.google.gson.Gson;
+import it.polimi.ds.message.ResponseMessage;
 import messages.MessageRequest;
 import messages.MessageResponse;
 import model.Gateway;
@@ -34,22 +35,29 @@ public class CommunicationThread extends Thread {
             while (!socket.isClosed()) {
 
                 //messaggio arrivato dal CLIENT da inviare al BROKER
-                if ((messageRequest = Gateway.getInstance().pollRequest(this.clusterID)) != null) {
+                synchronized (Gateway.getInstance()) {
+                    if ((messageRequest = Gateway.getInstance().pollRequest(this.clusterID)) != null) {
 
-                    System.out.println("Message request to leader: " + messageRequest);
+                        System.out.println("Message request to leader: " + messageRequest);
 
-                    writer.println(gson.toJson(messageRequest));
-                    writer.flush();
+                        writer.println(gson.toJson(messageRequest));
+                        writer.flush();
 
-                    //risposta dal BROKER
-                    String readLine = reader.readLine();
+                        //risposta dal BROKER
+                        String readLine = reader.readLine();
 
-                    System.out.println("Response from the leader: " + readLine);
-                    MessageResponse messageResponse = GsonInstance.getInstance().getGson().fromJson(readLine, MessageResponse.class);
+                        System.out.println("Response from the leader: " + readLine);
 
-                    String clientID = messageRequest.getClientId();
-                    //inoltra la risposta del BROKER al CLIENT
-                    Gateway.getInstance().putOnResponseMap(clientID, messageResponse);
+                        MessageResponse messageResponse = GsonInstance.getInstance().getGson().fromJson(readLine, MessageResponse.class);
+
+                        //-------------------------------------------
+                        String clientID = messageResponse.getClientId(); //Da aggiungere
+                        //-------------------------------------------
+
+                        //inoltra la risposta del BROKER al CLIENT
+                        Gateway.getInstance().putOnResponseMap(clientID, messageResponse);
+
+                    }
                 }
             }
 

@@ -27,8 +27,8 @@ public class Leader {
                 new BrokerConfig(
                         "1",
                         "1",
-                        3000,
-                        3001,
+                        4000,
+                        4001,
                         List.of(
                                 //new BrokerInfo("2","127.0.0.1", 8080)
                                 //,new BrokerInfo("3","127.0.0.1", 4000)
@@ -45,6 +45,35 @@ public class Leader {
         );
 
         leader.start();
+    }
+}
+
+class Leader2 {
+    public static void main(String[] args){
+
+        //leader open port 3000 as SERVER to brokers, 3001 as SERVER to gateway
+        BrokerContext leader2 = new BrokerContext(
+                new BrokerConfig(
+                        "2",
+                        "2",
+                        3000,
+                        3001,
+                        List.of(
+                                //new BrokerInfo("2","127.0.0.1", 8080)
+                                //,new BrokerInfo("3","127.0.0.1", 4000)
+                        ),
+                        new GatewayInfo(
+                                "127.0.1",
+                                5001
+                        ),
+                        "127.0.0.1"
+                ),
+                true,
+                "2",
+                false
+        );
+
+        leader2.start();
     }
 }
 

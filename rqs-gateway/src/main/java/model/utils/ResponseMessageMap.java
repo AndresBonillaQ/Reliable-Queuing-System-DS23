@@ -1,15 +1,18 @@
 package model.utils;
 
+import it.polimi.ds.message.ResponseMessage;
 import messages.MessageResponse;
+import model.Gateway;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class ResponseMessageMap {
-    private final Map<String, BlockingQueue<MessageResponse>> responseMap = new HashMap<>();//<ClientId, Queue>
+    private final Map<String, BlockingQueue<MessageResponse>> responseMap = new ConcurrentHashMap<>();//<ClientId, Queue>
 
     public boolean isClientIdPresent(String clientId){
         return responseMap.containsKey(clientId);
@@ -24,7 +27,6 @@ public class ResponseMessageMap {
     }
 
     public void putOnResponseQueue(String clientId, MessageResponse message) {
-        System.out.println("Il clientId é: " + clientId);
         responseMap.get(clientId).add(message);
     }
 }

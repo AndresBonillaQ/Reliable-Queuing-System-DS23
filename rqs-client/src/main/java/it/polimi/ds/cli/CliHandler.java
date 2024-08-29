@@ -14,7 +14,8 @@ public class CliHandler {
         String line;
 
         do{
-            System.out.println("1.Create Queue\n2.Append Value\n3.Read Value\n4.Exit");
+           // System.out.println("1.Create Queue\n2.Append Value\n3.Read Value\n4.Exit");
+            printMenu();
             line = in.nextLine();
 
             switch (line) {
@@ -43,6 +44,18 @@ public class CliHandler {
 
         throw new CliExitException();
     }
+    private static void printMenu() {
+        System.out.println("╔════════════════════════════════════════╗");
+        System.out.println("║             ☆ Main Menu ☆             ║");
+        System.out.println("╠════════════════════════════════════════╣");
+        System.out.println("║   1. Create Queue                      ║");
+        System.out.println("║   2. Append Value                      ║");
+        System.out.println("║   3. Read Value                        ║");
+        System.out.println("║   4. Exit                              ║");
+        System.out.println("╚════════════════════════════════════════╝");
+        System.out.print("➤ Choose an option: ");
+    }
+
 
     private CliHandler(){}
 }

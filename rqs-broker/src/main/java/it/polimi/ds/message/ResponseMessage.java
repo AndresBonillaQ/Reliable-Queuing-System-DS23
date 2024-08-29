@@ -7,6 +7,7 @@ import java.io.Serializable;
 public class ResponseMessage implements Serializable {
     private ResponseIdEnum id = null;
     private String content = null;
+    private String clientId = null;
 
     public ResponseMessage(ResponseIdEnum id, String content) {
         this.id = id;
@@ -38,5 +39,13 @@ public class ResponseMessage implements Serializable {
         sb.append(", content='").append(content).append('\'');
         sb.append('}');
         return sb.toString();
+    }
+
+    public String getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
     }
 }

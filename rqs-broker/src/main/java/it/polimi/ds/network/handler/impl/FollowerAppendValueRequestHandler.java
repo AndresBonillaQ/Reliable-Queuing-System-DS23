@@ -23,7 +23,7 @@ public class FollowerAppendValueRequestHandler implements FollowerRequestHandler
                 .fromJson(request.getContent(), AppendValueRequest.class);
         try{
             brokerContext.getBrokerModel().appendValueToQueue(appendValueRequest.getQueueId(), appendValueRequest.getValue());
-            return ModelResponseMessageBuilder.OK.buildAppendValueResponseMessage();
+            return ModelResponseMessageBuilder.OK.buildAppendValueResponseMessage(appendValueRequest.getClientId());
         } catch (QueueNotFoundException e){
             log.severe("Error during appending value! It doesn't exists the queue with ID " + appendValueRequest.getQueueId());
             return ModelResponseMessageBuilder.KO.buildAppendValueResponseMessage(Const.ResponseDes.KO.APPEND_VALUE_QUEUE_ID_NOT_EXISTS_KO);

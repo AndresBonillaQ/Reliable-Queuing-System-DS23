@@ -25,7 +25,7 @@ public class FollowerReadValueRequestHandler implements FollowerRequestHandler {
 
         try{
             int valueRead = brokerContext.getBrokerModel().readValueFromQueueByClient(readValueRequest.getQueueId(), readValueRequest.getClientId());
-            return ModelResponseMessageBuilder.OK.buildReadValueResponseMessage(valueRead);
+            return ModelResponseMessageBuilder.OK.buildReadValueResponseMessage(valueRead, readValueRequest.getClientId());
         } catch (QueueNotFoundException e){
             log.severe("Error during reading value! It doesn't exists the queue with ID " + readValueRequest.getQueueId());
             return ModelResponseMessageBuilder.KO.buildReadValueResponseMessage(Const.ResponseDes.KO.READ_VALUE_QUEUE_ID_NOT_EXISTS_KO);
