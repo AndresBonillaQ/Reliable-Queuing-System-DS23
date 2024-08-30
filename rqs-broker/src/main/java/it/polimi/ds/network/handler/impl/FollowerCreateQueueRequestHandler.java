@@ -24,10 +24,10 @@ public class FollowerCreateQueueRequestHandler implements FollowerRequestHandler
 
         try{
             brokerContext.getBrokerModel().createNewQueue(createQueueRequest.getQueueId());
-            return ModelResponseMessageBuilder.OK.buildCreateQueueResponseMessage(createQueueRequest.getClientId());
+            return ModelResponseMessageBuilder.OK.buildCreateQueueResponseMessage(createQueueRequest.getQueueId(), createQueueRequest.getClientId());
         } catch (AlreadyExistsQueueWithSameIdException e){
             log.severe("Error during create queue! It already exists a queue with the ID " + createQueueRequest.getQueueId());
-            return ModelResponseMessageBuilder.KO.buildCreateQueueResponseMessage(Const.ResponseDes.KO.CREATE_QUEUE_QUEUE_ID_ALREADY_PRESENT_KO);
+            return ModelResponseMessageBuilder.KO.buildCreateQueueResponseMessage(createQueueRequest.getClientId(), Const.ResponseDes.KO.CREATE_QUEUE_QUEUE_ID_ALREADY_PRESENT_KO, createQueueRequest.getQueueId());
         }
     }
 }

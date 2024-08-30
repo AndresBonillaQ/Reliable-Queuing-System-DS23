@@ -1,7 +1,5 @@
 package model;
 
-import com.google.gson.Gson;
-import it.polimi.ds.message.ResponseMessage;
 import messages.MessageRequest;
 import messages.MessageResponse;
 import messages.connectionSetUp.SetUpConnectionMessage;
@@ -109,7 +107,7 @@ public class Gateway {
             // La richiesta di creazione di una queue viene inviata al broker scelto secondo la logica "round robin"
             case CREATE_QUEUE_REQUEST -> {
                 CreateQueueRequest request = GsonInstance.getInstance().getGson().fromJson(messageRequest.getContent(), CreateQueueRequest.class);
-                request.setQueueID(generateNewQueueID());
+                request.setQueueId(generateNewQueueID());
 
                 messageRequest.setContent(GsonInstance.getInstance().getGson().toJson(request)) ;
                 if (!nextCluster.containsValue(0)) {

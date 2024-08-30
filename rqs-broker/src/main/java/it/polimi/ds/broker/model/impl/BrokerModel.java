@@ -3,6 +3,7 @@ package it.polimi.ds.broker.model.impl;
 import it.polimi.ds.broker.model.IBrokerModel;
 import it.polimi.ds.exception.model.AlreadyExistsQueueWithSameIdException;
 import it.polimi.ds.exception.model.EmptyQueueException;
+import it.polimi.ds.exception.model.NoMoreValuesToReadInQueueException;
 import it.polimi.ds.exception.model.QueueNotFoundException;
 import it.polimi.ds.broker.model.utils.ClientQueueId;
 
@@ -41,7 +42,7 @@ public class BrokerModel implements IBrokerModel{
         queuesMap.get(queueId).add(value);
     }
 
-    public int readValueFromQueueByClient(String queueId, String clientId) throws QueueNotFoundException, EmptyQueueException, IndexOutOfBoundsException {
+    public int readValueFromQueueByClient(String queueId, String clientId) throws QueueNotFoundException, EmptyQueueException, IndexOutOfBoundsException, NoMoreValuesToReadInQueueException {
         if(!queuesMap.containsKey(queueId))
             throw new QueueNotFoundException();
 
@@ -55,23 +56,20 @@ public class BrokerModel implements IBrokerModel{
         System.out.println("oldOffset: " + oldOffset);
 
         //if continue to read last value we stop the offset because there are no other values to read!
-        if(oldOffset == queuesMap.get(queueId).size() - 1){
-            log.log(Level.INFO, "Client {0} reached the top of queue {1}", new Object[]{clientId, queueId});
+        if(oldOffset < queuesMap.get(queueId).size()){
+            int newOffset = oldOffset + 1;
+            clientOffsetMap.put(offsetKey, newOffset);
+
+            log.log(Level.INFO, "Client {0} reading... oldOffset was {1}, the new one is {2}", new Object[]{clientId, oldOffset, newOffset});
             return queuesMap.get(queueId).get(oldOffset);
+        } else {
+            log.log(Level.INFO, "Client {0} reached the top of queue {1}", new Object[]{clientId, queueId});
+            throw new NoMoreValuesToReadInQueueException();
         }
-
-        int newOffset = oldOffset + 1;
-        clientOffsetMap.put(offsetKey, newOffset);
-
-        log.log(Level.INFO, "Client {0} reading... oldOffset was {1}, the new one is {2}", new Object[]{clientId, oldOffset, newOffset});
-
-        //return value read
-        return queuesMap.get(queueId).get(oldOffset);
     }
 
     @Override
-    public void printState() {/*
-        System.out.println("After execution of request:");
+    public void printState() {
         System.out.println("+---------+-------------------------+");
         System.out.println("| QueueID | Elements                |");
         System.out.println("+---------+-------------------------+");
@@ -99,7 +97,7 @@ public class BrokerModel implements IBrokerModel{
                     offset);
         }
 
-        System.out.println("+-------------+-------------+---------+");*/
+        System.out.println("+-------------+-------------+---------+");
     }
 
     public Map<String, List<Integer>> getQueuesMap() {

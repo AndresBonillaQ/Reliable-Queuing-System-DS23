@@ -11,6 +11,7 @@ import it.polimi.ds.message.id.ResponseIdEnum;
 import it.polimi.ds.message.model.response.utils.StatusEnum;
 import it.polimi.ds.message.raft.request.HeartbeatRequest;
 import it.polimi.ds.message.raft.response.RaftLogEntryResponse;
+import it.polimi.ds.network.gateway.client.ClientToGateway;
 import it.polimi.ds.network.gateway.server.ServerToGateway;
 import it.polimi.ds.network.handler.BrokerRequestDispatcher;
 import it.polimi.ds.network.utils.LeaderWaitingForFollowersCallable;
@@ -44,7 +45,7 @@ public class LeaderBrokerState extends BrokerState {
         log.log(Level.INFO, "I'm becoming leader!!");
         startHeartBeat();
         ExecutorInstance.getInstance().getExecutorService().submit(new ServerToGateway(brokerContext, brokerContext.getMyBrokerConfig().getBrokerServerPortToGateway()));
-        //ExecutorInstance.getInstance().getExecutorService().submit(new ClientToGateway(brokerContext, brokerContext.getMyBrokerConfig().getGatewayInfo()));
+        ExecutorInstance.getInstance().getExecutorService().submit(new ClientToGateway(brokerContext, brokerContext.getMyBrokerConfig().getGatewayInfo()));
     }
 
     /**
@@ -253,7 +254,6 @@ public class LeaderBrokerState extends BrokerState {
 
                 // exec the request locally
                 ResponseMessage response = BrokerRequestDispatcher.exec(brokerContext, requestLine);
-                brokerContext.getBrokerModel().printState();
 
                 // send commit to gateway
                 out.println(GsonInstance.getInstance().getGson().toJson(response));
@@ -280,7 +280,7 @@ public class LeaderBrokerState extends BrokerState {
 
         }
 
-        brokerContext.getBrokerRaftIntegration().printLogs();
+        brokerContext.getBrokerModel().printState();
     }
 
     /**

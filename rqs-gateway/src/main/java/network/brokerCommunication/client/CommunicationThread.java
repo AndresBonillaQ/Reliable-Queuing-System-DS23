@@ -56,7 +56,6 @@ public class CommunicationThread extends Thread {
 
                         //inoltra la risposta del BROKER al CLIENT
                         Gateway.getInstance().putOnResponseMap(clientID, messageResponse);
-
                     }
                 }
             }

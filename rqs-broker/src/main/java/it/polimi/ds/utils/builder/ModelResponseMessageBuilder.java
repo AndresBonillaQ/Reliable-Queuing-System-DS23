@@ -14,12 +14,10 @@ public class ModelResponseMessageBuilder {
     private ModelResponseMessageBuilder(){}
 
     public static class OK {
-        public static ResponseMessage buildCreateQueueResponseMessage(String clientId) {
+        public static ResponseMessage buildCreateQueueResponseMessage(String queueId, String clientId) {
             ResponseMessage responseMessage = new ResponseMessage();
 
-            CreateQueueResponse createQueueResponse = new CreateQueueResponse();
-            createQueueResponse.setStatus(StatusEnum.OK);
-            createQueueResponse.setDesStatus(Const.ResponseDes.OK.CREATE_QUEUE);
+            CreateQueueResponse createQueueResponse = new CreateQueueResponse(StatusEnum.OK, Const.ResponseDes.OK.CREATE_QUEUE, queueId);
 
             responseMessage.setId(ResponseIdEnum.CREATE_QUEUE_RESPONSE);
             responseMessage.setContent(GsonInstance.getInstance().getGson().toJson(createQueueResponse));
@@ -51,7 +49,7 @@ public class ModelResponseMessageBuilder {
             readValueResponse.setStatus(StatusEnum.OK);
             readValueResponse.setDesStatus(Const.ResponseDes.OK.READ_VALUE);
 
-            responseMessage.setId(ResponseIdEnum.CREATE_QUEUE_RESPONSE);
+            responseMessage.setId(ResponseIdEnum.READ_VALUE_RESPONSE);
             responseMessage.setContent(GsonInstance.getInstance().getGson().toJson(readValueResponse));
             responseMessage.setClientId(clientId);
 
@@ -61,20 +59,19 @@ public class ModelResponseMessageBuilder {
     }
 
     public static class KO {
-        public static ResponseMessage buildCreateQueueResponseMessage(String desStatus) {
+        public static ResponseMessage buildCreateQueueResponseMessage(String clientId, String desStatus, String queueId) {
             ResponseMessage responseMessage = new ResponseMessage();
 
-            CreateQueueResponse createQueueResponse = new CreateQueueResponse();
-            createQueueResponse.setStatus(StatusEnum.KO);
-            createQueueResponse.setDesStatus(desStatus);
+            CreateQueueResponse createQueueResponse = new CreateQueueResponse(StatusEnum.KO, desStatus, queueId);
 
             responseMessage.setId(ResponseIdEnum.CREATE_QUEUE_RESPONSE);
             responseMessage.setContent(GsonInstance.getInstance().getGson().toJson(createQueueResponse));
+            responseMessage.setClientId(clientId);
 
             return responseMessage;
         }
 
-        public static ResponseMessage buildAppendValueResponseMessage(String desStatus) {
+        public static ResponseMessage buildAppendValueResponseMessage(String clientId, String desStatus) {
             ResponseMessage responseMessage = new ResponseMessage();
 
             AppendValueResponse appendValueResponse = new AppendValueResponse();
@@ -83,16 +80,18 @@ public class ModelResponseMessageBuilder {
 
             responseMessage.setId(ResponseIdEnum.APPEND_VALUE_RESPONSE);
             responseMessage.setContent(GsonInstance.getInstance().getGson().toJson(appendValueResponse));
+            responseMessage.setClientId(clientId);
 
             return responseMessage;
         }
 
-        public static ResponseMessage buildReadValueResponseMessage(String desStatus) {
+        public static ResponseMessage buildReadValueResponseMessage(String clientId, String desStatus) {
             ResponseMessage responseMessage = new ResponseMessage();
 
             ReadValueResponse readValueResponse = new ReadValueResponse();
             readValueResponse.setStatus(StatusEnum.KO);
             readValueResponse.setDesStatus(desStatus);
+            responseMessage.setClientId(clientId);
 
             responseMessage.setId(ResponseIdEnum.READ_VALUE_RESPONSE);
             responseMessage.setContent(GsonInstance.getInstance().getGson().toJson(readValueResponse));

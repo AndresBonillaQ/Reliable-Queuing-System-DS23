@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 public class CreateQueueRequest implements Serializable {
     private String clientId;
-    private String queueID;
+    private String queueId;
     public String getClientId() {
         return clientId;
     }
@@ -13,11 +13,11 @@ public class CreateQueueRequest implements Serializable {
         this.clientId = clientId;
     }
 
-    public void setQueueID(String queueID) {
-        this.queueID = queueID;
+    public void setQueueId(String queueId) {
+        this.queueId = queueId;
     }
 
-    public String getQueueID() {
-        return queueID;
+    public String getQueueId() {
+        return queueId;
     }
 }

@@ -1,6 +1,7 @@
 import it.polimi.ds.broker.model.impl.BrokerModel;
 import it.polimi.ds.exception.model.AlreadyExistsQueueWithSameIdException;
 import it.polimi.ds.exception.model.EmptyQueueException;
+import it.polimi.ds.exception.model.NoMoreValuesToReadInQueueException;
 import it.polimi.ds.exception.model.QueueNotFoundException;
 import org.junit.Assert;
 import org.junit.Test;
@@ -48,7 +49,7 @@ public class BrokerModelTest {
     }
 
     @Test
-    public void readValueFromQueueByClient() throws AlreadyExistsQueueWithSameIdException, QueueNotFoundException, EmptyQueueException {
+    public void readValueFromQueueByClient() throws AlreadyExistsQueueWithSameIdException, QueueNotFoundException, EmptyQueueException, NoMoreValuesToReadInQueueException {
         BrokerModel brokerModel = new BrokerModel();
         brokerModel.createNewQueue("1");
         brokerModel.appendValueToQueue("1", 1);
@@ -61,7 +62,7 @@ public class BrokerModelTest {
     }
 
     @Test
-    public void readValueFromQueueByClient2() throws AlreadyExistsQueueWithSameIdException, QueueNotFoundException, EmptyQueueException {
+    public void readValueFromQueueByClient2() throws AlreadyExistsQueueWithSameIdException, QueueNotFoundException, EmptyQueueException, NoMoreValuesToReadInQueueException {
         BrokerModel brokerModel = new BrokerModel();
         brokerModel.createNewQueue("1");
         brokerModel.appendValueToQueue("1", 1);
@@ -74,7 +75,7 @@ public class BrokerModelTest {
     }
 
     @Test
-    public void readValueFromQueueByClient3() throws AlreadyExistsQueueWithSameIdException, QueueNotFoundException, EmptyQueueException {
+    public void readValueFromQueueByClient3() throws AlreadyExistsQueueWithSameIdException, QueueNotFoundException, EmptyQueueException, NoMoreValuesToReadInQueueException {
         BrokerModel brokerModel = new BrokerModel();
         brokerModel.createNewQueue("1");
         brokerModel.appendValueToQueue("1", 1);

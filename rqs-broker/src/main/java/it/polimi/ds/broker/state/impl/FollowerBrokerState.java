@@ -53,23 +53,6 @@ public class FollowerBrokerState extends BrokerState {
     @Override
     public void clientToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) throws IOException {
         in.readLine();
-        /*
-        Callable<String> task = new Callable<String>() {
-            @Override
-            public String call() throws IOException {
-                return in.readLine();
-            }
-        };
-
-        Future<String> readLine = executor.submit(task);
-
-        try {
-            readLine.get(200, TimeUnit.MILLISECONDS);
-        } catch (TimeoutException  e) {
-            return;
-        } catch (InterruptedException | ExecutionException e) {
-            throw new IOException("IOException throw by clientToBroker");
-        }*/
     }
 
     @Override
