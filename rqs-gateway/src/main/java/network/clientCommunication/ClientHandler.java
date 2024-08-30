@@ -124,7 +124,6 @@ public class ClientHandler implements Runnable {
                     Thread.currentThread().interrupt();
                     break;
                 }
-
             }
         });
     }

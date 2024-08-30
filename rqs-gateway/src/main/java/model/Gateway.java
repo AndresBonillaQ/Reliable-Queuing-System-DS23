@@ -21,14 +21,17 @@ import java.util.HashMap;
  */
 public class Gateway {
     private static Gateway instance = null;
-    private HashMap<String, String> clusterIdToAddressMap = new HashMap<String, String>(); //<clusterId, ip>
-    private HashMap<String, Integer> clusterToPortMap = new HashMap<String, Integer>();
-    private ArrayList<String> clustersID = new ArrayList<>(); //Da inizializzare
-    private HashMap<String, String> queueToClusterIdMap = new HashMap<String, String>(); //<queueId, clusterId>
+    private HashMap<Integer, String> clusterIdToAddressMap = new HashMap<Integer, String>(); //<clusterId, ip>
+    private HashMap<Integer, Integer> clusterToPortMap = new HashMap<Integer, Integer>();
+    private ArrayList<Integer> clustersID = new ArrayList<>(); //Da inizializzare
+    private HashMap<Integer, Integer> queueToClusterIdMap = new HashMap<Integer, Integer>(); //<queueId, clusterId>
     private ResponseMessageMap responseMessageMap = new ResponseMessageMap();
     private RequestMessageMap requestsMap = new RequestMessageMap();//<clusterId, QueueOfRequests>
-    private HashMap<String, Integer> nextCluster = new HashMap<>();
-    private HashMap<String, Integer> clusterConnected = new HashMap<>();
+    private HashMap<Integer, Integer> nextCluster = new HashMap<>();
+    private HashMap<Integer, Integer> clusterConnected = new HashMap<>();
+
+    private final int maxNumberOfClusters = 1000;
+
     private static ConnectionManager connectionManager;
     private int queueSequenceNumber = -1 ;
 
@@ -43,44 +46,44 @@ public class Gateway {
         return instance;
     }
 
-    private String generateNewQueueID() {
+    private Integer generateNewQueueID() {
         queueSequenceNumber++;
-        return String.valueOf(queueSequenceNumber);
+        return queueSequenceNumber;
     }
-    public void setIp(String clusterId, String ipAddress) {
+    public void setIp(Integer clusterId, String ipAddress) {
             this.clusterIdToAddressMap.put(clusterId, ipAddress);
     }
 
-    public String getIp(String clusterID) throws IOException {
+    public String getIp(Integer clusterID) throws IOException {
             if ( clusterIdToAddressMap.get(clusterID) != null)
                 return clusterIdToAddressMap.get(clusterID);
             else return null;
     }
 
-    public ArrayList<String> getClustersID() {
+    public ArrayList<Integer> getClustersID() {
         return clustersID;
     }
-    public int getPortNumber(String clusterID) {
+    public int getPortNumber(Integer clusterID) {
             return clusterToPortMap.get(clusterID);
     }
-    public void setPortNumber(int portNumber, String clusterID) {
+    public void setPortNumber(int portNumber, Integer clusterID) {
         clusterToPortMap.put(clusterID, portNumber);
     }
 
-    public void addToQueueToClusterMap(String queueID, String clusterID) {
+    public void addToQueueToClusterMap( Integer queueID, Integer clusterID) {
         queueToClusterIdMap.put(clusterID, queueID);
     }
-    public MessageRequest pollRequest(String clusterID) {
+    public MessageRequest pollRequest(Integer clusterID) {
         return requestsMap.getMessageQueue(clusterID).poll();
     }
-    public String getClusterID(String queueID) {
+    public Integer getClusterID(Integer queueID) {
             return queueToClusterIdMap.get(queueID);
     }
 
-    public void setClusterAsDisconnected(String clusterID) {
+    public void setClusterAsDisconnected(Integer clusterID) {
         clusterConnected.replace(clusterID, 0);
     }
-    public boolean isUpdated(String clusterID) {
+    public boolean isUpdated(Integer clusterID) {
         if (clusterConnected.get(clusterID) == null)
             return false;
         return (clusterConnected.get(clusterID) == 1);
@@ -100,7 +103,10 @@ public class Gateway {
 
             case APPEND_VALUE_REQUEST -> {
                 AppendValueRequest request = GsonInstance.getInstance().getGson().fromJson(messageRequest.getContent(), AppendValueRequest.class);
-                requestsMap.putOnRequestQueue(queueToClusterIdMap.get (request.getQueueId() ), messageRequest);
+             //   requestsMap.putOnRequestQueue(queueToClusterIdMap.get (request.getQueueId() ), messageRequest);
+
+                requestsMap.putOnRequestQueue(assignToCluster(queueSequenceNumber,maxNumberOfClusters ) , messageRequest);
+
                 return request.getClientId();
             }
 
@@ -111,14 +117,16 @@ public class Gateway {
 
                 messageRequest.setContent(GsonInstance.getInstance().getGson().toJson(request)) ;
                 if (!nextCluster.containsValue(0)) {
-                    for (String clusterID : clustersID) {
+                    for (Integer clusterID : clustersID) {
                         nextCluster.put(clusterID, 0);
                     }
                 }
-                for (String clusterID : clustersID) {
+                for (Integer clusterID : clustersID) {
                     if (nextCluster.get(clusterID) == 0) {
-                        requestsMap.putOnRequestQueue(clusterID, messageRequest);
-                        queueToClusterIdMap.put(String.valueOf(queueSequenceNumber), clusterID);
+                        //requestsMap.putOnRequestQueue(clusterID, messageRequest);
+                        requestsMap.putOnRequestQueue(assignToCluster(queueSequenceNumber,maxNumberOfClusters ) , messageRequest);
+
+                        // queueToClusterIdMap.put(queueSequenceNumber, clusterID);
                         nextCluster.replace(clusterID, 1);
                         break;
                     }
@@ -128,7 +136,9 @@ public class Gateway {
 
             case READ_VALUE_REQUEST -> {
                 ReadValueRequest request = GsonInstance.getInstance().getGson().fromJson(messageRequest.getContent(), ReadValueRequest.class);
-                requestsMap.putOnRequestQueue(queueToClusterIdMap.get (request.getQueueId() ), messageRequest);
+               // requestsMap.putOnRequestQueue(queueToClusterIdMap.get (request.getQueueId() ), messageRequest);
+                requestsMap.putOnRequestQueue(assignToCluster(queueSequenceNumber,maxNumberOfClusters ) , messageRequest);
+
                 return request.getClientId();
             }
         }
@@ -140,7 +150,7 @@ public class Gateway {
 
         System.out.println("New leader: " + setUpConnectionMessage.toString());
 
-                String clusterID = setUpConnectionMessage.getClusterId();
+                Integer clusterID = Integer.valueOf(setUpConnectionMessage.getClusterId());
                 String ipAddress = setUpConnectionMessage.getHostName();
                 Integer portNumber = setUpConnectionMessage.getPort();
 
@@ -176,6 +186,9 @@ public class Gateway {
     public boolean newMessageOnQueue(String clientID) {
         //ritorna true se c'è un messaggio nella coda per quel client
         return !responseMessageMap.getMessageQueue(clientID).isEmpty();
+    }
 
+    private static int assignToCluster(int requestId, int totalClusters) {
+        return requestId % totalClusters;
     }
 }
