@@ -13,12 +13,12 @@ import java.net.Socket;
 public class CommunicationThread extends Thread {
     private Socket socket;
     private final ConnectionListener listener;
-    private final String clusterID;
+    private final Integer clusterID;
     MessageRequest messageRequest = new MessageRequest();
     Gson gson = new Gson();
 
 
-    public CommunicationThread(Socket socket, ConnectionListener listener, String clusterID) {
+    public CommunicationThread(Socket socket, ConnectionListener listener, Integer clusterID) {
         this.socket = socket;
         this.listener = listener;
         this.clusterID = clusterID;

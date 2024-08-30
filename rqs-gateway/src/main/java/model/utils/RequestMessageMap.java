@@ -11,18 +11,18 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class RequestMessageMap {
 
-    private Map<String, BlockingQueue<MessageRequest>> requestMap = new ConcurrentHashMap<>();//<clusterID, Coda dei messaggi da inviare al cluster con clusterUD>
-    private ArrayList<String> clustersID = new ArrayList<>();
+    private Map<Integer, BlockingQueue<MessageRequest>> requestMap = new ConcurrentHashMap<>();//<clusterID, Coda dei messaggi da inviare al cluster con clusterUD>
+    private ArrayList<Integer> clustersID = new ArrayList<>();
 
 
 
-    public BlockingQueue<MessageRequest> getMessageQueue(String clusterID) {
+    public BlockingQueue<MessageRequest> getMessageQueue(Integer clusterID) {
         return requestMap.get(clusterID);
     }
-    public void putOnRequestQueue(String clusterID, MessageRequest message) {
+    public void putOnRequestQueue(Integer clusterID, MessageRequest message) {
         requestMap.get(clusterID).add(message);
     }
-    public void addClusterID(String clusterID) {
+    public void addClusterID(Integer clusterID) {
         if (!clustersID.contains(clusterID)) {
             clustersID.add(clusterID);
             requestMap.put(clusterID, new LinkedBlockingQueue<>());

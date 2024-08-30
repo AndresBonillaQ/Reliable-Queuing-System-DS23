@@ -4,5 +4,5 @@ import java.io.IOException;
 
 public interface ConnectionListener {
 
-    void onConnectionLost(String clusterID) throws IOException;
+    void onConnectionLost(Integer clusterID) throws IOException;
 }

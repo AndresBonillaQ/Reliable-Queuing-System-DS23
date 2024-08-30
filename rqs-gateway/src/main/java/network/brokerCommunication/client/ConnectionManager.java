@@ -12,7 +12,7 @@ public  class ConnectionManager implements ConnectionListener {
 
 
     @Override
-    public void onConnectionLost(String clusterID) throws IOException {
+    public void onConnectionLost(Integer clusterID) throws IOException {
 
         //a task that waits the gateway to get the new leader information then starts a new connection with the
         ExecutorInstance.getInstance().getExecutorService().submit(
@@ -41,7 +41,7 @@ public  class ConnectionManager implements ConnectionListener {
                 }
         );
     }
-    public void startConnection(String clusterID) throws IOException {
+    public void startConnection(Integer clusterID) throws IOException {
         onConnectionLost(clusterID);
 
     }
