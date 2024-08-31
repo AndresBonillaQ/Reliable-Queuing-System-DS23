@@ -37,7 +37,7 @@ public class Gateway {
     private HashMap<Integer, Integer> clusterConnected = new HashMap<>();
     private HashMap<Integer, Socket> clusterToSocketMap = new HashMap();
 
-    private static final int maxNumberOfClusters = 2;
+    private static final int maxNumberOfClusters = 1;
 
     private static ConnectionManager connectionManager;
     private int queueSequenceNumber = -1 ;
@@ -115,9 +115,9 @@ public class Gateway {
                 if(requestsMap.getMessageQueue(assignToCluster(Integer.parseInt(request.getQueueId()))) != null){
                     requestsMap.putOnRequestQueue(assignToCluster(Integer.parseInt(request.getQueueId())) , messageRequest);
 
-                    return request.getClientId();
+                    return messageRequest.getClientId();
                 } else
-                    sendServiceUnavailableResponse(request.getClientId(), outputStream);
+                    sendServiceUnavailableResponse(messageRequest.getClientId(), outputStream);
             }
 
             // La richiesta di creazione di una queue viene inviata al broker scelto secondo la logica "round robin"
@@ -149,10 +149,10 @@ public class Gateway {
                             break;
                         }*/
 
-                    return request.getClientId();
+                    return messageRequest.getClientId();
 
                 } catch (NoClusterAvailableException e) {
-                    sendServiceUnavailableResponse(request.getClientId(), outputStream);
+                    sendServiceUnavailableResponse(messageRequest.getClientId(), outputStream);
                 }
             }
 
@@ -162,9 +162,9 @@ public class Gateway {
                 if(requestsMap.getMessageQueue(assignToCluster(Integer.parseInt(request.getQueueId()))) != null)
                     requestsMap.putOnRequestQueue(assignToCluster(Integer.parseInt(request.getQueueId())) , messageRequest);
                 else
-                    sendServiceUnavailableResponse(request.getClientId(), outputStream);
+                    sendServiceUnavailableResponse(messageRequest.getClientId(), outputStream);
 
-                return request.getClientId();
+                return messageRequest.getClientId();
             }
         }
         return null;
@@ -186,7 +186,7 @@ public class Gateway {
                 requestsMap.addClusterID(clusterID);
 
             //    if (nextCluster.get(clusterID) == null )
-                //    nextCluster.put(clusterID, 0);
+                  //   nextCluster.put(clusterID, 0);
 
                 connectionManager.startConnection(clusterID);
 
@@ -197,10 +197,7 @@ public class Gateway {
             System.out.println("client already present");
             return false;
         }
-
-
         responseMessageMap.addClientId(clientId);
-        System.out.println("registered client " +  clientId);
         return true;
     }
 

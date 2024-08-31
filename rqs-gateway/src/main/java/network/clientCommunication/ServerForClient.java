@@ -20,7 +20,7 @@ public class ServerForClient implements Runnable{
 
     try {
         ServerSocket serverSocket = new ServerSocket(portNumber);
-        System.out.println("Gateway server is awaiting connections...");
+        System.out.println("Gateway server is awaiting connections from client");
         while (true) {
             try {
                 Socket socket = serverSocket.accept();

@@ -11,6 +11,7 @@ import it.polimi.ds.message.response.ResponseIdEnum;
 import it.polimi.ds.message.response.SetUpResponse;
 import it.polimi.ds.message.response.StatusEnum;
 import it.polimi.ds.network.dispatcher.ResponseDispatcher;
+import it.polimi.ds.utils.RequestMessageBuilder;
 import it.polimi.ds.utils.config.GatewayConfig;
 import it.polimi.ds.utils.GsonInstance;
 
@@ -75,12 +76,7 @@ public class Client {
     }
 
     private void setUpClient(PrintWriter write, BufferedReader reader) throws IOException, ErrorSetUpException {
-
-        SetUpRequest setUpRequest = new SetUpRequest(clientId);
-        RequestMessage requestMessage = new RequestMessage(
-                RequestIdEnum.SET_UP_REQUEST,
-                GsonInstance.getInstance().getGson().toJson(setUpRequest)
-        );
+        RequestMessage requestMessage = RequestMessageBuilder.buildSetUpRequestMessage(clientId);
 
         System.out.println("Sending to gateway " + requestMessage);
         write.println(GsonInstance.getInstance().getGson().toJson(requestMessage));

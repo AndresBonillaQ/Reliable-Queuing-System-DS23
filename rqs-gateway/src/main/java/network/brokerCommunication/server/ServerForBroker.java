@@ -17,7 +17,7 @@ public class ServerForBroker implements Runnable{
 
         try {
             ServerSocket serverSocket = new ServerSocket(portNumber);
-            System.out.println("Gateway server is awaiting connections...");
+            System.out.println("Gateway server is awaiting connections from broker");
 
             while (true) {
                 try {

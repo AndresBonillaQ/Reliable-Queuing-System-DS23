@@ -1,22 +1,17 @@
 package it.polimi.ds.broker.state.impl;
 
 import it.polimi.ds.broker.BrokerContext;
-import it.polimi.ds.broker.raft.impl.RaftLog;
+import it.polimi.ds.broker.raft.utils.RaftLog;
 import it.polimi.ds.broker.state.BrokerState;
 import it.polimi.ds.exception.RequestNoManagedException;
 import it.polimi.ds.message.RequestMessage;
 import it.polimi.ds.message.ResponseMessage;
 import it.polimi.ds.message.election.requests.VoteRequest;
-import it.polimi.ds.message.id.ResponseIdEnum;
 import it.polimi.ds.message.model.response.utils.StatusEnum;
 import it.polimi.ds.message.pingPong.PingPongMessage;
-import it.polimi.ds.message.raft.request.HeartbeatRequest;
-import it.polimi.ds.message.raft.response.RaftLogEntryResponse;
 import it.polimi.ds.network.gateway.client.ClientToGateway;
 import it.polimi.ds.network.gateway.server.ServerToGateway;
 import it.polimi.ds.network.handler.BrokerRequestDispatcher;
-import it.polimi.ds.network.utils.LeaderWaitingForFollowersCallable;
-import it.polimi.ds.network.utils.LeaderWaitingForFollowersResponse;
 import it.polimi.ds.network.utils.thread.impl.ThreadsCommunication;
 import it.polimi.ds.utils.Const;
 import it.polimi.ds.utils.ExecutorInstance;
@@ -27,10 +22,12 @@ import it.polimi.ds.utils.config.Timing;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -39,8 +36,8 @@ public class LeaderBrokerState extends BrokerState {
 
     private final Logger log = Logger.getLogger(LeaderBrokerState.class.getName());
     private final AtomicBoolean hasAlreadyNotifyGateway = new AtomicBoolean(false);
-    private AtomicBoolean pingPongReceived = new AtomicBoolean(false);
-    private final Set<String> brokerIdSetVotedOk = new ConcurrentSkipListSet<>();
+    private final AtomicBoolean pingPongReceived = new AtomicBoolean(false);
+    private Set<String> brokerIdSetVotedOk = new ConcurrentSkipListSet<>();
 
     public LeaderBrokerState(BrokerContext brokerContext) {
         super(brokerContext);
@@ -102,15 +99,13 @@ public class LeaderBrokerState extends BrokerState {
 
     @Override
     public void clientToGatewayExec(BufferedReader in, PrintWriter out) throws IOException {
+        if(Boolean.FALSE.equals(hasAlreadyNotifyGateway.get())){
 
-        if(Boolean.FALSE.equals(hasAlreadyNotifyGateway.get())) {
-            //set_up message
             RequestMessage requestMessage = NetworkMessageBuilder.Request.buildNewLeaderToGatewayRequest(
                     brokerContext.getMyBrokerConfig().getMyClusterId(),
                     brokerContext.getMyBrokerConfig().getMyBrokerId(),
                     brokerContext.getMyBrokerConfig().getMyHostName(),
                     brokerContext.getMyBrokerConfig().getBrokerServerPortToGateway()
-
             );
 
             log.log(Level.INFO, "Notifying gateway about new leader... {0}", requestMessage);
@@ -170,162 +165,12 @@ public class LeaderBrokerState extends BrokerState {
     public void serverToGatewayExec(BufferedReader in, PrintWriter out) throws IOException {
 
         String requestLine = in.readLine();
-        log.log(Level.INFO, "Request from gateway: {0}", requestLine);
 
-        // append log and take it
-        final List<RaftLog> raftLog = brokerContext.getBrokerRaftIntegration().buildAndAppendNewLog(requestLine);
+        forwardAppendLogRequestToAllFollowers(requestLine);
+        brokerIdSetVotedOk = brokerContext.getBrokerRaftIntegration().calculateConsensus();
+        handleConsensusOutcome(requestLine, out);
 
-        //build logEntryRequest to forward to all followers
-        final RequestMessage raftLogMessage = NetworkMessageBuilder.Request.buildAppendEntryLogRequest(
-                brokerContext.getBrokerRaftIntegration().getCurrentTerm(),
-                brokerContext.getMyBrokerConfig().getMyBrokerId(),
-                brokerContext.getBrokerRaftIntegration().getPrevLogIndex(),
-                brokerContext.getBrokerRaftIntegration().getPrevLogTerm(brokerContext.getBrokerRaftIntegration().getPrevLogIndex()),
-                raftLog
-        );
-
-        log.log(Level.INFO, "Forwarding to all followers {0}", raftLogMessage);
-
-        // passing message to each thread which handle client connection with followers
-        ThreadsCommunication.getInstance().addRequestToAllFollowerRequestQueue(GsonInstance.getInstance().getGson().toJson(raftLogMessage));
-
-        // start from 1 because the leader vote OK for himself
-        int numConsensus = 1;
-        final int numOtherBrokersAlive = ThreadsCommunication.getInstance().getNumThreadsOfAliveBrokers();
-        brokerIdSetVotedOk.clear();
-
-        if(numOtherBrokersAlive > 0){
-
-            // creating callables waiting for followers responses
-            ExecutorService executorService = Executors.newCachedThreadPool();
-            CompletionService<LeaderWaitingForFollowersResponse> completionService = new ExecutorCompletionService<>(executorService);
-
-            ThreadsCommunication.getInstance()
-                    .getResponseConcurrentHashMap()
-                    .forEach((queueId, responseQueue) -> {
-                        completionService.submit(new LeaderWaitingForFollowersCallable(queueId, responseQueue));
-                    });
-
-            // consuming followers responses
-            for (int i = 0; i < numOtherBrokersAlive; i++) {
-
-                try{
-                    Future<LeaderWaitingForFollowersResponse> response = completionService.take();
-
-                    final String brokerIdOfResponse = response.get().getBrokerId();
-
-                    log.log(Level.INFO, "Response from follower taken from queue: {0}", response.get());
-
-                    ResponseMessage responseMessage = GsonInstance.getInstance().getGson().fromJson(response.get().getResponse(), ResponseMessage.class);
-
-                    if(ResponseIdEnum.APPEND_ENTRY_LOG_RESPONSE.equals(responseMessage.getId())) {
-
-                        RaftLogEntryResponse raftLogEntryResponse = GsonInstance.getInstance().getGson().fromJson(responseMessage.getContent(), RaftLogEntryResponse.class);
-
-                        if (StatusEnum.OK.equals(raftLogEntryResponse.getStatus())) {
-
-                            log.log(Level.INFO, "Consensus +1");
-                            brokerIdSetVotedOk.add(brokerIdOfResponse);
-                            numConsensus++;
-
-                        } else {
-
-                            //build logEntryRequest to forward to KO followers
-                            final int myLogSize = brokerContext.getBrokerRaftIntegration().getLogQueueSize();
-                            int numAttemps = 0;
-
-                            while(numAttemps < myLogSize){
-
-                                final RequestMessage requestMessage = NetworkMessageBuilder.Request.buildAppendEntryLogRequest(
-                                        brokerContext.getBrokerRaftIntegration().getCurrentTerm(),
-                                        brokerContext.getMyBrokerConfig().getMyBrokerId(),
-                                        brokerContext.getBrokerRaftIntegration().getPrevLogIndexOf(raftLogEntryResponse.getLastMatchIndex()),
-                                        brokerContext.getBrokerRaftIntegration().getPrevLogTermOfIndex(raftLogEntryResponse.getLastMatchIndex()),
-                                        brokerContext.getBrokerRaftIntegration().getRaftLogEntriesFromIndex(raftLogEntryResponse.getLastMatchIndex())
-                                );
-
-                                log.log(Level.INFO, "AppendLogEntryRequest new to solve is {0}", requestMessage);
-                                ThreadsCommunication.getInstance().getRequestConcurrentHashMapOfBrokerId(brokerIdOfResponse).add(GsonInstance.getInstance().getGson().toJson(requestMessage));
-
-                                Future<LeaderWaitingForFollowersResponse> responseCallableRetry = executorService.submit(
-                                        new LeaderWaitingForFollowersCallable(
-                                                response.get().getBrokerId(),
-                                                ThreadsCommunication.getInstance().getResponseConcurrentHashMapOfBrokerId(brokerIdOfResponse)
-                                        )
-                                );
-
-                                ResponseMessage responseMessageCallableRetry = GsonInstance.getInstance().getGson().fromJson(responseCallableRetry.get().getResponse(), ResponseMessage.class);
-                                log.log(Level.INFO, "AppendLogEntryResponse of the new to solve is {0}", responseMessageCallableRetry);
-
-                                if(ResponseIdEnum.APPEND_ENTRY_LOG_RESPONSE.equals(responseMessageCallableRetry.getId())){
-                                    raftLogEntryResponse = GsonInstance.getInstance().getGson().fromJson(responseMessageCallableRetry.getContent(), RaftLogEntryResponse.class);
-
-                                    if (StatusEnum.OK.equals(raftLogEntryResponse.getStatus())) {
-
-                                        log.log(Level.INFO, "Consensus +1");
-                                        brokerIdSetVotedOk.add(brokerIdOfResponse);
-                                        numConsensus++;
-                                        break;
-
-                                    }
-                                }
-
-                                numAttemps++;
-
-                            }
-
-                        }
-                    }
-
-                } catch (InterruptedException e){
-                    log.log(Level.SEVERE, "Error: {0}", e.getMessage());
-                } catch (ExecutionException e) {
-                    log.log(Level.INFO, "Error: {0}", e.getMessage());
-                } catch (Exception e) {
-                    log.log(Level.INFO, "Error: {0}", e.getMessage());
-                }
-            }
-
-        }
-
-        // considering case of cluster with only one broker
-        if(
-                (numOtherBrokersAlive > 0 && numConsensus >= Math.floorDiv(brokerContext.getNumClusterBrokers(), 2) + 1) ||
-                        numOtherBrokersAlive == 0
-        ){
-
-            log.log(Level.INFO, "Consensus reached, executing command and responding to gateway..");
-
-            try {
-
-                // exec the request locally
-                ResponseMessage response = BrokerRequestDispatcher.exec(brokerContext, requestLine);
-
-                // send commit to gateway
-                out.println(GsonInstance.getInstance().getGson().toJson(response));
-                out.flush();
-
-            } catch (RequestNoManagedException e) {
-                log.log(Level.SEVERE, "Request {} not managed, review logic because already checked!!!", requestLine);
-            }
-
-            // increase my lastCommitIndex
-            brokerContext.getBrokerRaftIntegration().increaseLastCommitIndex();
-            brokerContext.getBrokerRaftIntegration().commitLastLogAppended();
-
-            // send commit to all followers that voted ok!
-            RequestMessage requestMessage = NetworkMessageBuilder.Request.buildCommitRequest(brokerContext.getBrokerRaftIntegration().getLastCommitIndex());
-            brokerIdSetVotedOk.forEach(x -> ThreadsCommunication.getInstance().getRequestConcurrentHashMapOfBrokerId(x).add(GsonInstance.getInstance().getGson().toJson(requestMessage)));
-
-        } else {
-
-            // No consensus reached
-            ResponseMessage responseMessage = NetworkMessageBuilder.Response.buildServiceUnavailableResponse(StatusEnum.KO, Const.ResponseDes.KO.UNAVAILABLE_SERVICE_KO);
-            out.println(GsonInstance.getInstance().getGson().toJson(responseMessage));
-            out.flush();
-
-        }
-
+        brokerContext.getBrokerRaftIntegration().printLogs();
         brokerContext.getBrokerModel().printState();
     }
 
@@ -379,5 +224,71 @@ public class LeaderBrokerState extends BrokerState {
 
                 }, Timing.HEARTBEAT_DELAY_SENDING, Timing.HEARTBEAT_PERIOD_SENDING, TimeUnit.MILLISECONDS
         );
+    }
+
+    private void forwardAppendLogRequestToAllFollowers(String requestLine){
+
+        brokerContext.getBrokerRaftIntegration().buildAndAppendNewLog(requestLine);
+
+        List<RaftLog> raftLogList = brokerContext.getBrokerRaftIntegration().getLastUncommittedLogsToForward();
+
+        final RequestMessage raftLogMessage = NetworkMessageBuilder.Request.buildAppendEntryLogRequest(
+                brokerContext.getBrokerRaftIntegration().getCurrentTerm(),
+                brokerContext.getMyBrokerConfig().getMyBrokerId(),
+                brokerContext.getBrokerRaftIntegration().getPrevCommittedLogIndex(),
+                brokerContext.getBrokerRaftIntegration().getPrevLogTerm(brokerContext.getBrokerRaftIntegration().getPrevCommittedLogIndex()),
+                raftLogList
+        );
+
+        log.log(Level.INFO, "Forwarding to all followers {0}", raftLogMessage);
+
+        // passing message to each thread which handle client connection with followers
+        ThreadsCommunication.getInstance().addRequestToAllFollowerRequestQueue(GsonInstance.getInstance().getGson().toJson(raftLogMessage));
+    }
+
+    private void handleConsensusOutcome(String requestLine, PrintWriter out){
+        if(isConsensusReached())
+            handleConsensusReached(requestLine, out);
+        else
+            handleConsensusNoReached(requestLine, out);
+    }
+
+    private boolean isConsensusReached(){
+        final int numFollowersAlive = ThreadsCommunication.getInstance().getNumThreadsOfAliveBrokers();
+        final int numVotedOk = brokerIdSetVotedOk.size() + 1;   //+1 because voted for myself
+
+        return (numFollowersAlive > 0 && numVotedOk >= Math.floorDiv(brokerContext.getNumClusterBrokers(), 2) + 1) ||
+                (numFollowersAlive == 0 && brokerContext.getNumClusterBrokers() == 1);
+    }
+
+    private void handleConsensusReached(String requestLine, PrintWriter out){
+        log.log(Level.INFO, "Consensus reached, executing command and responding to gateway..");
+
+        try {
+            // exec the request locally
+            ResponseMessage response = BrokerRequestDispatcher.exec(brokerContext, requestLine);
+
+            // send commit to gateway
+            out.println(GsonInstance.getInstance().getGson().toJson(response));
+            out.flush();
+
+        } catch (RequestNoManagedException e) {
+            log.log(Level.SEVERE, "Request {} not managed!", requestLine);
+        }
+
+        // increase my lastCommitIndex and commit log
+        brokerContext.getBrokerRaftIntegration().handleLastLogsAppended();
+
+        // send commit msg to all followers that voted ok!
+        RequestMessage requestMessage = NetworkMessageBuilder.Request.buildCommitRequest(brokerContext.getBrokerRaftIntegration().getLastCommitIndex());
+        brokerIdSetVotedOk.forEach(x -> ThreadsCommunication.getInstance().getRequestConcurrentHashMapOfBrokerId(x).add(GsonInstance.getInstance().getGson().toJson(requestMessage)));
+    }
+
+    private void handleConsensusNoReached(String requestLine, PrintWriter out){
+        RequestMessage requestMessage = GsonInstance.getInstance().getGson().fromJson(requestLine, RequestMessage.class);
+        ResponseMessage responseMessage = NetworkMessageBuilder.Response.buildServiceUnavailableResponse(StatusEnum.KO, Const.ResponseDes.KO.UNAVAILABLE_SERVICE_KO, requestMessage.getClientId());
+        log.log(Level.INFO, "Consensus Not reached, responding to gateway {0}", responseMessage);
+        out.println(GsonInstance.getInstance().getGson().toJson(responseMessage));
+        out.flush();
     }
 }
