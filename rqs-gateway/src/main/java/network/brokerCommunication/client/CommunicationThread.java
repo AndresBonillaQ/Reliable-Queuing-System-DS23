@@ -50,9 +50,7 @@ public class CommunicationThread extends Thread {
 
                         MessageResponse messageResponse = GsonInstance.getInstance().getGson().fromJson(readLine, MessageResponse.class);
 
-                        //-------------------------------------------
-                        String clientID = messageResponse.getClientId(); //Da aggiungere
-                        //-------------------------------------------
+                        String clientID = messageResponse.getClientId();
 
                         //inoltra la risposta del BROKER al CLIENT
                         Gateway.getInstance().putOnResponseMap(clientID, messageResponse);

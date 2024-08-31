@@ -186,7 +186,7 @@ public class Gateway {
                 requestsMap.addClusterID(clusterID);
 
             //    if (nextCluster.get(clusterID) == null )
-                //    nextCluster.put(clusterID, 0);
+                  //   nextCluster.put(clusterID, 0);
 
                 connectionManager.startConnection(clusterID);
 
@@ -197,10 +197,7 @@ public class Gateway {
             System.out.println("client already present");
             return false;
         }
-
-
         responseMessageMap.addClientId(clientId);
-        System.out.println("registered client " +  clientId);
         return true;
     }
 
