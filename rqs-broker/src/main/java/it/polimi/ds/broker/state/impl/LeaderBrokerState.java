@@ -9,6 +9,7 @@ import it.polimi.ds.message.ResponseMessage;
 import it.polimi.ds.message.election.requests.VoteRequest;
 import it.polimi.ds.message.id.ResponseIdEnum;
 import it.polimi.ds.message.model.response.utils.StatusEnum;
+import it.polimi.ds.message.pingPong.PingPongMessage;
 import it.polimi.ds.message.raft.request.HeartbeatRequest;
 import it.polimi.ds.message.raft.response.RaftLogEntryResponse;
 import it.polimi.ds.network.gateway.client.ClientToGateway;
@@ -38,6 +39,7 @@ public class LeaderBrokerState extends BrokerState {
 
     private final Logger log = Logger.getLogger(LeaderBrokerState.class.getName());
     private final AtomicBoolean hasAlreadyNotifyGateway = new AtomicBoolean(false);
+    private AtomicBoolean pingPongReceived = new AtomicBoolean(false);
     private final Set<String> brokerIdSetVotedOk = new ConcurrentSkipListSet<>();
 
     public LeaderBrokerState(BrokerContext brokerContext) {
@@ -100,12 +102,15 @@ public class LeaderBrokerState extends BrokerState {
 
     @Override
     public void clientToGatewayExec(BufferedReader in, PrintWriter out) throws IOException {
-        if(Boolean.FALSE.equals(hasAlreadyNotifyGateway.get())){
+
+        if(Boolean.FALSE.equals(hasAlreadyNotifyGateway.get())) {
+            //set_up message
             RequestMessage requestMessage = NetworkMessageBuilder.Request.buildNewLeaderToGatewayRequest(
                     brokerContext.getMyBrokerConfig().getMyClusterId(),
                     brokerContext.getMyBrokerConfig().getMyBrokerId(),
                     brokerContext.getMyBrokerConfig().getMyHostName(),
                     brokerContext.getMyBrokerConfig().getBrokerServerPortToGateway()
+
             );
 
             log.log(Level.INFO, "Notifying gateway about new leader... {0}", requestMessage);
@@ -113,11 +118,52 @@ public class LeaderBrokerState extends BrokerState {
             out.println(GsonInstance.getInstance().getGson().toJson(requestMessage));
             out.flush();
 
-            String responseLine = in.readLine();
-            log.log(Level.INFO, "Response of notify gateway about new leader... {0}", responseLine);
-
             hasAlreadyNotifyGateway.set(true);
+
+            //start timer ping pong
+            startPingPongTimer();
+
         }
+
+        String responseLine = in.readLine();
+        PingPongMessage pingPongMessage = GsonInstance.getInstance().getGson().fromJson(responseLine, PingPongMessage.class);
+            //log.log(Level.INFO, "Response of notify gateway about new leader... {0}", responseLine);
+        if (pingPongMessage.getStatus().equals("OK")) {
+            pingPongReceived.set(true);
+
+     //       System.out.println("SENDING PINGPONG");
+
+            out.println(GsonInstance.getInstance().getGson().toJson(new PingPongMessage("OK")));
+            out.flush();
+        }
+    }
+
+    private void startPingPongTimer() {
+
+    ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+        scheduler.scheduleAtFixedRate(
+                () -> {
+                    if (scheduler.isShutdown()) {
+                        return;
+                    }
+                    //       log.log(Level.INFO, "Is leader alive {0}", pingPongReceived);
+                    if(!pingPongReceived.get()) {
+                        onPingPongTimeOut();
+                        scheduler.shutdownNow();
+                    }
+                    else {
+                        pingPongReceived.set(false);
+                    }
+                },
+                6000,
+                5000,
+                TimeUnit.MILLISECONDS
+        );
+
+    }
+
+    private void onPingPongTimeOut() {
+        System.out.println("Ping pong not received");
     }
 
     @Override

@@ -11,7 +11,9 @@ public enum ResponseIdEnum {
     READ_VALUE_RESPONSE("readValueResp"),
     RECONNECTION_MESSAGE("reconnection"),
     SET_UP_RESPONSE("setUpResp"),
-    SERVICE_UNAVAILABLE_RESPONSE("serviceUnavailableResp");
+    SERVICE_UNAVAILABLE_RESPONSE("serviceUnavailableResp"),
+    PING_PONG_RESPONSE("pingPongResp");
+
 
     private final String value;
 

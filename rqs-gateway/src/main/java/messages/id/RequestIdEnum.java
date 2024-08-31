@@ -11,7 +11,8 @@ public enum RequestIdEnum {
     CREATE_QUEUE_REQUEST("createQueueReq"),
     READ_VALUE_REQUEST("readValueReq"),
     NEW_LEADER_TO_GATEWAY_REQUEST("newLeaderToGatewayReq"),
-    SET_UP_REQUEST("setUpReq");;
+    SET_UP_REQUEST("setUpReq"),
+    PING_PONG_REQUEST("pingPongReq");
 
     private final String value;
 

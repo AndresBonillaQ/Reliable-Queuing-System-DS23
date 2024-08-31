@@ -17,6 +17,7 @@ import utils.GsonInstance;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -34,6 +35,7 @@ public class Gateway {
     private RequestMessageMap requestsMap = new RequestMessageMap();//<clusterId, QueueOfRequests>
     private HashMap<Integer, Integer> nextCluster = new HashMap<>();
     private HashMap<Integer, Integer> clusterConnected = new HashMap<>();
+    private HashMap<Integer, Socket> clusterToSocketMap = new HashMap();
 
     private static final int maxNumberOfClusters = 2;
 
@@ -128,7 +130,10 @@ public class Gateway {
                     request.setQueueId(queueSequenceNumber);
 
                     messageRequest.setContent(GsonInstance.getInstance().getGson().toJson(request)) ;
-                    if (!nextCluster.containsValue(0)) {
+                    requestsMap.putOnRequestQueue(assignToCluster(queueSequenceNumber) , messageRequest);
+
+
+                  /*  if (!nextCluster.containsValue(0)) {
                         for (Integer clusterID : clustersID) {
                             nextCluster.put(clusterID, 0);
                         }
@@ -142,8 +147,8 @@ public class Gateway {
                             // queueToClusterIdMap.put(queueSequenceNumber, clusterID);
                             nextCluster.replace(clusterID, 1);
                             break;
-                        }
-                    }
+                        }*/
+
                     return request.getClientId();
 
                 } catch (NoClusterAvailableException e) {
@@ -181,7 +186,7 @@ public class Gateway {
                 requestsMap.addClusterID(clusterID);
 
             //    if (nextCluster.get(clusterID) == null )
-                    nextCluster.put(clusterID, 0);
+                //    nextCluster.put(clusterID, 0);
 
                 connectionManager.startConnection(clusterID);
 
@@ -243,5 +248,13 @@ public class Gateway {
         }
 
         throw new NoClusterAvailableException();
+    }
+
+    public HashMap<Integer, Socket> getClusterToSocketMap() {
+        return clusterToSocketMap;
+    }
+
+    public void putOnSocketMap(Integer clusterId, Socket socket) {
+        this.clusterToSocketMap.put(clusterId, socket);
     }
 }

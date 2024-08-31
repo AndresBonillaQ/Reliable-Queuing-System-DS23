@@ -12,6 +12,7 @@ import it.polimi.ds.message.raft.request.*;
 import it.polimi.ds.message.raft.response.*;
 import it.polimi.ds.utils.GsonInstance;
 
+import java.net.Socket;
 import java.util.List;
 
 public class NetworkMessageBuilder {
