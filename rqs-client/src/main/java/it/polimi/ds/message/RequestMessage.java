@@ -7,13 +7,12 @@ import java.io.Serializable;
 public class RequestMessage implements Serializable {
     private RequestIdEnum id = null;
     private String content = null;
+    private String clientId = null;
 
-    public RequestMessage(RequestIdEnum id, String content) {
+    public RequestMessage(RequestIdEnum id, String content, String clientId) {
         this.id = id;
         this.content = content;
-    }
-
-    public RequestMessage() {
+        this.clientId = clientId;
     }
 
     public RequestIdEnum getId() {

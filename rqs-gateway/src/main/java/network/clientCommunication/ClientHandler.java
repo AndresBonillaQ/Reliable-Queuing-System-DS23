@@ -76,23 +76,23 @@ public class ClientHandler implements Runnable {
 
         MessageResponse responseMessage;
 
-        if(Gateway.getInstance().registerClientOnResponseMap(setUpRequest.getClientId())){
+        if(Gateway.getInstance().registerClientOnResponseMap(messageRequest.getClientId())){
 
-            System.out.println("Registering client" + setUpRequest.getClientId());
-            SetUpResponse setUpResponse = new SetUpResponse(StatusEnum.OK, "", setUpRequest.getClientId());
+            System.out.println("Registering client" + messageRequest.getClientId());
+            SetUpResponse setUpResponse = new SetUpResponse(StatusEnum.OK, "", messageRequest.getClientId());
             responseMessage = new MessageResponse(
                     ResponseIdEnum.SET_UP_RESPONSE,
                     GsonInstance.getInstance().getGson().toJson(setUpResponse),
-                    setUpRequest.getClientId()
+                    messageRequest.getClientId()
             );
 
         } else {
 
-            SetUpResponse setUpResponse = new SetUpResponse(StatusEnum.KO, "ClientId already registered!", setUpRequest.getClientId());
+            SetUpResponse setUpResponse = new SetUpResponse(StatusEnum.KO, "ClientId already registered!", messageRequest.getClientId());
             responseMessage = new MessageResponse(
                     ResponseIdEnum.SET_UP_RESPONSE,
                     GsonInstance.getInstance().getGson().toJson(setUpResponse),
-                    setUpRequest.getClientId()
+                    messageRequest.getClientId()
             );
 
         }

@@ -1,21 +1,19 @@
 package it.polimi.ds.broker.raft;
 
-import it.polimi.ds.broker.raft.impl.RaftLog;
+import it.polimi.ds.broker.raft.utils.RaftLog;
 import it.polimi.ds.message.raft.request.RaftLogEntryRequest;
 
 import java.util.List;
+import java.util.Set;
 
 public interface IBrokerRaftIntegration {
 
     /**
-     * Append Log to the Queue if Logs are consistency, otherwise throw LogBadRequestException
-     * */
-    void appendLog(int prevLogIndex, List<RaftLog> raftLogs);
-
-    /**
      * Used by Leader to create log to transmit to followers and increment the currentIndex by 1
      * */
-    List<RaftLog> buildAndAppendNewLog(String request);
+    void buildAndAppendNewLog(String request);
+
+    List<RaftLog> getLastUncommittedLogsToForward();
 
     List<RaftLog> getRaftLogEntriesFromIndex(int from);
 
@@ -24,9 +22,7 @@ public interface IBrokerRaftIntegration {
 
     int getCurrentTerm();
 
-    int getCurrentIndex();
-
-    int getPrevLogIndex();
+    int getPrevCommittedLogIndex();
 
     int getPrevLogTerm(int prevLogIndex);
 
@@ -36,22 +32,13 @@ public interface IBrokerRaftIntegration {
 
     int getLastCommitIndex();
 
-    void increaseCurrentIndex();
-
-    void increaseLastCommitIndex();
-    void increaseLastCommitIndex(int newLastCommitIndex);
-
-    boolean isConsistent(int prevIndex, int prevTerm);
-
-    List<RaftLog> getLogsToCommit(int lastCommitIndex);
-
     void printLogs();
-
-    int getLogQueueSize();
 
     boolean processRaftLogEntryRequest(RaftLogEntryRequest request);
 
     List<String> processCommitRequestAndGetRequestsToExec(int lastCommitIndex);
 
-    void commitLastLogAppended();
+    Set<String> calculateConsensus();
+
+    void handleLastLogsAppended();
 }
