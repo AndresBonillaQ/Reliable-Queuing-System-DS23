@@ -37,7 +37,7 @@ public class LeaderBrokerState extends BrokerState {
     private final Logger log = Logger.getLogger(LeaderBrokerState.class.getName());
     private final AtomicBoolean hasAlreadyNotifyGateway = new AtomicBoolean(false);
     private final AtomicBoolean pingPongReceived = new AtomicBoolean(false);
-    private final Set<String> brokerIdSetVotedOk = new ConcurrentSkipListSet<>();
+    private Set<String> brokerIdSetVotedOk = new ConcurrentSkipListSet<>();
 
     public LeaderBrokerState(BrokerContext brokerContext) {
         super(brokerContext);
