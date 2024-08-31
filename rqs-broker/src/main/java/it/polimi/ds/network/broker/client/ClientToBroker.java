@@ -73,7 +73,7 @@ public class ClientToBroker implements Runnable {
                 retryReconnection();
             }
 
-        }, 5, TimeUnit.SECONDS);
+        }, 2, TimeUnit.SECONDS);
     }
 
     private void retryReconnection(){

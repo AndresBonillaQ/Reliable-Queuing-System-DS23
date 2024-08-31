@@ -1,7 +1,6 @@
 package it.polimi.ds.broker.state.impl;
 
 import it.polimi.ds.broker.BrokerContext;
-import it.polimi.ds.broker.raft.impl.RaftLog;
 import it.polimi.ds.broker.state.BrokerState;
 import it.polimi.ds.exception.RequestNoManagedException;
 import it.polimi.ds.message.RequestMessage;
@@ -20,8 +19,6 @@ import it.polimi.ds.utils.config.Timing;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;

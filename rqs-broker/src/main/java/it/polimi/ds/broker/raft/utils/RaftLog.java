@@ -1,4 +1,4 @@
-package it.polimi.ds.broker.raft.impl;
+package it.polimi.ds.broker.raft.utils;
 
 import java.io.Serializable;
 

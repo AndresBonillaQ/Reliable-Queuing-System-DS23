@@ -7,9 +7,10 @@ import java.io.Serializable;
 public class MessageRequest implements Serializable {
     private RequestIdEnum id = null;
     private String content = null;
+    private String clientId = null;
 
-    private String clientId;
     public MessageRequest() {}
+
     public RequestIdEnum getId() {
         return id;
     }

@@ -3,16 +3,7 @@ package messages.requests;
 import java.io.Serializable;
 
 public class ReadValueRequest implements Serializable {
-    private String clientId;
     private String queueId;
-
-    public String getClientId() {
-        return clientId;
-    }
-
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
-    }
 
     public String getQueueId() {
         return queueId;

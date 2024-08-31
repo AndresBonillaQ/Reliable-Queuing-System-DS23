@@ -25,6 +25,7 @@ public  class ConnectionManager implements ConnectionListener {
                                 System.out.println("Reconnected.");
                                 break;
                             } else {
+                                Gateway.getInstance().removeFromRequestMap(clusterID);
                                 System.out.println("Waiting 2 seconds then try to reconnect.");
                                 Thread.sleep(2000); //wait 2 sec
                             }

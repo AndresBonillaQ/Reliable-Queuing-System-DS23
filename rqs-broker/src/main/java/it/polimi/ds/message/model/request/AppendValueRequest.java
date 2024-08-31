@@ -5,7 +5,6 @@ import java.io.Serializable;
 public class AppendValueRequest implements Serializable {
     private String queueId;
     private Integer value;
-    private String clientId;
 
 
     public AppendValueRequest(String queueId, Integer value) {
@@ -27,13 +26,5 @@ public class AppendValueRequest implements Serializable {
 
     public void setValue(Integer value) {
         this.value = value;
-    }
-
-    public String getClientId() {
-        return clientId;
-    }
-
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
     }
 }

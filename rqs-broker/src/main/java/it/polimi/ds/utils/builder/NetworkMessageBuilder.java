@@ -1,6 +1,6 @@
 package it.polimi.ds.utils.builder;
 
-import it.polimi.ds.broker.raft.impl.RaftLog;
+import it.polimi.ds.broker.raft.utils.RaftLog;
 import it.polimi.ds.message.RequestMessage;
 import it.polimi.ds.message.ResponseMessage;
 import it.polimi.ds.message.election.requests.VoteRequest;
@@ -9,7 +9,10 @@ import it.polimi.ds.message.id.RequestIdEnum;
 import it.polimi.ds.message.id.ResponseIdEnum;
 import it.polimi.ds.message.model.response.utils.StatusEnum;
 import it.polimi.ds.message.raft.request.*;
-import it.polimi.ds.message.raft.response.*;
+import it.polimi.ds.message.raft.response.HeartbeatResponse;
+import it.polimi.ds.message.raft.response.RaftLogEntryResponse;
+import it.polimi.ds.message.raft.response.ServiceUnavailableResponse;
+import it.polimi.ds.message.raft.response.SetUpResponse;
 import it.polimi.ds.utils.GsonInstance;
 
 import java.util.List;
@@ -86,10 +89,7 @@ public class NetworkMessageBuilder {
         private Response(){}
 
         public static ResponseMessage buildHeartBeatResponse(StatusEnum statusEnum, String desStatus){
-            HeartbeatResponse heartbeatResponse = new HeartbeatResponse();
-
-            heartbeatResponse.setStatus(statusEnum);
-            heartbeatResponse.setDesStatus(desStatus);
+            HeartbeatResponse heartbeatResponse = new HeartbeatResponse(statusEnum, desStatus);
 
             return new ResponseMessage(
                     ResponseIdEnum.HEARTBEAT_RESPONSE,
@@ -98,10 +98,7 @@ public class NetworkMessageBuilder {
         }
 
         public static ResponseMessage buildSetUpResponse(StatusEnum statusEnum, String desStatus){
-            SetUpResponse setUpResponse = new SetUpResponse();
-
-            setUpResponse.setStatus(statusEnum);
-            setUpResponse.setDesStatus(desStatus);
+            SetUpResponse setUpResponse = new SetUpResponse(statusEnum, desStatus);
 
             return new ResponseMessage(
                     ResponseIdEnum.SET_UP_RESPONSE,
@@ -119,10 +116,7 @@ public class NetworkMessageBuilder {
         }
 
         public static ResponseMessage buildVoteResponse(StatusEnum statusEnum, String desStatus){
-            VoteResponse voteResponse = new VoteResponse();
-
-            voteResponse.setStatus(statusEnum);
-            voteResponse.setDesStatus(desStatus);
+            VoteResponse voteResponse = new VoteResponse(statusEnum, desStatus);
 
             return new ResponseMessage(
                     ResponseIdEnum.VOTE_RESPONSE,
@@ -130,27 +124,13 @@ public class NetworkMessageBuilder {
             );
         }
 
-        public static ResponseMessage buildNewLeaderToGatewayResponse(StatusEnum statusEnum, String desStatus){
-            NewLeaderToGatewayResponse newLeaderToGatewayResponse = new NewLeaderToGatewayResponse();
-
-            newLeaderToGatewayResponse.setStatus(statusEnum);
-            newLeaderToGatewayResponse.setDesStatus(desStatus);
+        public static ResponseMessage buildServiceUnavailableResponse(StatusEnum statusEnum, String desStatus, String clientId){
+            ServiceUnavailableResponse serviceUnavailableResponse = new ServiceUnavailableResponse(statusEnum, desStatus);
 
             return new ResponseMessage(
-                    ResponseIdEnum.NEW_LEADER_TO_GATEWAY_RESPONSE,
-                    GsonInstance.getInstance().getGson().toJson(newLeaderToGatewayResponse)
-            );
-        }
-
-        public static ResponseMessage buildServiceUnavailableResponse(StatusEnum statusEnum, String desStatus){
-            ServiceUnavailableResponse serviceUnavailableResponse = new ServiceUnavailableResponse();
-
-            serviceUnavailableResponse.setStatus(statusEnum);
-            serviceUnavailableResponse.setDesStatus(desStatus);
-
-            return new ResponseMessage(
-                    ResponseIdEnum.NEW_LEADER_TO_GATEWAY_RESPONSE,
-                    GsonInstance.getInstance().getGson().toJson(serviceUnavailableResponse)
+                    ResponseIdEnum.SERVICE_UNAVAILABLE_RESPONSE,
+                    GsonInstance.getInstance().getGson().toJson(serviceUnavailableResponse),
+                    clientId
             );
         }
 

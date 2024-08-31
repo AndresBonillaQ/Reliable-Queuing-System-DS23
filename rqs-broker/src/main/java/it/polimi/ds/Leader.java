@@ -27,11 +27,11 @@ public class Leader {
                 new BrokerConfig(
                         "1",
                         "0",
-                        4000,
-                        4001,
+                        3000,
+                        3001,
                         List.of(
-                                //new BrokerInfo("2","127.0.0.1", 8080)
-                                //,new BrokerInfo("3","127.0.0.1", 4000)
+                                new BrokerInfo("2","127.0.0.1", 8080)
+                                ,new BrokerInfo("3","127.0.0.1", 4000)
                         ),
                         new GatewayInfo(
                                 "127.0.1",
@@ -84,8 +84,8 @@ class Leader2 {
                         3000,
                         3001,
                         List.of(
-                                //new BrokerInfo("2","127.0.0.1", 8080)
-                                //,new BrokerInfo("3","127.0.0.1", 4000)
+                                new BrokerInfo("2","127.0.0.1", 8080)
+                                ,new BrokerInfo("3","127.0.0.1", 4000)
                         ),
                         new GatewayInfo(
                                 "127.0.1",
@@ -107,7 +107,7 @@ class Follower {
         BrokerContext follower = new BrokerContext(
                 new BrokerConfig(
                         "2",
-                        "1",
+                        "0",
                         8080,
                         8081,
                         List.of(
@@ -134,14 +134,17 @@ class Follower2 {
         BrokerContext follower = new BrokerContext(
                 new BrokerConfig(
                         "3",
-                        "1",
+                        "0",
                         4000,
                         4001,
                         List.of(
                                 new BrokerInfo("1","127.0.0.1", 3000),
                                 new BrokerInfo("2","127.0.0.1", 8080)
                                 ),
-                        null,
+                        new GatewayInfo(
+                                "127.0.1",
+                                5001
+                        ),
                         "127.0.0.1"
                 ),
                 false
@@ -166,40 +169,6 @@ class Test{
             out.println(msg);
             out.flush();
         }
-    }
-}
-
-class Test2{
-    public static void main(String[] args) {
-
-        CreateQueueRequest createQueueRequest = new CreateQueueRequest(
-                "1",
-                "2"
-        );
-
-        RequestMessage requestMessage = new RequestMessage(
-                RequestIdEnum.CREATE_QUEUE_REQUEST,
-                GsonInstance.getInstance().getGson().toJson(createQueueRequest)
-        );
-
-        System.out.println(GsonInstance.getInstance().getGson().toJson(requestMessage));
-    }
-}
-
-class Test3{
-    public static void main(String[] args) {
-
-        ReadValueRequest readValueRequest = new ReadValueRequest(
-                "1",
-                "2"
-        );
-
-        RequestMessage requestMessage = new RequestMessage(
-                RequestIdEnum.READ_VALUE_REQUEST,
-                GsonInstance.getInstance().getGson().toJson(readValueRequest)
-        );
-
-        System.out.println(GsonInstance.getInstance().getGson().toJson(requestMessage));
     }
 }
 

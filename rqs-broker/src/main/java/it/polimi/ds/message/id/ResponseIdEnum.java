@@ -19,7 +19,8 @@ public enum ResponseIdEnum {
     APPEND_ENTRY_LOG_RESPONSE("appendEntryLogResp"),
     REQUEST_NOT_MANAGED("requestNotManaged"),
     VOTE_RESPONSE("voteResponse"),
-    NEW_LEADER_TO_GATEWAY_RESPONSE("newLeaderToGatewayResp");
+    NEW_LEADER_TO_GATEWAY_RESPONSE("newLeaderToGatewayResp"),
+    SERVICE_UNAVAILABLE_RESPONSE("serviceUnavailableResp");
 
     private final String value;
 

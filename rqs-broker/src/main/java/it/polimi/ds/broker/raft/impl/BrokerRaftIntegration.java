@@ -1,10 +1,13 @@
 package it.polimi.ds.broker.raft.impl;
 
 import it.polimi.ds.broker.raft.IBrokerRaftIntegration;
+import it.polimi.ds.broker.raft.IConsensusEngine;
+import it.polimi.ds.broker.raft.utils.RaftLog;
 import it.polimi.ds.message.raft.request.RaftLogEntryRequest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -36,134 +39,18 @@ public class BrokerRaftIntegration implements IBrokerRaftIntegration {
      * */
     private int lastCommitIndex = -1;
 
+    private final IConsensusEngine consensusEngine = new ConsensusEngine();
+
+    private final String myBrokerId;
+
     private final Logger log = Logger.getLogger(BrokerRaftIntegration.class.getName());
 
-    /**
-     * Append Log to the Queue if Logs are consistency
-     * When received request from leader as follower
-     * */
-    public void appendLog(int prevLogIndex, List<RaftLog> raftLogs) {
-
-        if(raftLogQueue.size() <= 1 && prevLogIndex == -1){
-            raftLogQueue.addAll(raftLogs);
-            currentIndex += raftLogs.size();
-        } else if (raftLogQueue.size() >= 2 && prevLogIndex == raftLogQueue.size() - 2) {
-            raftLogQueue.addAll(raftLogs);
-            currentIndex += raftLogs.size();
-        }
-
+    public BrokerRaftIntegration(String myBrokerId){
+        this.myBrokerId = myBrokerId;
     }
 
-    /**
-     * Used by Leader to create log to transmit to followers and increment the currentIndex by 1
-     * When received request from gateway as Leader
-     * */
-    public List<RaftLog> buildAndAppendNewLog(String request){
-
-        RaftLog raftLog = new RaftLog(currentTerm, request);
-        raftLogQueue.add(raftLog);
-        currentIndex++;
-
-        return List.of(raftLog);
-    }
-
-    public synchronized List<RaftLog> getRaftLogEntriesFromIndex(int from){
-        if (from < 0 || from >= raftLogQueue.size())
-            throw new IndexOutOfBoundsException("Index: " + from + ", Size: " + raftLogQueue.size()); //TODO
-
-        return new ArrayList<>(raftLogQueue.subList(from, raftLogQueue.size()));
-    }
-
-    public synchronized void increaseCurrentTerm(){
-        currentTerm++;
-    }
-
-    public void increaseCurrentTerm(int newCurrentTerm){
-        currentTerm = newCurrentTerm;
-    }
-
-    public synchronized int getCurrentTerm() {
-        return currentTerm;
-    }
-
-    public synchronized int getCurrentIndex() {
-        return currentIndex;
-    }
-
-    public synchronized int getPrevLogIndex(){
-        return Math.max(-1, currentIndex - 1);
-    }
-
-    public synchronized int getPrevLogIndexOf(int index){
-        return Math.max(-1, index - 1);
-    }
-
-    public synchronized int getPrevLogTerm(){
-        if(currentTerm <= 0)
-            return 0;
-        return currentTerm - 1;
-    }
-
-    public int getPrevLogTerm(int prevLogIndex){
-        if(prevLogIndex < 0)
-            return 0;
-
-        return raftLogQueue.get(prevLogIndex).getTerm();
-    }
-
-    public int getPrevLogTermOfIndex(int index){
-        if(index - 1 < 0)
-            return 0;
-
-        return raftLogQueue.get(index - 1).getTerm();
-    }
-
-    public void increaseLastCommitIndex(){
-        lastCommitIndex++;
-    }
-
-    public void increaseLastCommitIndex(int newLastCommitIndex){
-        lastCommitIndex = newLastCommitIndex;
-    }
-
-    public void increaseCurrentIndex(){
-        currentIndex++;
-    };
-
-    public int getLastCommitIndex() {
-        return lastCommitIndex;
-    }
-
-    /**
-     * @param prevIndex must be equal to index of last log entry
-     * @param prevTerm must be equal to term of last log entry
-     * */
-    public boolean isConsistent(int prevIndex, int prevTerm){
-        log.log(Level.INFO, "Checking consistency of prevIndex: {0} and prevTerm : {1}, raftLogQueue is {2}", new Object[]{prevIndex, prevTerm, raftLogQueue});
-
-        if(raftLogQueue.isEmpty())
-            return prevIndex == -1 && prevTerm == 0;
-
-        RaftLog lastRaftLog = raftLogQueue.get(raftLogQueue.size() - 1);
-
-        return raftLogQueue.size() - 1 == prevIndex && lastRaftLog.getTerm() == prevTerm;
-    }
-
-    public List<RaftLog> getLogsToCommit(int newLastCommitIndex){
-        return raftLogQueue.subList(this.lastCommitIndex + 1, newLastCommitIndex + 1);
-    }
-
-    public void printLogs(){
-        System.out.println("------------------------------------ RAFT LOG QUEUE ------------------------------------------------");
-        for(RaftLog log : raftLogQueue){
-            System.out.println(raftLogQueue.indexOf(log) + ": " + log);
-        }
-        System.out.format("CurrentTerm: %s, CurrentIndex: %s, LastCommitIndex: %s\n", currentTerm, currentIndex, lastCommitIndex);
-        System.out.println("----------------------------------------------------------------------------------------------------");
-    }
-
-    public int getLogQueueSize(){
-        return raftLogQueue.size();
+    public Set<String> calculateConsensus(){
+        return consensusEngine.calculateConsensus(myBrokerId, this);
     }
 
     public boolean processRaftLogEntryRequest(RaftLogEntryRequest request){
@@ -218,10 +105,11 @@ public class BrokerRaftIntegration implements IBrokerRaftIntegration {
 
         int offset = Math.min(raftLogQueue.size(), prevIndex + 1);
 
-        raftLogQueue.subList(offset, raftLogQueue.size()).clear();
+        if(offset < raftLogQueue.size())
+            raftLogQueue.subList(offset, raftLogQueue.size()).clear();
 
-        for(int i = offset; i < logsToAppend.size(); i++)
-            raftLogQueue.set(i, logsToAppend.get(i));
+        for(int i = 0; i < logsToAppend.size(); i++)
+            raftLogQueue.add(i + offset, logsToAppend.get(i));
 
     }
 
@@ -238,7 +126,105 @@ public class BrokerRaftIntegration implements IBrokerRaftIntegration {
         return raftLogsToCommit.stream().map(RaftLog::getRequest).collect(Collectors.toList());
     }
 
-    public void commitLastLogAppended(){
-        raftLogQueue.get(raftLogQueue.size() - 1).setCommitted(true);
+    /**
+     * Used by Leader to create and append log
+     * When received request from gateway as Leader
+     * */
+    public void buildAndAppendNewLog(String request){
+        RaftLog raftLog = new RaftLog(currentTerm, request);
+        raftLogQueue.add(raftLog);
+        currentIndex++;
+    }
+
+    public List<RaftLog> getLastUncommittedLogsToForward(){
+        List<RaftLog> uncommittedRaftLog = new ArrayList<>();
+
+        for (int i = raftLogQueue.size() - 1; i >= 0; i--) {
+            RaftLog log = raftLogQueue.get(i);
+            if (!log.isCommitted()) {
+                uncommittedRaftLog.add(log);
+            } else {
+                break;
+            }
+        }
+
+        return uncommittedRaftLog;
+    }
+
+    public List<RaftLog> getRaftLogEntriesFromIndex(int from){
+        if (from < 0 || from >= raftLogQueue.size())
+            throw new IndexOutOfBoundsException("Index: " + from + ", Size: " + raftLogQueue.size()); //TODO
+
+        return new ArrayList<>(raftLogQueue.subList(from, raftLogQueue.size()));
+    }
+
+    public void increaseCurrentTerm(){
+        currentTerm++;
+    }
+
+    public void increaseCurrentTerm(int newCurrentTerm){
+        currentTerm = newCurrentTerm;
+    }
+
+    public int getCurrentTerm() {
+        return currentTerm;
+    }
+
+    public int getCurrentIndex() {
+        return currentIndex;
+    }
+
+    public int getPrevCommittedLogIndex(){
+        return Math.max(-1, currentIndex - (currentIndex - lastCommitIndex));
+    }
+
+    public int getPrevLogIndexOf(int index){
+        return Math.max(-1, index - 1);
+    }
+
+    public int getPrevLogTerm(int prevLogIndex){
+        if(prevLogIndex < 0)
+            return 0;
+
+        return raftLogQueue.get(prevLogIndex).getTerm();
+    }
+
+    public int getPrevLogTermOfIndex(int index){
+        if(index - 1 < 0)
+            return 0;
+
+        return raftLogQueue.get(index - 1).getTerm();
+    }
+
+    public void handleLastLogsAppended(){
+        for (int i = Math.max(0, lastCommitIndex); i < raftLogQueue.size(); i++)
+            raftLogQueue.get(i).setCommitted(true);
+
+        lastCommitIndex = raftLogQueue.size() - 1;
+    }
+
+    public void increaseLastCommitIndex(int newLastCommitIndex){
+        lastCommitIndex = newLastCommitIndex;
+    }
+
+    public void increaseCurrentIndex(){
+        currentIndex++;
+    };
+
+    public int getLastCommitIndex() {
+        return lastCommitIndex;
+    }
+
+    public int getLogQueueSize(){
+        return raftLogQueue.size();
+    }
+
+    public void printLogs(){
+        System.out.println("------------------------------------ RAFT LOG QUEUE ------------------------------------------------");
+        for(RaftLog log : raftLogQueue){
+            System.out.println(raftLogQueue.indexOf(log) + ": " + log);
+        }
+        System.out.format("CurrentTerm: %s, CurrentIndex: %s, LastCommitIndex: %s\n", currentTerm, currentIndex, lastCommitIndex);
+        System.out.println("----------------------------------------------------------------------------------------------------");
     }
 }

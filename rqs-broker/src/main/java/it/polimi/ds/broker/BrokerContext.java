@@ -9,7 +9,6 @@ import it.polimi.ds.broker.state.impl.FollowerBrokerState;
 import it.polimi.ds.broker.state.impl.LeaderBrokerState;
 import it.polimi.ds.network.broker.client.ClientToBroker;
 import it.polimi.ds.network.broker.server.ServerToBroker;
-import it.polimi.ds.network.gateway.server.ServerToGateway;
 import it.polimi.ds.utils.ExecutorInstance;
 import it.polimi.ds.utils.config.BrokerConfig;
 
@@ -42,7 +41,7 @@ public class BrokerContext {
     /**
      * The object which contains all information about raft integration
      * */
-    private final IBrokerRaftIntegration brokerRaftIntegration = new BrokerRaftIntegration();
+    private final IBrokerRaftIntegration brokerRaftIntegration;
 
     /**
      * Broker network configuration
@@ -58,7 +57,11 @@ public class BrokerContext {
         this.myBrokerConfig = myBrokerConfig;
         //brokerState = new FollowerBrokerState(this);
 
+        brokerRaftIntegration = new BrokerRaftIntegration(myBrokerConfig.getMyBrokerId());
+
         if(isLeader){
+            leaderId = myBrokerConfig.getMyBrokerId();
+            getBrokerRaftIntegration().increaseCurrentTerm(); // to simulate the increment of currentTerm during candidate
             brokerState = new LeaderBrokerState(this);
         } else {
             brokerState = new FollowerBrokerState(this);

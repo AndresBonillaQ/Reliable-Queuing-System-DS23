@@ -26,21 +26,21 @@ public class FollowerReadValueRequestHandler implements FollowerRequestHandler {
                 .fromJson(request.getContent(), ReadValueRequest.class);
 
         try{
-            int valueRead = brokerContext.getBrokerModel().readValueFromQueueByClient(readValueRequest.getQueueId(), readValueRequest.getClientId());
-            return ModelResponseMessageBuilder.OK.buildReadValueResponseMessage(valueRead, readValueRequest.getClientId());
+            int valueRead = brokerContext.getBrokerModel().readValueFromQueueByClient(readValueRequest.getQueueId(), request.getClientId());
+            return ModelResponseMessageBuilder.OK.buildReadValueResponseMessage(valueRead, request.getClientId());
         } catch (QueueNotFoundException e){
             log.severe("Error during reading value! It doesn't exists the queue with ID " + readValueRequest.getQueueId());
-            return ModelResponseMessageBuilder.KO.buildReadValueResponseMessage(readValueRequest.getClientId(), Const.ResponseDes.KO.READ_VALUE_QUEUE_ID_NOT_EXISTS_KO);
+            return ModelResponseMessageBuilder.KO.buildReadValueResponseMessage(request.getClientId(), Const.ResponseDes.KO.READ_VALUE_QUEUE_ID_NOT_EXISTS_KO);
         } catch (IndexOutOfBoundsException e){
             //if here review logic of QueueState.readValueFromQueueByClient();
             log.severe("Error during reading value! Index out of bound in queue with ID " + readValueRequest.getQueueId());
-            return ModelResponseMessageBuilder.KO.buildReadValueResponseMessage(readValueRequest.getClientId(), Const.ResponseDes.KO.READ_VALUE_QUEUE_ID_INDEX_OUT_OF_BOUND_KO);
+            return ModelResponseMessageBuilder.KO.buildReadValueResponseMessage(request.getClientId(), Const.ResponseDes.KO.READ_VALUE_QUEUE_ID_INDEX_OUT_OF_BOUND_KO);
         } catch (EmptyQueueException e) {
             log.severe("Error during reading value! The queue is empty, ID " + readValueRequest.getQueueId());
-            return ModelResponseMessageBuilder.KO.buildReadValueResponseMessage(readValueRequest.getClientId(), Const.ResponseDes.KO.READ_VALUE_QUEUE_EMPTY_KO);
+            return ModelResponseMessageBuilder.KO.buildReadValueResponseMessage(request.getClientId(), Const.ResponseDes.KO.READ_VALUE_QUEUE_EMPTY_KO);
         } catch (NoMoreValuesToReadInQueueException e) {
-            log.log(Level.SEVERE, "Error during reading value! The client {0} has read all values of queueId {1}", new Object[]{readValueRequest.getClientId(), readValueRequest.getQueueId()});
-            return ModelResponseMessageBuilder.KO.buildReadValueResponseMessage(readValueRequest.getClientId(), Const.ResponseDes.KO.READ_VALUE_QUEUE_NO_MORE_VALUES_TO_READ_KO);
+            log.log(Level.SEVERE, "Error during reading value! The client {0} has read all values of queueId {1}", new Object[]{request.getClientId(), readValueRequest.getQueueId()});
+            return ModelResponseMessageBuilder.KO.buildReadValueResponseMessage(request.getClientId(), Const.ResponseDes.KO.READ_VALUE_QUEUE_NO_MORE_VALUES_TO_READ_KO);
         }
     }
 }
