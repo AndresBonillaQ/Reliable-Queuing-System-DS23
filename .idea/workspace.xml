@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="d47cd1fb-b1ca-41b3-9ae8-2c93ea3d353c" name="Changes" comment="Nuova gestione richieste verso i cluster">
+      <change afterPath="$PROJECT_DIR$/.idea/Reliable-Queuing-System-DS23.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_13_08_2024_15_30_[Changes]/shelved.patch" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_13_08_2024_15_30__Changes_.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_27_08_2024_11_25_[Changes]/shelved.patch" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_27_08_2024_11_25_[Changes]1/shelved.patch" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_27_08_2024_11_25__Changes_.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_rebase_[Changes]/shelved.patch" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Reliable-Queuing-System-DS23.zip" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rqs-dns/target/classes/App.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rqs-dns/target/classes/messages/requests/NewIpMessage.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rqs-dns/target/classes/model/Dns.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rqs-dns/target/classes/network/BrokerHandler.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rqs-dns/target/classes/network/ClientHandler.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rqs-dns/target/classes/network/Server.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rqs-gateway/src/main/java/messages/requests/CreateQueueRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/rqs-gateway/src/main/java/messages/requests/CreateQueueRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rqs-gateway/src/main/java/model/Gateway.java" beforeDir="false" afterPath="$PROJECT_DIR$/rqs-gateway/src/main/java/model/Gateway.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rqs-gateway/src/main/java/network/brokerCommunication/client/CommunicationThread.java" beforeDir="false" afterPath="$PROJECT_DIR$/rqs-gateway/src/main/java/network/brokerCommunication/client/CommunicationThread.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rqs-gateway/src/main/java/network/brokerCommunication/server/ServerForBroker.java" beforeDir="false" afterPath="$PROJECT_DIR$/rqs-gateway/src/main/java/network/brokerCommunication/server/ServerForBroker.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rqs-gateway/src/main/java/network/clientCommunication/ServerForClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/rqs-gateway/src/main/java/network/clientCommunication/ServerForClient.java" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Interface" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="PREVIOUS_COMMIT_AUTHORS">
+      <list>
+        <option value="SvevoFedericoCalabrese &lt;100682462+svevofedericocalabrese@users.noreply.github.com&gt;" />
+      </list>
+    </option>
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="dev-svevo" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="useMavenConfig" value="true" />
+      </MavenGeneralSettings>
+    </option>
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectId" id="2jYWI9fK0PQJg82WUg6bCx5Zmm4" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "TODO_SCOPE": "All Places",
+    "WebServerToolWindowFactoryState": "false",
+    "dart.analysis.tool.window.visible": "false",
+    "last_opened_file_path": "C:/Users/Utente/.jdks/openjdk-20",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "advanced.settings",
+    "settings.editor.splitter.proportion": "0.24479167",
+    "show.migrate.to.gradle.popup": "false",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="model" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="utils.Messages" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Application.it.polimi.ds.App">
+    <configuration name="App" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="App" />
+      <module name="rqs-gateway" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ClientApp" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="it.polimi.ds.ClientApp" />
+      <module name="rqs-client" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="it.polimi.ds.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Leader" type="Application" factoryName="Application" singleton="false" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="it.polimi.ds.Leader" />
+      <module name="rqs-broker" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="it.polimi.ds.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Leader2" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="it.polimi.ds.Leader2" />
+      <module name="rqs-broker" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="it.polimi.ds.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="it.polimi.ds.App" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="it.polimi.ds.App" />
+      <module name="rqs-client" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="it.polimi.ds.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="Application.App" />
+      <item itemvalue="Application.Leader2" />
+      <item itemvalue="Application.it.polimi.ds.App" />
+      <item itemvalue="Application.ClientApp" />
+      <item itemvalue="Application.Leader" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.Leader" />
+        <item itemvalue="Application.ClientApp" />
+        <item itemvalue="Application.it.polimi.ds.App" />
+        <item itemvalue="Application.Leader2" />
+        <item itemvalue="Application.App" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="d47cd1fb-b1ca-41b3-9ae8-2c93ea3d353c" name="Changes" comment="" />
+      <created>1721564416194</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1721564416194</updated>
+      <workItem from="1721564417297" duration="10130000" />
+      <workItem from="1721733759665" duration="45887000" />
+      <workItem from="1722610307210" duration="665000" />
+      <workItem from="1722611009101" duration="363000" />
+      <workItem from="1722617607048" duration="1943000" />
+      <workItem from="1723466982692" duration="6454000" />
+      <workItem from="1723728278203" duration="22116000" />
+      <workItem from="1724156081910" duration="102880000" />
+    </task>
+    <task id="LOCAL-00001" summary="yo">
+      <created>1722522150754</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1722522150754</updated>
+    </task>
+    <task id="LOCAL-00002" summary="push of election and heartbeat">
+      <created>1724245273858</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1724245273858</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Gateway update">
+      <created>1724428843330</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1724428843330</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Gateway update">
+      <created>1724508635337</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1724508635337</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Gateway update">
+      <created>1724842335235</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1724842335235</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Gateway update">
+      <created>1724938512042</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1724938512042</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Cli update">
+      <created>1724941651464</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1724941651464</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Nuova gestione richieste verso i cluster">
+      <created>1725029378021</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1725029378021</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="RECENT_FILTERS">
+      <map>
+        <entry key="User">
+          <value>
+            <list>
+              <RecentGroup>
+                <option name="FILTER_VALUES">
+                  <option value="*" />
+                </option>
+              </RecentGroup>
+            </list>
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="dev-svevo" />
+                      </list>
+                    </value>
+                  </entry>
+                  <entry key="user">
+                    <value>
+                      <list>
+                        <option value="*" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="yo" />
+    <MESSAGE value="push of election and heartbeat" />
+    <MESSAGE value="Gateway update" />
+    <MESSAGE value="Cli update" />
+    <MESSAGE value="Nuova gestione richieste verso i cluster" />
+    <option name="LAST_COMMIT_MESSAGE" value="Nuova gestione richieste verso i cluster" />
+  </component>
+</project>
