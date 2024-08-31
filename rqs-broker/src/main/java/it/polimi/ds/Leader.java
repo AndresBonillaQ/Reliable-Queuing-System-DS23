@@ -26,7 +26,7 @@ public class Leader {
         BrokerContext leader = new BrokerContext(
                 new BrokerConfig(
                         "1",
-                        "1",
+                        "0",
                         4000,
                         4001,
                         List.of(
@@ -49,11 +49,11 @@ public class Leader {
 class Leader1 {
     public static void main(String[] args){
 
-        //leader open port 3000 as SERVER to brokers, 3001 as SERVER to gateway
+        //leader open port 4200 as SERVER to brokers, 4002 as SERVER to gateway
         BrokerContext leader = new BrokerContext(
                 new BrokerConfig(
                         "1",
-                        "2",
+                        "1",
                         4200,
                         4002,
                         List.of(

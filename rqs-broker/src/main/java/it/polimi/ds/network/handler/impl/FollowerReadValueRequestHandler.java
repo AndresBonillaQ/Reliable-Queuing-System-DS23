@@ -36,7 +36,7 @@ public class FollowerReadValueRequestHandler implements FollowerRequestHandler {
             log.severe("Error during reading value! Index out of bound in queue with ID " + readValueRequest.getQueueId());
             return ModelResponseMessageBuilder.KO.buildReadValueResponseMessage(readValueRequest.getClientId(), Const.ResponseDes.KO.READ_VALUE_QUEUE_ID_INDEX_OUT_OF_BOUND_KO);
         } catch (EmptyQueueException e) {
-            log.severe("Error during reading value! Index out of bound in queue with ID " + readValueRequest.getQueueId());
+            log.severe("Error during reading value! The queue is empty, ID " + readValueRequest.getQueueId());
             return ModelResponseMessageBuilder.KO.buildReadValueResponseMessage(readValueRequest.getClientId(), Const.ResponseDes.KO.READ_VALUE_QUEUE_EMPTY_KO);
         } catch (NoMoreValuesToReadInQueueException e) {
             log.log(Level.SEVERE, "Error during reading value! The client {0} has read all values of queueId {1}", new Object[]{readValueRequest.getClientId(), readValueRequest.getQueueId()});

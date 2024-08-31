@@ -36,13 +36,8 @@ public class ClientHandler implements Runnable {
             PrintWriter outputStream = new PrintWriter(clientSocket.getOutputStream());
             ExecutorService executorService = Executors.newFixedThreadPool(1);
 
-
-        //
-
             // the first message a client send is the "set_up" message
             setUpClient(reader, outputStream);
-
-
 
             while (!clientSocket.isClosed()) {
 
@@ -50,18 +45,17 @@ public class ClientHandler implements Runnable {
                 String inputLine;
                 inputLine =  reader.readLine();
                 MessageRequest messageRequest = GsonInstance.getInstance().getGson().fromJson(inputLine, MessageRequest.class);
+
                 System.out.println("Request from client: " + messageRequest.toString());
                 synchronized (Gateway.getInstance()) {
-                    clientID = Gateway.getInstance().processRequest(messageRequest);
+                    clientID = Gateway.getInstance().processRequest(outputStream, messageRequest);
                 }
-
 
                 fetchBrokerResponse(executorService, outputStream, clientSocket);
 
-
-                //ogni volta che la risposta per un determinato client diventa disponibile viene inoltrata al suddetto client
-
+                //ogni volta che la risposta per un determinato client diventa disponibile viene inoltrata al suddetto clien
             }
+
             System.out.println("Socket chiuso, task terminato.");
             executorService.shutdown();
 

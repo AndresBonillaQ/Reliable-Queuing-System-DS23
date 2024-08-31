@@ -21,8 +21,7 @@ public  class ConnectionManager implements ConnectionListener {
                         try {
                             if (Gateway.getInstance().isUpdated(clusterID)) {
                                 Socket newSocket = new Socket(Gateway.getInstance().getIp(clusterID), Gateway.getInstance().getPortNumber(clusterID));
-                                new CommunicationThread(newSocket,
-                                        this, clusterID).start();
+                                new CommunicationThread(newSocket, this, clusterID).start();
                                 System.out.println("Reconnected.");
                                 break;
                             } else {
@@ -31,12 +30,11 @@ public  class ConnectionManager implements ConnectionListener {
                             }
                         } catch (IOException e) {
                             System.err.println("Reconnection failed.");
-
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        System.err.println("Thread interrupted.");
-                        break;
-                    }
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            System.err.println("Thread interrupted.");
+                            break;
+                        }
                     }
                 }
         );

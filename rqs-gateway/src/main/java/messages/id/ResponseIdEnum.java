@@ -10,7 +10,8 @@ public enum ResponseIdEnum {
     CREATE_QUEUE_RESPONSE("createQueueResp"),
     READ_VALUE_RESPONSE("readValueResp"),
     RECONNECTION_MESSAGE("reconnection"),
-    SET_UP_RESPONSE("setUpResp");
+    SET_UP_RESPONSE("setUpResp"),
+    SERVICE_UNAVAILABLE_RESPONSE("serviceUnavailableResp");
 
     private final String value;
 

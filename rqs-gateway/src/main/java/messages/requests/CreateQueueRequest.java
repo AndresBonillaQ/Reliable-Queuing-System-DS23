@@ -18,6 +18,6 @@ public class CreateQueueRequest implements Serializable {
     }
 
     public Integer getQueueId() {
-        return queueID;
+        return queueId;
     }
 }

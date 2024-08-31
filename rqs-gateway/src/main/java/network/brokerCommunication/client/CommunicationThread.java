@@ -64,6 +64,7 @@ public class CommunicationThread extends Thread {
             if (listener != null) {
                 try {
                     Gateway.getInstance().setClusterAsDisconnected(clusterID);
+                    Gateway.getInstance().removeFromRequestMap(clusterID);
                     synchronized (listener) {
                         listener.onConnectionLost(clusterID);
                     }

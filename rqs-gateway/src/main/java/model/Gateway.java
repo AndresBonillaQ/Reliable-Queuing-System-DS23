@@ -1,17 +1,22 @@
 package model;
 
+import exception.NoClusterAvailableException;
 import messages.MessageRequest;
 import messages.MessageResponse;
 import messages.connectionSetUp.SetUpConnectionMessage;
+import messages.id.ResponseIdEnum;
 import messages.requests.AppendValueRequest;
 import messages.requests.CreateQueueRequest;
 import messages.requests.ReadValueRequest;
+import messages.responses.ServiceUnavailableResponse;
+import messages.responses.StatusEnum;
 import network.brokerCommunication.client.ConnectionManager;
 import model.utils.RequestMessageMap;
 import model.utils.ResponseMessageMap;
 import utils.GsonInstance;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -30,7 +35,7 @@ public class Gateway {
     private HashMap<Integer, Integer> nextCluster = new HashMap<>();
     private HashMap<Integer, Integer> clusterConnected = new HashMap<>();
 
-    private final int maxNumberOfClusters = 1000;
+    private static final int maxNumberOfClusters = 2;
 
     private static ConnectionManager connectionManager;
     private int queueSequenceNumber = -1 ;
@@ -97,47 +102,62 @@ public class Gateway {
     }
 
 
-    public String processRequest(MessageRequest messageRequest) throws IOException {
+    public String processRequest(PrintWriter outputStream, MessageRequest messageRequest) throws IOException {
 
         switch (messageRequest.getId()) {
 
             case APPEND_VALUE_REQUEST -> {
+
                 AppendValueRequest request = GsonInstance.getInstance().getGson().fromJson(messageRequest.getContent(), AppendValueRequest.class);
-             //   requestsMap.putOnRequestQueue(queueToClusterIdMap.get (request.getQueueId() ), messageRequest);
 
-                requestsMap.putOnRequestQueue(assignToCluster(queueSequenceNumber,maxNumberOfClusters ) , messageRequest);
+                if(requestsMap.getMessageQueue(assignToCluster(Integer.parseInt(request.getQueueId()))) != null){
+                    requestsMap.putOnRequestQueue(assignToCluster(Integer.parseInt(request.getQueueId())) , messageRequest);
 
-                return request.getClientId();
+                    return request.getClientId();
+                } else
+                    sendServiceUnavailableResponse(request.getClientId(), outputStream);
             }
 
             // La richiesta di creazione di una queue viene inviata al broker scelto secondo la logica "round robin"
             case CREATE_QUEUE_REQUEST -> {
                 CreateQueueRequest request = GsonInstance.getInstance().getGson().fromJson(messageRequest.getContent(), CreateQueueRequest.class);
-                request.setQueueId(generateNewQueueID());
 
-                messageRequest.setContent(GsonInstance.getInstance().getGson().toJson(request)) ;
-                if (!nextCluster.containsValue(0)) {
+                try {
+
+                    queueSequenceNumber = getQueueIdOfClusterAvailable();
+                    request.setQueueId(queueSequenceNumber);
+
+                    messageRequest.setContent(GsonInstance.getInstance().getGson().toJson(request)) ;
+                    if (!nextCluster.containsValue(0)) {
+                        for (Integer clusterID : clustersID) {
+                            nextCluster.put(clusterID, 0);
+                        }
+                    }
+
                     for (Integer clusterID : clustersID) {
-                        nextCluster.put(clusterID, 0);
-                    }
-                }
-                for (Integer clusterID : clustersID) {
-                    if (nextCluster.get(clusterID) == 0) {
-                        //requestsMap.putOnRequestQueue(clusterID, messageRequest);
-                        requestsMap.putOnRequestQueue(assignToCluster(queueSequenceNumber,maxNumberOfClusters ) , messageRequest);
+                        if (nextCluster.get(clusterID) == 0) {
+                            //requestsMap.putOnRequestQueue(clusterID, messageRequest);
+                            requestsMap.putOnRequestQueue(assignToCluster(queueSequenceNumber) , messageRequest);
 
-                        // queueToClusterIdMap.put(queueSequenceNumber, clusterID);
-                        nextCluster.replace(clusterID, 1);
-                        break;
+                            // queueToClusterIdMap.put(queueSequenceNumber, clusterID);
+                            nextCluster.replace(clusterID, 1);
+                            break;
+                        }
                     }
+                    return request.getClientId();
+
+                } catch (NoClusterAvailableException e) {
+                    sendServiceUnavailableResponse(request.getClientId(), outputStream);
                 }
-                return request.getClientId();
             }
 
             case READ_VALUE_REQUEST -> {
                 ReadValueRequest request = GsonInstance.getInstance().getGson().fromJson(messageRequest.getContent(), ReadValueRequest.class);
-               // requestsMap.putOnRequestQueue(queueToClusterIdMap.get (request.getQueueId() ), messageRequest);
-                requestsMap.putOnRequestQueue(assignToCluster(queueSequenceNumber,maxNumberOfClusters ) , messageRequest);
+
+                if(requestsMap.getMessageQueue(assignToCluster(Integer.parseInt(request.getQueueId()))) != null)
+                    requestsMap.putOnRequestQueue(assignToCluster(Integer.parseInt(request.getQueueId())) , messageRequest);
+                else
+                    sendServiceUnavailableResponse(request.getClientId(), outputStream);
 
                 return request.getClientId();
             }
@@ -188,7 +208,40 @@ public class Gateway {
         return !responseMessageMap.getMessageQueue(clientID).isEmpty();
     }
 
-    private static int assignToCluster(int requestId, int totalClusters) {
-        return requestId % totalClusters;
+    public void removeFromRequestMap(Integer clusterId){
+        requestsMap.removeClusterId(clusterId);
+    }
+
+    private static int assignToCluster(int requestId) {
+        return requestId % maxNumberOfClusters;
+    }
+
+    private void sendServiceUnavailableResponse(String clientId, PrintWriter out){
+        ServiceUnavailableResponse serviceUnavailableResponse = new ServiceUnavailableResponse(StatusEnum.KO, "Service temporally unavailable");
+
+        MessageResponse messageResponse = new MessageResponse(
+                ResponseIdEnum.SERVICE_UNAVAILABLE_RESPONSE,
+                GsonInstance.getInstance().getGson().toJson(serviceUnavailableResponse),
+                clientId
+        );
+
+        out.println(GsonInstance.getInstance().getGson().toJson(messageResponse));
+        out.flush();
+    }
+
+    /**
+     * Give the clusterId associated to the queueId
+     * */
+    private int getQueueIdOfClusterAvailable() throws NoClusterAvailableException{
+
+        int tmpQueueId = queueSequenceNumber;
+        for(int i = 0; i < maxNumberOfClusters; i++){
+            tmpQueueId++;
+
+            if(requestsMap.getMessageQueue(assignToCluster(tmpQueueId)) != null)
+                return tmpQueueId;
+        }
+
+        throw new NoClusterAvailableException();
     }
 }

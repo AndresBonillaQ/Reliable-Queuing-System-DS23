@@ -6,6 +6,7 @@ import it.polimi.ds.network.responseHandler.ResponseHandler;
 import it.polimi.ds.network.responseHandler.impl.AppendValueResponseHandler;
 import it.polimi.ds.network.responseHandler.impl.CreateQueueResponseHandler;
 import it.polimi.ds.network.responseHandler.impl.ReadValueResponseHandler;
+import it.polimi.ds.network.responseHandler.impl.ServiceUnavailableHandler;
 import it.polimi.ds.utils.GsonInstance;
 
 import java.util.Map;
@@ -25,6 +26,7 @@ public class ResponseDispatcher {
         responseHandlerMap.put(ResponseIdEnum.CREATE_QUEUE_RESPONSE, new CreateQueueResponseHandler());
         responseHandlerMap.put(ResponseIdEnum.APPEND_VALUE_RESPONSE, new AppendValueResponseHandler());
         responseHandlerMap.put(ResponseIdEnum.READ_VALUE_RESPONSE, new ReadValueResponseHandler());
+        responseHandlerMap.put(ResponseIdEnum.SERVICE_UNAVAILABLE_RESPONSE, new ServiceUnavailableHandler());
     }
 
     private ResponseDispatcher(){}
