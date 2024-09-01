@@ -35,7 +35,7 @@ public class ModelResponseMessageBuilder {
         }
 
         public static ResponseMessage buildReadValueResponseMessage(int value,String clientId) {
-            ReadValueResponse readValueResponse = new ReadValueResponse(StatusEnum.KO, Const.ResponseDes.OK.READ_VALUE, value);
+            ReadValueResponse readValueResponse = new ReadValueResponse(StatusEnum.OK, Const.ResponseDes.OK.READ_VALUE, value);
 
             return new ResponseMessage(
                     ResponseIdEnum.READ_VALUE_RESPONSE,
