@@ -9,6 +9,7 @@ import it.polimi.ds.message.ResponseMessage;
 import it.polimi.ds.message.election.requests.VoteRequest;
 import it.polimi.ds.message.model.response.utils.StatusEnum;
 import it.polimi.ds.message.pingPong.PingPongMessage;
+import it.polimi.ds.message.raft.request.HeartbeatRequest;
 import it.polimi.ds.network.gateway.client.ClientToGateway;
 import it.polimi.ds.network.gateway.server.ServerToGateway;
 import it.polimi.ds.network.handler.BrokerRequestDispatcher;
@@ -24,10 +25,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,15 +34,21 @@ public class LeaderBrokerState extends BrokerState {
 
     private final Logger log = Logger.getLogger(LeaderBrokerState.class.getName());
     private final AtomicBoolean hasAlreadyNotifyGateway = new AtomicBoolean(false);
-    private final AtomicBoolean pingPongReceived = new AtomicBoolean(false);
-    private Set<String> brokerIdSetVotedOk = new ConcurrentSkipListSet<>();
+
+    private final Thread serverToGatewayThread;
+    private final Thread clientToGatewayThread;
+    private final ScheduledFuture<?> heartbeatTask;
 
     public LeaderBrokerState(BrokerContext brokerContext) {
         super(brokerContext);
-        log.log(Level.INFO, "I'm becoming leader!!");
-        startHeartBeat();
-        ExecutorInstance.getInstance().getExecutorService().submit(new ServerToGateway(brokerContext, brokerContext.getMyBrokerConfig().getBrokerServerPortToGateway()));
-        ExecutorInstance.getInstance().getExecutorService().submit(new ClientToGateway(brokerContext, brokerContext.getMyBrokerConfig().getGatewayInfo()));
+        log.log(Level.INFO, "I'm leader!!");
+
+        serverToGatewayThread = new ServerToGateway(brokerContext, brokerContext.getMyBrokerConfig().getBrokerServerPortToGateway());
+        clientToGatewayThread = new ClientToGateway(brokerContext, brokerContext.getMyBrokerConfig().getGatewayInfo());
+
+        ExecutorInstance.getInstance().getExecutorService().submit(serverToGatewayThread);
+        ExecutorInstance.getInstance().getExecutorService().submit(clientToGatewayThread);
+        heartbeatTask = startHeartBeat();
     }
 
     /**
@@ -55,40 +59,9 @@ public class LeaderBrokerState extends BrokerState {
     public void clientToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) throws IOException {
 
         try{
-
             if(ThreadsCommunication.getInstance().getRequestConcurrentHashMapOfBrokerId(clientBrokerId) != null){
-                //blocking execution until a message to forward is available
                 String requestToForward = ThreadsCommunication.getInstance().getRequestConcurrentHashMapOfBrokerId(clientBrokerId).poll(10, TimeUnit.MILLISECONDS);
-
-                if(requestToForward != null && !requestToForward.isEmpty()){
-                    //log.log(Level.INFO, "Forwarding request to follower: {0}", requestToForward);
-
-                    //forwarding message
-                    out.println(requestToForward);
-                    out.flush();
-
-                    RequestMessage requestMessage = GsonInstance.getInstance().getGson().fromJson(requestToForward, RequestMessage.class);
-
-                    switch (requestMessage.getId()){
-
-                        case HEARTBEAT_REQUEST -> {
-                            String responseLine = in.readLine();
-                            //log.log(Level.INFO,"HeartBeat response: {0}", responseLine);
-                        }
-
-                        case APPEND_ENTRY_LOG_REQUEST -> {
-                            String responseLine = in.readLine();
-                            ThreadsCommunication.getInstance().addResponseToFollowerResponseQueue(clientBrokerId, responseLine);
-                        }
-
-                        case COMMIT_REQUEST -> {
-
-                        }
-
-                        default -> {}
-                    }
-
-                }
+                handleClientToBrokerMessage(clientBrokerId, requestToForward, out, in);
             }
 
         }catch (InterruptedException e){
@@ -97,198 +70,124 @@ public class LeaderBrokerState extends BrokerState {
 
     }
 
-    @Override
-    public void clientToGatewayExec(BufferedReader in, PrintWriter out) throws IOException {
-        if(Boolean.FALSE.equals(hasAlreadyNotifyGateway.get())){
-
-            RequestMessage requestMessage = NetworkMessageBuilder.Request.buildNewLeaderToGatewayRequest(
-                    brokerContext.getMyBrokerConfig().getMyClusterId(),
-                    brokerContext.getMyBrokerConfig().getMyBrokerId(),
-                    brokerContext.getMyBrokerConfig().getMyHostName(),
-                    brokerContext.getMyBrokerConfig().getBrokerServerPortToGateway()
-            );
-
-            log.log(Level.INFO, "Notifying gateway about new leader... {0}", requestMessage);
-
-            out.println(GsonInstance.getInstance().getGson().toJson(requestMessage));
-            out.flush();
-
-            hasAlreadyNotifyGateway.set(true);
-
-            //start timer ping pong
-            startPingPongTimer();
-
-        }
-
-        String responseLine = in.readLine();
-        PingPongMessage pingPongMessage = GsonInstance.getInstance().getGson().fromJson(responseLine, PingPongMessage.class);
-            //log.log(Level.INFO, "Response of notify gateway about new leader... {0}", responseLine);
-        if (pingPongMessage.getStatus().equals("OK")) {
-            pingPongReceived.set(true);
-
-     //       System.out.println("SENDING PINGPONG");
-
-            out.println(GsonInstance.getInstance().getGson().toJson(new PingPongMessage("OK")));
-            out.flush();
-        }
-    }
-
-    private void startPingPongTimer() {
-
-    ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-        scheduler.scheduleAtFixedRate(
-                () -> {
-                    if (scheduler.isShutdown()) {
-                        return;
-                    }
-                    //       log.log(Level.INFO, "Is leader alive {0}", pingPongReceived);
-                    if(!pingPongReceived.get()) {
-                        onPingPongTimeOut();
-                        scheduler.shutdownNow();
-                    }
-                    else {
-                        pingPongReceived.set(false);
-                    }
-                },
-                6000,
-                5000,
-                TimeUnit.MILLISECONDS
-        );
-
-    }
-
-    private void onPingPongTimeOut() {
-        System.out.println("Ping pong not received");
-    }
-
-    @Override
-    public void serverToGatewayExec(BufferedReader in, PrintWriter out) throws IOException {
-
-        String requestLine = in.readLine();
-
-        forwardAppendLogRequestToAllFollowers(requestLine);
-        brokerIdSetVotedOk = brokerContext.getBrokerRaftIntegration().calculateConsensus();
-        handleConsensusOutcome(requestLine, out);
-
-        brokerContext.getBrokerRaftIntegration().printLogs();
-        brokerContext.getBrokerModel().printState();
-    }
-
     /**
      * This method handles all responses received from followers
      * */
     @Override
     public void serverToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) throws IOException {
         String requestLine = in.readLine();
+        handleServerToBrokerMessage(out, requestLine);
+    }
+
+    private void handleClientToBrokerMessage(String clientBrokerId, String requestToForward, PrintWriter out, BufferedReader in) throws IOException {
+
+        if(requestToForward != null && !requestToForward.isEmpty()){
+
+            out.println(requestToForward);
+            out.flush();
+
+            handleClientToBrokerMessageResponse(clientBrokerId, requestToForward, in);
+        }
+    }
+
+    private void handleClientToBrokerMessageResponse(String clientBrokerId, String requestToForwarded, BufferedReader in) throws IOException {
+        RequestMessage requestMessage = GsonInstance.getInstance().getGson().fromJson(requestToForwarded, RequestMessage.class);
+
+        // Response of follower
+        switch (requestMessage.getId()){
+
+            case HEARTBEAT_REQUEST -> {
+                String responseLine = in.readLine();
+                log.log(Level.INFO,"HeartBeat response: {0}", responseLine);
+            }
+
+            case APPEND_ENTRY_LOG_REQUEST -> {
+                String responseLine = in.readLine();
+                ThreadsCommunication.getInstance().addResponseToFollowerResponseQueue(clientBrokerId, responseLine);
+            }
+
+            case COMMIT_REQUEST -> {} // No waiting for a response
+        }
+    }
+
+    private void handleServerToBrokerMessage(PrintWriter out, String requestLine){
 
         RequestMessage requestMessage = GsonInstance.getInstance().getGson().fromJson(requestLine, RequestMessage.class);
 
-        ResponseMessage responseMessage;
         switch (requestMessage.getId()){
-
-            case VOTE_REQUEST -> {
-                VoteRequest voteRequest = GsonInstance.getInstance().getGson().fromJson(requestMessage.getContent(), VoteRequest.class);
-
-                if(voteRequest.getTerm() <= brokerContext.getBrokerRaftIntegration().getCurrentTerm()){
-                    log.log(Level.INFO, "Someone tries to become a leader with VOTE_REQUEST but I'm the leader!");
-                    responseMessage = NetworkMessageBuilder.Response.buildVoteResponse(StatusEnum.KO, "I'm the leader!");
-                } else {
-                    responseMessage = NetworkMessageBuilder.Response.buildVoteResponse(StatusEnum.OK, "");
-                    log.log(Level.INFO, "I am the leader but has received a VOTE_REQUEST with higher Term! my is {}, received {}", new Object[]{brokerContext.getBrokerRaftIntegration().getCurrentTerm(), voteRequest.getTerm()});
-                    log.log(Level.INFO, "Becoming follower...");
-                    brokerContext.setBrokerState(new FollowerBrokerState(brokerContext));
-                }
-
-                out.println(GsonInstance.getInstance().getGson().toJson(responseMessage));
-                out.flush();
-            }
-
+            case VOTE_REQUEST -> handleVoteRequestFromBroker(out, requestMessage);
+            case HEARTBEAT_REQUEST -> handleHeartBeatRequestFromBroker(out, requestMessage);
+            default -> log.log(Level.INFO, "Leader Request not managed: {0}", requestLine);
         }
+    }
+
+    private void handleHeartBeatRequestFromBroker(PrintWriter out, RequestMessage requestMessage){
+        HeartbeatRequest heartbeatRequest = GsonInstance.getInstance().getGson().fromJson(requestMessage.getContent(), HeartbeatRequest.class);
+
+        ResponseMessage responseMessage;
+        if(heartbeatRequest.getTerm() <= brokerContext.getBrokerRaftIntegration().getCurrentTerm()){
+            log.log(Level.INFO, "An older leader is sending me heartbeats, I'm the leader!");
+            responseMessage = NetworkMessageBuilder.Response.buildVoteResponse(StatusEnum.KO, "I'm the leader!");
+        } else {
+            log.log(Level.INFO, "An older leader is sending me heartbeats with higher term! my is {0}, received {1}", new Object[]{brokerContext.getBrokerRaftIntegration().getCurrentTerm(), heartbeatRequest.getTerm()});
+            responseMessage = NetworkMessageBuilder.Response.buildVoteResponse(StatusEnum.OK, "");
+        }
+
+        out.println(GsonInstance.getInstance().getGson().toJson(responseMessage));
+        out.flush();
+
+        onBecomeFollower();
+    }
+
+    private void handleVoteRequestFromBroker(PrintWriter out, RequestMessage requestMessage){
+        VoteRequest voteRequest = GsonInstance.getInstance().getGson().fromJson(requestMessage.getContent(), VoteRequest.class);
+
+        ResponseMessage responseMessage;
+        if(voteRequest.getTerm() <= brokerContext.getBrokerRaftIntegration().getCurrentTerm()){
+            log.log(Level.INFO, "Someone tries to become a leader with VOTE_REQUEST but I'm the leader!");
+            responseMessage = NetworkMessageBuilder.Response.buildVoteResponse(StatusEnum.KO, "I'm the leader!");
+        } else {
+            log.log(Level.INFO, "I am the leader but has received a VOTE_REQUEST with higher Term! my is {0}, received {1}", new Object[]{brokerContext.getBrokerRaftIntegration().getCurrentTerm(), voteRequest.getTerm()});
+            responseMessage = NetworkMessageBuilder.Response.buildVoteResponse(StatusEnum.OK, "");
+        }
+
+        out.println(GsonInstance.getInstance().getGson().toJson(responseMessage));
+        out.flush();
+
+        onBecomeFollower();
+    }
+
+    private void onBecomeFollower(){
+        log.log(Level.INFO, "Becoming follower...");
+        clientToGatewayThread.interrupt();
+        serverToGatewayThread.interrupt();
+        heartbeatTask.cancel(true);
+        brokerContext.setBrokerState(new FollowerBrokerState(brokerContext));
     }
 
     /**
      * This method handle logic to send HeartBeat to followers
      * */
-    private void startHeartBeat(){
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
+    private ScheduledFuture<?> startHeartBeat(){
+        return Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
                 () -> {
 
                     if(!brokerContext.isBrokerSetUp())
                         return;
 
-                    RequestMessage requestMessage = NetworkMessageBuilder.Request.buildHeartBeatRequest(brokerContext.getMyBrokerConfig().getMyBrokerId(), brokerContext.getBrokerRaftIntegration().getCurrentTerm());
-
-                    ThreadsCommunication.getInstance().addRequestToAllFollowerRequestQueue(
-                            GsonInstance.getInstance().getGson().toJson(requestMessage)
-                    );
-
-                }, Timing.HEARTBEAT_DELAY_SENDING, Timing.HEARTBEAT_PERIOD_SENDING, TimeUnit.MILLISECONDS
+                    sendHeartBeat();
+                },
+                0,  // when become leader all connections has been already set during follower state
+                Timing.HEARTBEAT_PERIOD_SENDING,
+                TimeUnit.MILLISECONDS
         );
     }
 
-    private void forwardAppendLogRequestToAllFollowers(String requestLine){
-
-        brokerContext.getBrokerRaftIntegration().buildAndAppendNewLog(requestLine);
-
-        List<RaftLog> raftLogList = brokerContext.getBrokerRaftIntegration().getLastUncommittedLogsToForward();
-
-        final RequestMessage raftLogMessage = NetworkMessageBuilder.Request.buildAppendEntryLogRequest(
-                brokerContext.getBrokerRaftIntegration().getCurrentTerm(),
-                brokerContext.getMyBrokerConfig().getMyBrokerId(),
-                brokerContext.getBrokerRaftIntegration().getPrevCommittedLogIndex(),
-                brokerContext.getBrokerRaftIntegration().getPrevLogTerm(brokerContext.getBrokerRaftIntegration().getPrevCommittedLogIndex()),
-                raftLogList
+    private void sendHeartBeat(){
+        RequestMessage requestMessage = NetworkMessageBuilder.Request.buildHeartBeatRequest(brokerContext.getMyBrokerConfig().getMyBrokerId(), brokerContext.getBrokerRaftIntegration().getCurrentTerm());
+        log.log(Level.INFO, "Sending heartbeat to brokers: {0}", ThreadsCommunication.getInstance().getBrokerIds());
+        ThreadsCommunication.getInstance().addRequestToAllFollowerRequestQueue(
+                GsonInstance.getInstance().getGson().toJson(requestMessage)
         );
-
-        log.log(Level.INFO, "Forwarding to all followers {0}", raftLogMessage);
-
-        // passing message to each thread which handle client connection with followers
-        ThreadsCommunication.getInstance().addRequestToAllFollowerRequestQueue(GsonInstance.getInstance().getGson().toJson(raftLogMessage));
-    }
-
-    private void handleConsensusOutcome(String requestLine, PrintWriter out){
-        if(isConsensusReached())
-            handleConsensusReached(requestLine, out);
-        else
-            handleConsensusNoReached(requestLine, out);
-    }
-
-    private boolean isConsensusReached(){
-        final int numFollowersAlive = ThreadsCommunication.getInstance().getNumThreadsOfAliveBrokers();
-        final int numVotedOk = brokerIdSetVotedOk.size() + 1;   //+1 because voted for myself
-
-        return (numFollowersAlive > 0 && numVotedOk >= Math.floorDiv(brokerContext.getNumClusterBrokers(), 2) + 1) ||
-                (numFollowersAlive == 0 && brokerContext.getNumClusterBrokers() == 1);
-    }
-
-    private void handleConsensusReached(String requestLine, PrintWriter out){
-        log.log(Level.INFO, "Consensus reached, executing command and responding to gateway..");
-
-        try {
-            // exec the request locally
-            ResponseMessage response = BrokerRequestDispatcher.exec(brokerContext, requestLine);
-
-            // send commit to gateway
-            out.println(GsonInstance.getInstance().getGson().toJson(response));
-            out.flush();
-
-        } catch (RequestNoManagedException e) {
-            log.log(Level.SEVERE, "Request {} not managed!", requestLine);
-        }
-
-        // increase my lastCommitIndex and commit log
-        brokerContext.getBrokerRaftIntegration().handleLastLogsAppended();
-
-        // send commit msg to all followers that voted ok!
-        RequestMessage requestMessage = NetworkMessageBuilder.Request.buildCommitRequest(brokerContext.getBrokerRaftIntegration().getLastCommitIndex());
-        brokerIdSetVotedOk.forEach(x -> ThreadsCommunication.getInstance().getRequestConcurrentHashMapOfBrokerId(x).add(GsonInstance.getInstance().getGson().toJson(requestMessage)));
-    }
-
-    private void handleConsensusNoReached(String requestLine, PrintWriter out){
-        RequestMessage requestMessage = GsonInstance.getInstance().getGson().fromJson(requestLine, RequestMessage.class);
-        ResponseMessage responseMessage = NetworkMessageBuilder.Response.buildServiceUnavailableResponse(StatusEnum.KO, Const.ResponseDes.KO.UNAVAILABLE_SERVICE_KO, requestMessage.getClientId());
-        log.log(Level.INFO, "Consensus Not reached, responding to gateway {0}", responseMessage);
-        out.println(GsonInstance.getInstance().getGson().toJson(responseMessage));
-        out.flush();
     }
 }

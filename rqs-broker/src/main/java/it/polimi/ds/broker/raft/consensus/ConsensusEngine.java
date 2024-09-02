@@ -1,8 +1,6 @@
-package it.polimi.ds.broker.raft.impl;
+package it.polimi.ds.broker.raft.consensus;
 
-import it.polimi.ds.broker.BrokerContext;
 import it.polimi.ds.broker.raft.IBrokerRaftIntegration;
-import it.polimi.ds.broker.raft.IConsensusEngine;
 import it.polimi.ds.message.RequestMessage;
 import it.polimi.ds.message.ResponseMessage;
 import it.polimi.ds.message.id.ResponseIdEnum;

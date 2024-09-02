@@ -3,12 +3,13 @@ package it.polimi.ds.broker;
 import it.polimi.ds.broker.model.IBrokerModel;
 import it.polimi.ds.broker.model.impl.BrokerModel;
 import it.polimi.ds.broker.raft.IBrokerRaftIntegration;
-import it.polimi.ds.broker.raft.impl.BrokerRaftIntegration;
+import it.polimi.ds.broker.raft.BrokerRaftIntegration;
 import it.polimi.ds.broker.state.BrokerState;
 import it.polimi.ds.broker.state.impl.FollowerBrokerState;
 import it.polimi.ds.broker.state.impl.LeaderBrokerState;
 import it.polimi.ds.network.broker.client.ClientToBroker;
 import it.polimi.ds.network.broker.server.ServerToBroker;
+import it.polimi.ds.network.utils.thread.impl.ThreadsCommunication;
 import it.polimi.ds.utils.ExecutorInstance;
 import it.polimi.ds.utils.config.BrokerConfig;
 
@@ -48,7 +49,9 @@ public class BrokerContext {
      * */
     private final BrokerConfig myBrokerConfig;
 
-    protected final AtomicBoolean isBrokerSetUp = new AtomicBoolean(false);
+    private final AtomicBoolean isBrokerSetUp = new AtomicBoolean(false);
+
+    private final AtomicBoolean hasChangeState = new AtomicBoolean(false);
 
     private final Logger log = Logger.getLogger(BrokerContext.class.getName());
 
@@ -78,6 +81,8 @@ public class BrokerContext {
     }
 
     public void setBrokerState(BrokerState brokerState) {
+        hasChangeState.set(true);
+        ThreadsCommunication.getInstance().onBrokerStateChange();
         this.brokerState = brokerState;
     }
 
@@ -115,5 +120,9 @@ public class BrokerContext {
 
     public boolean isBrokerSetUp() {
         return isBrokerSetUp.get();
+    }
+
+    public AtomicBoolean getHasChangeState() {
+        return hasChangeState;
     }
 }

@@ -85,6 +85,10 @@ public class ThreadsCommunication {
         responseConcurrentHashMap.values().forEach(Collection::clear);
     }
 
+    public String getBrokerIds(){
+        return requestConcurrentHashMap.keySet().toString();
+    }
+
     public int getNumThreadsOfAliveBrokers() {
         return requestConcurrentHashMap.size();
     }

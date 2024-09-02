@@ -51,11 +51,8 @@ public class ClientToBroker implements Runnable {
             ) {
 
                 socket.setSoTimeout(500);
-
-                log.log(Level.INFO, "Trying connection to BrokerID {0} on hostName: {1} and port {2}",
-                        new Object[]{brokerInfo.getClientBrokerId(), brokerInfo.getHostName(), brokerInfo.getPort()});
-
                 sendFirstSetupMessage(in, out);
+                log.log(Level.INFO, "Client connection to BrokerID {0} set-upped", brokerInfo.getClientBrokerId());
 
                 while (socket.isConnected() && !socket.isClosed()) {
                     try{
@@ -63,13 +60,13 @@ public class ClientToBroker implements Runnable {
                     } catch (SocketTimeoutException ignored){}
                 }
 
-                log.log(Level.INFO, "Connection with {} closed, trying to reconnect", brokerInfo.getClientBrokerId());
+                log.log(Level.INFO, "Client connection with {0} closed, trying to reconnect", brokerInfo.getClientBrokerId());
                 retryReconnection();
 
             } catch (ImpossibleSetUpException ex){
-                log.log(Level.SEVERE, "Impossible to setUp the broker, error: {0}, closing broker..", ex.getMessage());
+                log.log(Level.SEVERE, "Impossible to setUp client connection to the broker {0}, error: {1}, closing broker..", new Object[]{brokerInfo.getClientBrokerId(), ex.getMessage()});
             } catch (IOException ex) {
-                //log.log(Level.SEVERE, "IOException in clientToBroker of {1}, retrying connection..", new Object[]{ex.getMessage(), brokerInfo.getClientBrokerId()});
+                //log.log(Level.SEVERE, "IOException in client connection to broker {0}, retrying connection..", brokerInfo.getClientBrokerId());
                 retryReconnection();
             }
 
@@ -77,6 +74,7 @@ public class ClientToBroker implements Runnable {
     }
 
     private void retryReconnection(){
+
         ThreadsCommunication.getInstance().onBrokerConnectionClose(brokerInfo.getClientBrokerId());
         connectToBroker();
     }
