@@ -1,11 +1,12 @@
-package it.polimi.ds.broker.raft.impl;
+package it.polimi.ds.broker.raft;
 
-import it.polimi.ds.broker.raft.IBrokerRaftIntegration;
-import it.polimi.ds.broker.raft.IConsensusEngine;
+import it.polimi.ds.broker.raft.consensus.ConsensusEngine;
+import it.polimi.ds.broker.raft.consensus.IConsensusEngine;
 import it.polimi.ds.broker.raft.utils.RaftLog;
 import it.polimi.ds.message.raft.request.RaftLogEntryRequest;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -147,6 +148,8 @@ public class BrokerRaftIntegration implements IBrokerRaftIntegration {
                 break;
             }
         }
+
+        Collections.reverse(uncommittedRaftLog);
 
         return uncommittedRaftLog;
     }

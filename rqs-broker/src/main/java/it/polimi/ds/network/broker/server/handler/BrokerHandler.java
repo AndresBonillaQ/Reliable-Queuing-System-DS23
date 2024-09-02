@@ -45,6 +45,7 @@ public class BrokerHandler implements Runnable{
 
             try{
                 brokerClientId = receiveFirstSetupMessage(in, out);
+                log.log(Level.INFO, "Broker {0} connected to the server and set-upped", brokerClientId);
 
                 while(socket.isConnected() && !socket.isClosed()){
                     try{

@@ -16,10 +16,8 @@ public abstract class BrokerState {
     }
 
     abstract public void clientToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) throws IOException;
-    abstract public void clientToGatewayExec(BufferedReader in, PrintWriter out) throws IOException;
-    abstract public void serverToGatewayExec(BufferedReader in, PrintWriter out) throws IOException;
     abstract public void serverToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) throws IOException;
     public void onHeartbeatTimeout(){}
-    public void onWinLeaderElection(PrintWriter out){}
+    public void onWinLeaderElection(){}
     public void onLoseLeaderElection(){}
 }
