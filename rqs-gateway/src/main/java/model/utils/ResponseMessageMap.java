@@ -21,6 +21,9 @@ public class ResponseMessageMap {
     public void addClientId(String clientId){
         responseMap.put(clientId, new LinkedBlockingQueue<>());
     }
+    public void removeClientId(String clientId) {
+        responseMap.remove(clientId);
+    }
 
     public BlockingQueue<MessageResponse> getMessageQueue(String clientID) {
         return responseMap.get(clientID);

@@ -12,7 +12,7 @@ public class ClientApp {
         gatewayConfig.setPort(6666);
         gatewayConfig.setTimeout(0);
 
-        Client client = new Client(gatewayConfig, "1");
+        Client client = new Client(gatewayConfig);
         client.start();
     }
 }

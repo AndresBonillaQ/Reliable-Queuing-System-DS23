@@ -37,11 +37,20 @@ public class RequestMessageBuilder {
     public static RequestMessage buildSetUpRequestMessage(String clientId){
         SetUpRequest setUpRequest = new SetUpRequest();
 
-        return new RequestMessage(
-                RequestIdEnum.SET_UP_REQUEST,
-                GsonInstance.getInstance().getGson().toJson(setUpRequest),
-                clientId
-        );
+        if (clientId != null) {
+            return new RequestMessage(
+                    RequestIdEnum.SET_UP_REQUEST,
+                    GsonInstance.getInstance().getGson().toJson(setUpRequest),
+                    clientId
+            );
+        }
+        else {
+            return new RequestMessage(
+                    RequestIdEnum.SET_UP_REQUEST,
+                    GsonInstance.getInstance().getGson().toJson(setUpRequest),
+                    ""
+            );
+        }
     }
 
     private RequestMessageBuilder(){}

@@ -53,15 +53,6 @@ public class CliHandler {
         throw new CliExitException();
     }
     private static void printMenu() {
-/*        System.out.println("╔════════════════════════════════════════╗");
-        System.out.println("║             ☆ Main Menu ☆             ║");
-        System.out.println("╠════════════════════════════════════════╣");
-        System.out.println("║   1. Create Queue                      ║");
-        System.out.println("║   2. Append Value                      ║");
-        System.out.println("║   3. Read Value                        ║");
-        System.out.println("║   4. Exit                              ║");
-        System.out.println("╚════════════════════════════════════════╝");
-        System.out.print("➤ Choose an option: ");*/
         System.out.println(ANSI_BLUE + "╔═══════════════════════════════════════════╗" + ANSI_RESET);
         System.out.println(ANSI_BLUE + "║" + ANSI_RESET + ANSI_YELLOW + "       ★    " + ANSI_BOLD + "    MAIN MENU   " + ANSI_RESET + ANSI_YELLOW + "      ★       " + ANSI_RESET + ANSI_BLUE + "║" + ANSI_RESET);
         System.out.println(ANSI_BLUE + "╠═══════════════════════════════════════════╣" + ANSI_RESET);
@@ -72,7 +63,5 @@ public class CliHandler {
         System.out.println(ANSI_BLUE + "╚═══════════════════════════════════════════╝" + ANSI_RESET);
         System.out.print(ANSI_YELLOW + "➤ Choose an option by writing the corresponding number: " + ANSI_RESET);
     }
-
-
     private CliHandler(){}
 }

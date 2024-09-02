@@ -33,7 +33,6 @@ public class Gateway {
     private HashMap<Integer, Integer> queueToClusterIdMap = new HashMap<Integer, Integer>(); //<queueId, clusterId>
     private ResponseMessageMap responseMessageMap = new ResponseMessageMap();
     private RequestMessageMap requestsMap = new RequestMessageMap();//<clusterId, QueueOfRequests>
-    private HashMap<Integer, Integer> nextCluster = new HashMap<>();
     private HashMap<Integer, Integer> clusterConnected = new HashMap<>();
     private HashMap<Integer, Socket> clusterToSocketMap = new HashMap();
 
@@ -41,6 +40,8 @@ public class Gateway {
 
     private static ConnectionManager connectionManager;
     private int queueSequenceNumber = -1 ;
+    private int clientIdSequenceNumber = -1 ;
+
 
     public static Gateway getInstance() {
         if (instance == null) {
@@ -53,9 +54,9 @@ public class Gateway {
         return instance;
     }
 
-    private Integer generateNewQueueID() {
-        queueSequenceNumber++;
-        return queueSequenceNumber;
+    public Integer generateNewClientID() {
+        clientIdSequenceNumber++;
+        return clientIdSequenceNumber;
     }
     public void setIp(Integer clusterId, String ipAddress) {
             this.clusterIdToAddressMap.put(clusterId, ipAddress);
@@ -193,12 +194,15 @@ public class Gateway {
     }
 
     public boolean registerClientOnResponseMap(String clientId){
-        if(responseMessageMap.isClientIdPresent(clientId)) {
+/*        if(responseMessageMap.isClientIdPresent(clientId)) {
             System.out.println("client already present");
             return false;
-        }
+        }*/
         responseMessageMap.addClientId(clientId);
         return true;
+    }
+    public boolean isClientPresent(String clientId) {
+        return responseMessageMap.isClientIdPresent(clientId);
     }
 
     public void putOnResponseMap(String clientId, MessageResponse messageResponse) {
@@ -253,5 +257,8 @@ public class Gateway {
 
     public void putOnSocketMap(Integer clusterId, Socket socket) {
         this.clusterToSocketMap.put(clusterId, socket);
+    }
+    public void removeClientId(String clientId) {
+        responseMessageMap.removeClientId(clientId);
     }
 }

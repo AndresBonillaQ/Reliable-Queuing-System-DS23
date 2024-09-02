@@ -26,13 +26,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Client {
-    private final String clientId;
+    private String clientId = null;
     private final GatewayConfig gatewayConfig;
     private final Logger log = Logger.getLogger(Client.class.getName());
 
-    public Client(GatewayConfig gatewayConfig, String clientId){
+    public Client(GatewayConfig gatewayConfig){
         this.gatewayConfig = gatewayConfig;
-        this.clientId = clientId;
+
+
     }
 
     public void start(){
@@ -88,8 +89,10 @@ public class Client {
 
         if(ResponseIdEnum.SET_UP_RESPONSE.equals(responseMessage.getId())){
             SetUpResponse setUpResponse = GsonInstance.getInstance().getGson().fromJson(responseMessage.getContent(), SetUpResponse.class);
-            if(StatusEnum.OK.equals(setUpResponse.getStatus()))
+            if(StatusEnum.OK.equals(setUpResponse.getStatus())) {
+                this.clientId = setUpResponse.getClientId();
                 System.out.println("SetUp OK! with client " + setUpResponse.getClientId());
+            }
             else
                 throw new ErrorSetUpException("Impossible to setUp client with gateway!");
         } else

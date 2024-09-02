@@ -61,7 +61,7 @@ public class ClientHandler implements Runnable {
 
         } catch (IOException e) {
             System.out.println("ERROR ON CLIENT CONNECTION: " + e.getMessage());
-
+            Gateway.getInstance().removeClientId(clientID);
             throw new RuntimeException(e);
         }
     }
@@ -76,15 +76,20 @@ public class ClientHandler implements Runnable {
 
         MessageResponse responseMessage;
 
-        if(Gateway.getInstance().registerClientOnResponseMap(messageRequest.getClientId())){
+        if(!Gateway.getInstance().isClientPresent(messageRequest.getClientId())){
 
-            System.out.println("Registering client" + messageRequest.getClientId());
-            SetUpResponse setUpResponse = new SetUpResponse(StatusEnum.OK, "", messageRequest.getClientId());
+            synchronized (Gateway.getInstance()) {
+                clientID = String.valueOf(Gateway.getInstance().generateNewClientID());
+            }
+
+            System.out.println("Registering client" + clientID);
+            SetUpResponse setUpResponse = new SetUpResponse(StatusEnum.OK, "", clientID);
             responseMessage = new MessageResponse(
                     ResponseIdEnum.SET_UP_RESPONSE,
                     GsonInstance.getInstance().getGson().toJson(setUpResponse),
-                    messageRequest.getClientId()
+                    clientID
             );
+            Gateway.getInstance().registerClientOnResponseMap(clientID);
 
         } else {
 
