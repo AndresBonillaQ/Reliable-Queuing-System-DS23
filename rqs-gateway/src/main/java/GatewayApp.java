@@ -1,3 +1,4 @@
+import model.Gateway;
 import network.brokerCommunication.server.ServerForBroker;
 import network.clientCommunication.ServerForClient;
 

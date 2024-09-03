@@ -10,6 +10,10 @@ import utils.GsonInstance;
 import java.io.*;
 import java.net.Socket;
 
+
+/**
+ * This class handles the communication with the leader of the cluster
+ */
 public class CommunicationThread extends Thread {
     private Socket socket;
     private final ConnectionListener listener;

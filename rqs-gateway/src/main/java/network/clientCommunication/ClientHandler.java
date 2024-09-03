@@ -116,7 +116,6 @@ public class ClientHandler implements Runnable {
                     System.out.println("Risposta inoltrata al client");
                 }
                 try {
-                    // Attende un breve periodo per ridurre il consumo di CPU
                     Thread.sleep(500);  // attende 500 ms
                 } catch (InterruptedException e) {
                     System.out.println("Thread interrotto.");

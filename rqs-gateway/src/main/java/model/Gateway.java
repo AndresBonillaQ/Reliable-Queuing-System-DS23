@@ -36,8 +36,7 @@ public class Gateway {
     private HashMap<Integer, Integer> clusterConnected = new HashMap<>();
     private HashMap<Integer, Socket> clusterToSocketMap = new HashMap();
 
-    private static final int maxNumberOfClusters = 1;
-
+    private static final int maxNumberOfClusters = 2;
     private static ConnectionManager connectionManager;
     private int queueSequenceNumber = -1 ;
     private int clientIdSequenceNumber = -1 ;
@@ -132,24 +131,6 @@ public class Gateway {
 
                     messageRequest.setContent(GsonInstance.getInstance().getGson().toJson(request)) ;
                     requestsMap.putOnRequestQueue(assignToCluster(queueSequenceNumber) , messageRequest);
-
-
-                  /*  if (!nextCluster.containsValue(0)) {
-                        for (Integer clusterID : clustersID) {
-                            nextCluster.put(clusterID, 0);
-                        }
-                    }
-
-                    for (Integer clusterID : clustersID) {
-                        if (nextCluster.get(clusterID) == 0) {
-                            //requestsMap.putOnRequestQueue(clusterID, messageRequest);
-                            requestsMap.putOnRequestQueue(assignToCluster(queueSequenceNumber) , messageRequest);
-
-                            // queueToClusterIdMap.put(queueSequenceNumber, clusterID);
-                            nextCluster.replace(clusterID, 1);
-                            break;
-                        }*/
-
                     return messageRequest.getClientId();
 
                 } catch (NoClusterAvailableException e) {
@@ -185,19 +166,12 @@ public class Gateway {
                 clusterToPortMap.put(clusterID, portNumber);
                 clusterConnected.put(clusterID, 1);
                 requestsMap.addClusterID(clusterID);
-
-            //    if (nextCluster.get(clusterID) == null )
-                  //   nextCluster.put(clusterID, 0);
-
+                System.out.println("Added cluster: " + clusterID);
                 connectionManager.startConnection(clusterID);
 
     }
 
     public boolean registerClientOnResponseMap(String clientId){
-/*        if(responseMessageMap.isClientIdPresent(clientId)) {
-            System.out.println("client already present");
-            return false;
-        }*/
         responseMessageMap.addClientId(clientId);
         return true;
     }
@@ -243,7 +217,6 @@ public class Gateway {
         int tmpQueueId = queueSequenceNumber;
         for(int i = 0; i < maxNumberOfClusters; i++){
             tmpQueueId++;
-
             if(requestsMap.getMessageQueue(assignToCluster(tmpQueueId)) != null)
                 return tmpQueueId;
         }

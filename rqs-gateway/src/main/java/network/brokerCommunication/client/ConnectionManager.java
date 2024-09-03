@@ -23,12 +23,12 @@ public  class ConnectionManager implements ConnectionListener {
                                 Socket newSocket = new Socket(Gateway.getInstance().getIp(clusterID), Gateway.getInstance().getPortNumber(clusterID));
                                 new CommunicationThread(newSocket, this, clusterID).start();
                                 Gateway.getInstance().putOnSocketMap(clusterID, newSocket);
-                                System.out.println("Reconnected.");
+                                System.out.println("Connection with leader of cluster" + clusterID);
                                 break;
                             } else {
                                 Gateway.getInstance().removeFromRequestMap(clusterID);
-                                System.out.println("Waiting 2 seconds then try to reconnect.");
-                                Thread.sleep(2000); //wait 2 sec
+                                System.out.println("Waiting 5 seconds then try to reconnect.");
+                                Thread.sleep(5000); //wait 2 sec
 
                             }
                         } catch (IOException e) {

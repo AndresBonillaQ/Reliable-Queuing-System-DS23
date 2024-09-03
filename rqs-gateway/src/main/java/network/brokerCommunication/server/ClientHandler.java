@@ -112,7 +112,7 @@ public class ClientHandler implements Runnable {
             );
         }
     private void onPingPongTimeOut() throws IOException {
-        System.out.println("Ping pong not received");
+        System.out.println("Ping pong not received from " + clusterId);
         Gateway.getInstance().getClusterToSocketMap().get(clusterId).close();
         Gateway.getInstance().removeFromRequestMap(clusterId);
     }
