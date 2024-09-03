@@ -2,8 +2,8 @@ package it.polimi.ds.broker;
 
 import it.polimi.ds.broker.model.IBrokerModel;
 import it.polimi.ds.broker.model.impl.BrokerModel;
-import it.polimi.ds.broker.raft.IBrokerRaftIntegration;
 import it.polimi.ds.broker.raft.BrokerRaftIntegration;
+import it.polimi.ds.broker.raft.IBrokerRaftIntegration;
 import it.polimi.ds.broker.state.BrokerState;
 import it.polimi.ds.broker.state.impl.FollowerBrokerState;
 import it.polimi.ds.broker.state.impl.LeaderBrokerState;
@@ -48,8 +48,6 @@ public class BrokerContext {
      * Broker network configuration
      * */
     private final BrokerConfig myBrokerConfig;
-
-    private final AtomicBoolean isBrokerSetUp = new AtomicBoolean(false);
 
     private final AtomicBoolean hasChangeState = new AtomicBoolean(false);
 
@@ -102,10 +100,6 @@ public class BrokerContext {
         return numClusterBrokers;
     }
 
-    public String getLeaderId() {
-        return leaderId;
-    }
-
     public BrokerConfig getMyBrokerConfig() {
         return myBrokerConfig;
     }
@@ -114,15 +108,11 @@ public class BrokerContext {
         this.leaderId = leaderId;
     }
 
-    public void setIsBrokerSetUp(boolean isBrokerSetUp){
-        this.isBrokerSetUp.set(isBrokerSetUp);
-    }
-
-    public boolean isBrokerSetUp() {
-        return isBrokerSetUp.get();
-    }
-
     public AtomicBoolean getHasChangeState() {
         return hasChangeState;
+    }
+
+    public long getTimingBasedOnNumBrokers(long timing){
+        return timing * numClusterBrokers;
     }
 }

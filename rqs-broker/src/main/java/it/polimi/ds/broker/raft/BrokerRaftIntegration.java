@@ -40,9 +40,9 @@ public class BrokerRaftIntegration implements IBrokerRaftIntegration {
      * */
     private int lastCommitIndex = -1;
 
-    private final IConsensusEngine consensusEngine = new ConsensusEngine();
-
     private final String myBrokerId;
+
+    private final IConsensusEngine consensusEngine = new ConsensusEngine();
 
     private final Logger log = Logger.getLogger(BrokerRaftIntegration.class.getName());
 
@@ -109,13 +109,17 @@ public class BrokerRaftIntegration implements IBrokerRaftIntegration {
         if(offset < raftLogQueue.size())
             raftLogQueue.subList(offset, raftLogQueue.size()).clear();
 
-        for(int i = 0; i < logsToAppend.size(); i++)
-            raftLogQueue.add(i + offset, logsToAppend.get(i));
+        for(int i = 0; i < logsToAppend.size(); i++) {
+            RaftLog req = logsToAppend.get(i);
+            raftLogQueue.add(
+                    i + offset,
+                    new RaftLog(req.getTerm(), req.getRequest())
+            );
+        }
 
     }
 
     public List<String> processCommitRequestAndGetRequestsToExec(int newLastCommitIndex){
-
         if (newLastCommitIndex < this.lastCommitIndex || newLastCommitIndex >= raftLogQueue.size()) {
             throw new IndexOutOfBoundsException("newLastCommitIndex: " + newLastCommitIndex + " is out of bounds."); //TODO catch
         }
@@ -154,6 +158,14 @@ public class BrokerRaftIntegration implements IBrokerRaftIntegration {
         return uncommittedRaftLog;
     }
 
+    @Override
+    public List<RaftLog> getLastLogAppended() {
+        if(raftLogQueue.isEmpty())
+            return new ArrayList<>();
+
+        return List.of(raftLogQueue.get(raftLogQueue.size() - 1));
+    }
+
     public List<RaftLog> getRaftLogEntriesFromIndex(int from){
         if (from < 0 || from >= raftLogQueue.size())
             throw new IndexOutOfBoundsException("Index: " + from + ", Size: " + raftLogQueue.size()); //TODO
@@ -183,6 +195,11 @@ public class BrokerRaftIntegration implements IBrokerRaftIntegration {
 
     public int getPrevLogIndexOf(int index){
         return Math.max(-1, index - 1);
+    }
+
+    @Override
+    public int getPrevLogIndex() {
+        return Math.max(-1, currentIndex - 1);
     }
 
     public int getPrevLogTerm(int prevLogIndex){
