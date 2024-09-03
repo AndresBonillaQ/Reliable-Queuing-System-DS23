@@ -53,7 +53,6 @@ public class BrokerModel implements IBrokerModel{
 
         // if first time the client read the value, start from 0, otherwise value is stored in the map
         int oldOffset = Objects.isNull(clientOffsetMap.get(offsetKey)) ? 0 : clientOffsetMap.get(offsetKey);
-        System.out.println("oldOffset: " + oldOffset);
 
         //if continue to read last value we stop the offset because there are no other values to read!
         if(oldOffset < queuesMap.get(queueId).size()){

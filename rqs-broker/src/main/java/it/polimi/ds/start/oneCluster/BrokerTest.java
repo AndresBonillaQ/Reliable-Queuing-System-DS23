@@ -1,20 +1,10 @@
-package it.polimi.ds;
+package it.polimi.ds.start.oneCluster;
 
 import it.polimi.ds.broker.BrokerContext;
-import it.polimi.ds.message.RequestMessage;
-import it.polimi.ds.message.id.RequestIdEnum;
-import it.polimi.ds.message.model.request.AppendValueRequest;
-import it.polimi.ds.utils.config.BrokerInfo;
-import it.polimi.ds.utils.GsonInstance;
 import it.polimi.ds.utils.config.BrokerConfig;
+import it.polimi.ds.utils.config.BrokerInfo;
 import it.polimi.ds.utils.config.GatewayInfo;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.List;
 
 public class BrokerTest {
@@ -111,11 +101,12 @@ class Follower1 {
                         3001,
                         List.of(
                                 new BrokerInfo("2","127.0.0.1", 8080),
-                                new BrokerInfo("3","127.0.0.1", 4000),
-                                new BrokerInfo("4","127.0.0.1", 6000)
+                                new BrokerInfo("3","127.0.0.1", 4000)
+                                //,new BrokerInfo("4","127.0.0.1", 8500)
+                                //,new BrokerInfo("5", "127.0.0.1", 6543)
                         ),
                         new GatewayInfo(
-                                "127.0.1",
+                                "127.0.0.1",
                                 5001
                         ),
                         "127.0.0.1"
@@ -139,11 +130,12 @@ class Follower2 {
                         8081,
                         List.of(
                                 new BrokerInfo("1","127.0.0.1", 3000),
-                                new BrokerInfo("3","127.0.0.1", 4000),
-                                new BrokerInfo("4","127.0.0.1", 6000)
+                                new BrokerInfo("3","127.0.0.1", 4000)
+                                //,new BrokerInfo("4","127.0.0.1", 8500)
+                                //,new BrokerInfo("5", "127.0.0.1", 6543)
                         ),
                         new GatewayInfo(
-                                "127.0.1",
+                                "127.0.0.1",
                                 5001
                         ),
                         "127.0.0.1"
@@ -167,11 +159,12 @@ class Follower3 {
                         4001,
                         List.of(
                                 new BrokerInfo("1","127.0.0.1", 3000),
-                                new BrokerInfo("2","127.0.0.1", 8080),
-                                new BrokerInfo("4","127.0.0.1", 6000)
-                                ),
+                                new BrokerInfo("2","127.0.0.1", 8080)
+                                //,new BrokerInfo("4","127.0.0.1", 8500)
+                                //,new BrokerInfo("5", "127.0.0.1", 6543)
+                        ),
                         new GatewayInfo(
-                                "127.0.1",
+                                "127.0.0.1",
                                 5001
                         ),
                         "127.0.0.1"
@@ -191,15 +184,45 @@ class Follower4 {
                 new BrokerConfig(
                         "4",
                         "0",
-                        6000,
-                        6001,
+                        8500,
+                        8501,
                         List.of(
                                 new BrokerInfo("1","127.0.0.1", 3000),
                                 new BrokerInfo("2","127.0.0.1", 8080),
                                 new BrokerInfo("3","127.0.0.1", 4000)
+                                ,new BrokerInfo("5", "127.0.0.1", 6543)
                         ),
                         new GatewayInfo(
-                                "127.0.1",
+                                "127.0.0.1",
+                                5001
+                        ),
+                        "127.0.0.1"
+                ),
+                false
+        );
+
+        follower.start();
+    }
+}
+
+class Follower5 {
+    public static void main(String[] args){
+
+        //follower open port 4000 as SERVER to brokers, 4001 as SERVER to gateway
+        BrokerContext follower = new BrokerContext(
+                new BrokerConfig(
+                        "5",
+                        "0",
+                        6543,
+                        6544,
+                        List.of(
+                                new BrokerInfo("1","127.0.0.1", 3000),
+                                new BrokerInfo("2","127.0.0.1", 8080),
+                                new BrokerInfo("3","127.0.0.1", 4000)
+                                ,new BrokerInfo("4", "127.0.0.1", 8500)
+                        ),
+                        new GatewayInfo(
+                                "127.0.0.1",
                                 5001
                         ),
                         "127.0.0.1"

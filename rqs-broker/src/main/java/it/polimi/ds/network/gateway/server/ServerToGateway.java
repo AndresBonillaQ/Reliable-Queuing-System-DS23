@@ -80,13 +80,17 @@ public class ServerToGateway extends Thread {
 
         brokerContext.getBrokerRaftIntegration().buildAndAppendNewLog(requestLine);
 
-        List<RaftLog> raftLogList = brokerContext.getBrokerRaftIntegration().getLastUncommittedLogsToForward();
+        //List<RaftLog> raftLogList = brokerContext.getBrokerRaftIntegration().getLastUncommittedLogsToForward();
+        final List<RaftLog> raftLogList = brokerContext.getBrokerRaftIntegration().getLastLogAppended();
+        final int prevLogIndex = brokerContext.getBrokerRaftIntegration().getPrevLogIndex();
 
         final RequestMessage raftLogMessage = NetworkMessageBuilder.Request.buildAppendEntryLogRequest(
                 brokerContext.getBrokerRaftIntegration().getCurrentTerm(),
                 brokerContext.getMyBrokerConfig().getMyBrokerId(),
-                brokerContext.getBrokerRaftIntegration().getPrevCommittedLogIndex(),
-                brokerContext.getBrokerRaftIntegration().getPrevLogTerm(brokerContext.getBrokerRaftIntegration().getPrevCommittedLogIndex()),
+                //brokerContext.getBrokerRaftIntegration().getPrevCommittedLogIndex(),
+                prevLogIndex,
+                //brokerContext.getBrokerRaftIntegration().getPrevLogTerm(brokerContext.getBrokerRaftIntegration().getPrevCommittedLogIndex()),
+                brokerContext.getBrokerRaftIntegration().getPrevLogTerm(prevLogIndex),
                 raftLogList
         );
 
@@ -125,7 +129,6 @@ public class ServerToGateway extends Thread {
 
         } catch (RequestNoManagedException e) {
             log.log(Level.SEVERE, "Request {} not managed!", requestLine);
-
         }
 
         brokerContext.getBrokerRaftIntegration().handleLastLogsAppended();

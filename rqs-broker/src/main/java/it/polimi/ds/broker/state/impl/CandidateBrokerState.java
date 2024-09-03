@@ -16,6 +16,8 @@ import it.polimi.ds.utils.config.Timing;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -27,7 +29,7 @@ import java.util.logging.Logger;
 public class CandidateBrokerState extends BrokerState {
 
     private final Logger log = Logger.getLogger(CandidateBrokerState.class.getName());
-    private final AtomicBoolean hasAlreadySentVoteRequest = new AtomicBoolean(false);
+    private final Set<String> brokerIdAlreadySentVoteRequest;
     private final AtomicInteger numVotesReceived;
 
     private final ScheduledFuture<?> electionTimeoutTask;
@@ -38,6 +40,7 @@ public class CandidateBrokerState extends BrokerState {
 
         brokerContext.getBrokerRaftIntegration().increaseCurrentTerm();
         numVotesReceived = new AtomicInteger(1);
+        brokerIdAlreadySentVoteRequest = new ConcurrentSkipListSet<>();
 
         electionTimeoutTask = startElectionTimeout();
     }
@@ -47,8 +50,8 @@ public class CandidateBrokerState extends BrokerState {
      * */
     @Override
     public void clientToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) throws IOException {
-        if(!hasAlreadySentVoteRequest.get()){
-            hasAlreadySentVoteRequest.set(true);
+        if(!brokerIdAlreadySentVoteRequest.contains(clientBrokerId)){
+            brokerIdAlreadySentVoteRequest.add(clientBrokerId);
             sendVoteRequest(clientBrokerId, out);
             receiveVoteResponse(clientBrokerId, in, out);
         }
@@ -59,7 +62,6 @@ public class CandidateBrokerState extends BrokerState {
      * */
     @Override
     public void serverToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) throws IOException {
-
         String requestLine = in.readLine();
         handleServerToBrokerMessage(clientBrokerId, requestLine, out);
     }
@@ -154,7 +156,7 @@ public class CandidateBrokerState extends BrokerState {
     private ScheduledFuture<?> startElectionTimeout(){
         return Executors.newSingleThreadScheduledExecutor().schedule(
                 this::checkElectionOutCome,
-                Timing.ELECTION_TIMEOUT,
+                brokerContext.getTimingBasedOnNumBrokers(Timing.ELECTION_TIMEOUT),
                 TimeUnit.MILLISECONDS
         );
     }

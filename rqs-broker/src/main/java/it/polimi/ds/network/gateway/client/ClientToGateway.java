@@ -38,10 +38,20 @@ public class ClientToGateway extends Thread {
             try {
                 try (
                         Socket socket = new Socket(gatewayInfo.getHostName(), gatewayInfo.getPort());
-                        PrintWriter out = new PrintWriter(socket.getOutputStream())
+                        PrintWriter out = new PrintWriter(socket.getOutputStream());
+                        InputStreamReader inputStreamReader = new InputStreamReader(socket.getInputStream());
+                        BufferedReader in = new BufferedReader(inputStreamReader);
                 ) {
 
                     sendSetUpMessage(out);
+
+                    while(socket.isConnected() && !socket.isClosed()){
+                        String responseLine = in.readLine();
+
+                        PingPongMessage pingPongMessage = GsonInstance.getInstance().getGson().fromJson(responseLine, PingPongMessage.class);
+                        out.println(GsonInstance.getInstance().getGson().toJson(pingPongMessage));
+                        out.flush();
+                    }
 
                 } catch (IOException ex) {
                     //log.log(Level.SEVERE, "Error {0}! IOException in clientToGateway connection, retrying connection..", ex.getMessage());

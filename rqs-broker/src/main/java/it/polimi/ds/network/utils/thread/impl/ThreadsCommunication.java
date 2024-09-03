@@ -76,6 +76,7 @@ public class ThreadsCommunication {
     }
 
     public void onBrokerConnectionClose(String brokerId){
+        log.log(Level.INFO, "Removing from maps the brokerId {0}", brokerId);
         requestConcurrentHashMap.remove(brokerId);
         responseConcurrentHashMap.remove(brokerId);
     }

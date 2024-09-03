@@ -36,7 +36,7 @@ public class FollowerBrokerState extends BrokerState {
     private final Set<Integer> hasAlreadyVoteInTerm = new ConcurrentSkipListSet<>();
     private final Random random = new Random();
 
-    private final ScheduledFuture<?> heartBeatTask;
+    private ScheduledFuture<?> heartBeatTask;
 
     public FollowerBrokerState(BrokerContext brokerContext) {
         super(brokerContext);
@@ -84,6 +84,7 @@ public class FollowerBrokerState extends BrokerState {
         if(voteRequest.getTerm() > brokerContext.getBrokerRaftIntegration().getCurrentTerm()){
             if(!hasAlreadyVoteInTerm.contains(voteRequest.getTerm())){
                 log.log(Level.INFO, "Voting for candidate {0} in term {1}", new Object[]{clientBrokerId, voteRequest.getTerm()});
+                restartHeartBeatTimeout();
                 hasAlreadyVoteInTerm.add(voteRequest.getTerm());
                 responseMessage = NetworkMessageBuilder.Response.buildVoteResponse(StatusEnum.OK, "");
             } else {
@@ -157,26 +158,12 @@ public class FollowerBrokerState extends BrokerState {
             );
         }
 
-        System.out.println("After APPEND_ENTRY_LOG_REQUEST");
+        System.out.println("After APPEND_ENTRY_LOG_REQUEST " + raftLogEntryRequest);
         brokerContext.getBrokerRaftIntegration().printLogs();
 
         //forwarding message
         out.println(GsonInstance.getInstance().getGson().toJson(responseMessage));
         out.flush();
-    }
-
-    private ScheduledFuture<?> heartbeatTimerThreadStart(){
-        //final long randomValue = Timing.HEARTBEAT_PERIOD_CHECKING_FROM + (long) (Math.random() * Timing.HEARTBEAT_PERIOD_CHECKING_FROM_TO_SUM);
-        final long randomValue = random.nextInt(Timing.HEARTBEAT_PERIOD_CHECKING_FROM_TO_SUM - Timing.HEARTBEAT_PERIOD_CHECKING_FROM) + Timing.HEARTBEAT_PERIOD_CHECKING_FROM;
-        final long delay = brokerContext.getHasChangeState().get() ? randomValue : Timing.HEARTBEAT_DELAY_CHECKING + randomValue;
-        log.log(Level.INFO, "Start waiting heartbeat, hasChangeState: {0}, random: {1}, finalDelay: {2}", new Object[]{brokerContext.getHasChangeState(), randomValue, delay});
-
-        return Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
-                this::handleHeartBeatTimeoutTask,
-                delay,
-                randomValue,
-                TimeUnit.MILLISECONDS
-        );
     }
 
     private void handleHeartBeatTimeoutTask(){
@@ -189,13 +176,31 @@ public class FollowerBrokerState extends BrokerState {
 
     @Override
     public void onHeartbeatTimeout(){
-        if(!hasAlreadyVoteInTerm.contains(brokerContext.getBrokerRaftIntegration().getCurrentTerm() + 1)){
-            synchronized (brokerContext.getBrokerState()){
-                log.log(Level.INFO, "I'm going to elect myself");
-                heartBeatTask.cancel(true);
-                brokerContext.setBrokerState(new CandidateBrokerState(brokerContext));
-            }
-        } else
-            log.log(Level.INFO, "Timeout expired but another broker is Candidate in term {0}", brokerContext.getBrokerRaftIntegration().getCurrentTerm() + 1);
+        synchronized (brokerContext.getBrokerState()){
+            log.log(Level.INFO, "I'm going to elect myself");
+            heartBeatTask.cancel(true);
+            brokerContext.setBrokerState(new CandidateBrokerState(brokerContext));
+        }
+    }
+
+    private void restartHeartBeatTimeout(){
+        log.log(Level.INFO, "Received a voteRequest, restarting heartBeatTimer!");
+        heartBeatTask.cancel(true);
+        heartBeatTask = heartbeatTimerThreadStart();
+    }
+
+    private ScheduledFuture<?> heartbeatTimerThreadStart(){
+
+        final long randomValue = random.nextInt(Timing.HEARTBEAT_PERIOD_CHECKING_WINDOW) + Timing.HEARTBEAT_PERIOD_CHECKING_OFFSET;
+        final long delay = brokerContext.getHasChangeState().get() ? randomValue : brokerContext.getTimingBasedOnNumBrokers(Timing.HEARTBEAT_FIRST_SET_UP_NEEDED) + randomValue;
+
+        log.log(Level.INFO, "Start waiting heartbeat, hasChangeState: {0}, random: {1}, finalDelay: {2}", new Object[]{brokerContext.getHasChangeState(), randomValue, delay});
+
+        return Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
+                this::handleHeartBeatTimeoutTask,
+                delay,
+                randomValue,
+                TimeUnit.MILLISECONDS
+        );
     }
 }

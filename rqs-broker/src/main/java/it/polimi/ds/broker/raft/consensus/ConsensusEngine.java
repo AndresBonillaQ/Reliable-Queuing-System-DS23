@@ -1,6 +1,7 @@
 package it.polimi.ds.broker.raft.consensus;
 
 import it.polimi.ds.broker.raft.IBrokerRaftIntegration;
+import it.polimi.ds.exception.network.ConsensusRetryException;
 import it.polimi.ds.message.RequestMessage;
 import it.polimi.ds.message.ResponseMessage;
 import it.polimi.ds.message.id.ResponseIdEnum;
@@ -89,24 +90,32 @@ public class ConsensusEngine implements IConsensusEngine {
                 log.log(Level.INFO, "Consensus +1 from brokerId {0}", brokerIdOfResponse);
                 brokerIdSetVotedOk.add(brokerIdOfResponse);
             } else
-                handleRetryRaftLogRequest(leaderId, raftIntegration, raftLogEntryResponse, brokerIdOfResponse);
+                handleRetryRaftLogRequest(leaderId, raftIntegration, raftLogEntryResponse.getLastMatchIndex(), brokerIdOfResponse);
         } else
             log.log(Level.SEVERE, "Waiting for APPEND_ENTRY_LOG_RESPONSE but received another kind of message!");
     }
 
-    private void handleRetryRaftLogRequest(String leaderId, IBrokerRaftIntegration raftIntegration, RaftLogEntryResponse raftLogEntryResponse, String brokerIdOfResponse){
+    private void handleRetryRaftLogRequest(String leaderId, IBrokerRaftIntegration raftIntegration, int lastMatchIndexResp, String brokerIdOfResponse){
+        RetryRequestOutcome retryRequestOutcome = new RetryRequestOutcome(false, lastMatchIndexResp);
         do {
-            sendRetryRequest(buildRetryRequest(leaderId, raftIntegration, raftLogEntryResponse), brokerIdOfResponse);
-        } while (!consumeRetryRequest(brokerIdOfResponse));
+            sendRetryRequest(buildRetryRequest(leaderId, raftIntegration, retryRequestOutcome.lastIndexMatch), brokerIdOfResponse);
+            try {
+                retryRequestOutcome = consumeRetryRequest(brokerIdOfResponse);
+            } catch (ExecutionException | InterruptedException | ConsensusRetryException e) {
+                log.log(Level.SEVERE, "Error by executing retry logic for consensus with broker {0}", brokerIdOfResponse);
+                return;
+            }
+            log.log(Level.INFO, "RetryOutcome: {0}", retryRequestOutcome);
+        } while (!retryRequestOutcome.hasBeenAccepted && retryRequestOutcome.lastIndexMatch >= -1);
     }
 
-    private String buildRetryRequest(String leaderId, IBrokerRaftIntegration raftIntegration, RaftLogEntryResponse raftLogEntryResponse){
+    private String buildRetryRequest(String leaderId, IBrokerRaftIntegration raftIntegration, int lastMatchIndex){
         RequestMessage requestMessage = NetworkMessageBuilder.Request.buildAppendEntryLogRequest(
                 raftIntegration.getCurrentTerm(),
                 leaderId,
-                raftIntegration.getPrevLogIndexOf(raftLogEntryResponse.getLastMatchIndex()),
-                raftIntegration.getPrevLogTermOfIndex(raftLogEntryResponse.getLastMatchIndex()),
-                raftIntegration.getRaftLogEntriesFromIndex(raftLogEntryResponse.getLastMatchIndex())
+                raftIntegration.getPrevLogIndexOf(lastMatchIndex),
+                raftIntegration.getPrevLogTermOfIndex(lastMatchIndex),
+                raftIntegration.getRaftLogEntriesFromIndex(lastMatchIndex)
         );
         log.log(Level.INFO, "AppendLogEntryRequest new to solve is {0}", requestMessage);
 
@@ -114,10 +123,10 @@ public class ConsensusEngine implements IConsensusEngine {
     }
 
     private void sendRetryRequest(String requestLine, String brokerIdOfResponse){
-        ThreadsCommunication.getInstance().getRequestConcurrentHashMapOfBrokerId(brokerIdOfResponse).add(GsonInstance.getInstance().getGson().toJson(requestLine));
+        ThreadsCommunication.getInstance().getRequestConcurrentHashMapOfBrokerId(brokerIdOfResponse).add(requestLine);
     }
 
-    private boolean consumeRetryRequest(String brokerIdOfResponse){
+    private RetryRequestOutcome consumeRetryRequest(String brokerIdOfResponse) throws ExecutionException, InterruptedException, ConsensusRetryException {
 
         Future<LeaderWaitingForFollowersResponse> responseCallableRetry = executorService.submit(
                 new LeaderWaitingForFollowersCallable(
@@ -131,10 +140,10 @@ public class ConsensusEngine implements IConsensusEngine {
             responseMessageCallableRetry = GsonInstance.getInstance().getGson().fromJson(responseCallableRetry.get().getResponse(), ResponseMessage.class);
         } catch (InterruptedException e) {
             log.log(Level.INFO, "InterruptedException while waiting for responseQueue od brokerId {0}", brokerIdOfResponse);
-            return false;
+            throw e;
         } catch (ExecutionException e) {
             log.log(Level.INFO, "ExecutionException while waiting for responseQueue od brokerId {0}", brokerIdOfResponse);
-            return false;
+            throw e;
         }
 
         log.log(Level.INFO, "AppendLogEntryResponse of the new to solve is {0}", responseMessageCallableRetry);
@@ -145,10 +154,39 @@ public class ConsensusEngine implements IConsensusEngine {
             if (StatusEnum.OK.equals(raftLogEntryResponse.getStatus())) {
                 log.log(Level.INFO, "Consensus +1 from brokerId {0}", brokerIdOfResponse);
                 brokerIdSetVotedOk.add(brokerIdOfResponse);
-                return true;
+                return new RetryRequestOutcome(true, -1);
             }
+
+            return new RetryRequestOutcome(false, raftLogEntryResponse.getLastMatchIndex());
         }
 
-        return false;
+        throw new ConsensusRetryException("Error in ConsensusEngine, waiting for an APPEND_ENTRY_LOG_RESPONSE but received " + responseMessageCallableRetry.toString());
+    }
+
+    class RetryRequestOutcome{
+        private final boolean hasBeenAccepted;
+        private final int lastIndexMatch;
+
+        public RetryRequestOutcome(boolean hasBeenAccepted, int lastIndexMatch) {
+            this.hasBeenAccepted = hasBeenAccepted;
+            this.lastIndexMatch = lastIndexMatch;
+        }
+
+        public boolean isHasBeenAccepted() {
+            return hasBeenAccepted;
+        }
+
+        public int getLastIndexMatch() {
+            return lastIndexMatch;
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder sb = new StringBuilder("RetryRequestOutcome{");
+            sb.append("hasBeenAccepted=").append(hasBeenAccepted);
+            sb.append(", lastIndexMatch=").append(lastIndexMatch);
+            sb.append('}');
+            return sb.toString();
+        }
     }
 }

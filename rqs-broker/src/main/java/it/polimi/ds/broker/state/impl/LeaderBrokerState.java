@@ -170,13 +170,7 @@ public class LeaderBrokerState extends BrokerState {
      * */
     private ScheduledFuture<?> startHeartBeat(){
         return Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
-                () -> {
-
-                    if(!brokerContext.isBrokerSetUp())
-                        return;
-
-                    sendHeartBeat();
-                },
+                this::sendHeartBeat,
                 0,  // when become leader all connections has been already set during follower state
                 Timing.HEARTBEAT_PERIOD_SENDING,
                 TimeUnit.MILLISECONDS

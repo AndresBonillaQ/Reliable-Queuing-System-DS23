@@ -74,8 +74,6 @@ public class ClientToBroker implements Runnable {
     }
 
     private void retryReconnection(){
-
-        ThreadsCommunication.getInstance().onBrokerConnectionClose(brokerInfo.getClientBrokerId());
         connectToBroker();
     }
 
@@ -102,8 +100,6 @@ public class ClientToBroker implements Runnable {
             log.log(Level.SEVERE, "Impossible to setUp client, error: {0}, finishing connection..", setUpResponse.getDesStatus());
             throw new ImpossibleSetUpException("Impossible to setUp with broker as client!");
         }
-
-        brokerContext.setIsBrokerSetUp(true);
     }
 }
 

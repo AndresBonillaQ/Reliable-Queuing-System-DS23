@@ -197,7 +197,7 @@ public class Gateway {
     }
 
     private void sendServiceUnavailableResponse(String clientId, PrintWriter out){
-        ServiceUnavailableResponse serviceUnavailableResponse = new ServiceUnavailableResponse(StatusEnum.KO, "Service temporally unavailable");
+        ServiceUnavailableResponse serviceUnavailableResponse = new ServiceUnavailableResponse(StatusEnum.KO, "Service temporarily unavailable");
 
         MessageResponse messageResponse = new MessageResponse(
                 ResponseIdEnum.SERVICE_UNAVAILABLE_RESPONSE,

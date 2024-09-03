@@ -15,6 +15,8 @@ public interface IBrokerRaftIntegration {
 
     List<RaftLog> getLastUncommittedLogsToForward();
 
+    List<RaftLog> getLastLogAppended();
+
     List<RaftLog> getRaftLogEntriesFromIndex(int from);
 
     void increaseCurrentTerm();
@@ -29,6 +31,8 @@ public interface IBrokerRaftIntegration {
     int getPrevLogTermOfIndex(int index);
 
     int getPrevLogIndexOf(int index);
+
+    int getPrevLogIndex();
 
     int getLastCommitIndex();
 
