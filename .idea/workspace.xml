@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="d47cd1fb-b1ca-41b3-9ae8-2c93ea3d353c" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rqs-gateway/src/main/java/GatewayApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/rqs-gateway/src/main/java/GatewayApp.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rqs-gateway/src/main/java/model/Gateway.java" beforeDir="false" afterPath="$PROJECT_DIR$/rqs-gateway/src/main/java/model/Gateway.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rqs-gateway/src/main/java/network/brokerCommunication/client/CommunicationThread.java" beforeDir="false" afterPath="$PROJECT_DIR$/rqs-gateway/src/main/java/network/brokerCommunication/client/CommunicationThread.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rqs-gateway/src/main/java/network/brokerCommunication/client/ConnectionManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/rqs-gateway/src/main/java/network/brokerCommunication/client/ConnectionManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rqs-gateway/src/main/java/network/brokerCommunication/server/ClientHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/rqs-gateway/src/main/java/network/brokerCommunication/server/ClientHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rqs-gateway/src/main/java/network/clientCommunication/ClientHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/rqs-gateway/src/main/java/network/clientCommunication/ClientHandler.java" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Interface" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="PREVIOUS_COMMIT_AUTHORS">
+      <list>
+        <option value="SvevoFedericoCalabrese &lt;100682462+svevofedericocalabrese@users.noreply.github.com&gt;" />
+      </list>
+    </option>
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="dev-andres" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="useMavenConfig" value="true" />
+      </MavenGeneralSettings>
+    </option>
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectId" id="2jYWI9fK0PQJg82WUg6bCx5Zmm4" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;TODO_SCOPE&quot;: &quot;All Places&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Utente/.jdks/openjdk-20&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.project.grazie&quot;,
+    &quot;settings.editor.splitter.proportion&quot;: &quot;0.24479167&quot;,
+    &quot;show.migrate.to.gradle.popup&quot;: &quot;false&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="model" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="utils.Messages" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Application.ClientApp">
+    <configuration name="ClientApp" type="Application" factoryName="Application" singleton="false" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="it.polimi.ds.ClientApp" />
+      <module name="rqs-client" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="it.polimi.ds.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Follower2" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="it.polimi.ds.start.oneCluster.Follower2" />
+      <module name="rqs-broker" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="it.polimi.ds.start.oneCluster.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Follower3" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="it.polimi.ds.start.oneCluster.Follower3" />
+      <module name="rqs-broker" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="it.polimi.ds.start.oneCluster.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Follower4" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="it.polimi.ds.start.oneCluster.Follower4" />
+      <module name="rqs-broker" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="it.polimi.ds.start.oneCluster.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="GatewayApp" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="GatewayApp" />
+      <module name="rqs-gateway" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="Application.Follower2" />
+      <item itemvalue="Application.Follower3" />
+      <item itemvalue="Application.Follower4" />
+      <item itemvalue="Application.GatewayApp" />
+      <item itemvalue="Application.ClientApp" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.ClientApp" />
+        <item itemvalue="Application.GatewayApp" />
+        <item itemvalue="Application.Follower4" />
+        <item itemvalue="Application.Follower3" />
+        <item itemvalue="Application.Follower2" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="d47cd1fb-b1ca-41b3-9ae8-2c93ea3d353c" name="Changes" comment="" />
+      <created>1721564416194</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1721564416194</updated>
+      <workItem from="1721564417297" duration="10130000" />
+      <workItem from="1721733759665" duration="45887000" />
+      <workItem from="1722610307210" duration="665000" />
+      <workItem from="1722611009101" duration="363000" />
+      <workItem from="1722617607048" duration="1943000" />
+      <workItem from="1723466982692" duration="6454000" />
+      <workItem from="1723728278203" duration="22116000" />
+      <workItem from="1724156081910" duration="115421000" />
+      <workItem from="1725278640077" duration="21552000" />
+    </task>
+    <task id="LOCAL-00001" summary="yo">
+      <created>1722522150754</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1722522150754</updated>
+    </task>
+    <task id="LOCAL-00002" summary="push of election and heartbeat">
+      <created>1724245273858</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1724245273858</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Gateway update">
+      <created>1724428843330</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1724428843330</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Gateway update">
+      <created>1724508635337</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1724508635337</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Gateway update">
+      <created>1724842335235</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1724842335235</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Gateway update">
+      <created>1724938512042</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1724938512042</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Cli update">
+      <created>1724941651464</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1724941651464</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Nuova gestione richieste verso i cluster">
+      <created>1725029378021</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1725029378021</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Nuova gestione richieste verso i cluster">
+      <created>1725099411788</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1725099411788</updated>
+    </task>
+    <task id="LOCAL-00010" summary="Little updates">
+      <created>1725277563376</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1725277563377</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="OPEN_GENERIC_TABS">
+      <map>
+        <entry key="bb4026ec-0ca2-4b0f-9095-ee72d8e76173" value="TOOL_WINDOW" />
+      </map>
+    </option>
+    <option name="RECENT_FILTERS">
+      <map>
+        <entry key="User">
+          <value>
+            <list>
+              <RecentGroup>
+                <option name="FILTER_VALUES">
+                  <option value="*" />
+                </option>
+              </RecentGroup>
+            </list>
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="COLUMN_ID_WIDTH">
+                <map>
+                  <entry key="Table.Default.Author.ColumnIdWidth" value="116" />
+                  <entry key="Table.Default.Date.ColumnIdWidth" value="98" />
+                  <entry key="Table.Space.CommitStatus.ColumnIdWidth" value="38" />
+                </map>
+              </option>
+              <option name="CUSTOM_BOOLEAN_PROPERTIES">
+                <map>
+                  <entry key="Show.Git.Branches" value="true" />
+                </map>
+              </option>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="dev" />
+                      </list>
+                    </value>
+                  </entry>
+                  <entry key="user">
+                    <value>
+                      <list>
+                        <option value="*" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+        <entry key="bb4026ec-0ca2-4b0f-9095-ee72d8e76173">
+          <value>
+            <State>
+              <option name="CUSTOM_BOOLEAN_PROPERTIES">
+                <map>
+                  <entry key="Show.Git.Branches" value="true" />
+                </map>
+              </option>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="dev" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="yo" />
+    <MESSAGE value="push of election and heartbeat" />
+    <MESSAGE value="Gateway update" />
+    <MESSAGE value="Cli update" />
+    <MESSAGE value="Nuova gestione richieste verso i cluster" />
+    <MESSAGE value="Ping pong fra gateway e broker" />
+    <MESSAGE value="Little updates" />
+    <option name="LAST_COMMIT_MESSAGE" value="Little updates" />
+  </component>
+</project>

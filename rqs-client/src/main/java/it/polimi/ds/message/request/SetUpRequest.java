@@ -1,0 +1,7 @@
+package it.polimi.ds.message.request;
+
+import java.io.Serializable;
+
+public class SetUpRequest implements Serializable {
+
+}
