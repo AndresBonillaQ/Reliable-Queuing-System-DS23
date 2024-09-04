@@ -107,7 +107,7 @@ public class ClientHandler implements Runnable {
                         }
                     },
                     6000,
-                    5000,
+                    500,
                     TimeUnit.MILLISECONDS
             );
         }

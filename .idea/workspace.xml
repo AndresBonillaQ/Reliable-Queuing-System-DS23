@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d47cd1fb-b1ca-41b3-9ae8-2c93ea3d353c" name="Changes" comment="Little updates">
+    <list default="true" id="d47cd1fb-b1ca-41b3-9ae8-2c93ea3d353c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rqs-client/src/main/java/it/polimi/ds/cli/CliHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/rqs-client/src/main/java/it/polimi/ds/cli/CliHandler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/rqs-gateway/src/main/java/GatewayApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/rqs-gateway/src/main/java/GatewayApp.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/rqs-gateway/src/main/java/model/Gateway.java" beforeDir="false" afterPath="$PROJECT_DIR$/rqs-gateway/src/main/java/model/Gateway.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/rqs-gateway/src/main/java/network/brokerCommunication/client/CommunicationThread.java" beforeDir="false" afterPath="$PROJECT_DIR$/rqs-gateway/src/main/java/network/brokerCommunication/client/CommunicationThread.java" afterDir="false" />
@@ -35,7 +34,7 @@
     </option>
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="dev-svevo" />
+        <entry key="$PROJECT_DIR$" value="dev-andres" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -89,7 +88,7 @@
       <recent name="utils.Messages" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.Leader2">
+  <component name="RunManager" selected="Application.ClientApp">
     <configuration name="ClientApp" type="Application" factoryName="Application" singleton="false" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="it.polimi.ds.ClientApp" />
       <module name="rqs-client" />
@@ -103,12 +102,38 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Follower" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="it.polimi.ds.Follower" />
+    <configuration name="Follower2" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="it.polimi.ds.start.oneCluster.Follower2" />
       <module name="rqs-broker" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="it.polimi.ds.*" />
+          <option name="PATTERN" value="it.polimi.ds.start.oneCluster.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Follower3" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="it.polimi.ds.start.oneCluster.Follower3" />
+      <module name="rqs-broker" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="it.polimi.ds.start.oneCluster.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Follower4" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="it.polimi.ds.start.oneCluster.Follower4" />
+      <module name="rqs-broker" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="it.polimi.ds.start.oneCluster.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -123,46 +148,20 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Leader1" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="it.polimi.ds.Leader1" />
-      <module name="rqs-broker" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="it.polimi.ds.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Leader2" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="it.polimi.ds.Leader2" />
-      <module name="rqs-broker" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="it.polimi.ds.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <list>
+      <item itemvalue="Application.Follower2" />
+      <item itemvalue="Application.Follower3" />
+      <item itemvalue="Application.Follower4" />
       <item itemvalue="Application.GatewayApp" />
-      <item itemvalue="Application.Leader2" />
-      <item itemvalue="Application.Leader1" />
-      <item itemvalue="Application.Follower" />
       <item itemvalue="Application.ClientApp" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.Leader1" />
         <item itemvalue="Application.ClientApp" />
         <item itemvalue="Application.GatewayApp" />
-        <item itemvalue="Application.Leader2" />
-        <item itemvalue="Application.Follower" />
+        <item itemvalue="Application.Follower4" />
+        <item itemvalue="Application.Follower3" />
+        <item itemvalue="Application.Follower2" />
       </list>
     </recent_temporary>
   </component>
@@ -261,6 +260,11 @@
     <option name="version" value="3" />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
+    <option name="OPEN_GENERIC_TABS">
+      <map>
+        <entry key="bb4026ec-0ca2-4b0f-9095-ee72d8e76173" value="TOOL_WINDOW" />
+      </map>
+    </option>
     <option name="RECENT_FILTERS">
       <map>
         <entry key="User">
@@ -306,6 +310,28 @@
                     <value>
                       <list>
                         <option value="*" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+        <entry key="bb4026ec-0ca2-4b0f-9095-ee72d8e76173">
+          <value>
+            <State>
+              <option name="CUSTOM_BOOLEAN_PROPERTIES">
+                <map>
+                  <entry key="Show.Git.Branches" value="true" />
+                </map>
+              </option>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="dev" />
                       </list>
                     </value>
                   </entry>

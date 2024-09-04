@@ -47,9 +47,8 @@ public class ClientHandler implements Runnable {
                 MessageRequest messageRequest = GsonInstance.getInstance().getGson().fromJson(inputLine, MessageRequest.class);
 
                 System.out.println("Request from client: " + messageRequest.toString());
-                synchronized (Gateway.getInstance()) {
-                    clientID = Gateway.getInstance().processRequest(outputStream, messageRequest);
-                }
+
+                clientID = Gateway.getInstance().processRequest(outputStream, messageRequest);
 
                 fetchBrokerResponse(executorService, outputStream, clientSocket);
 

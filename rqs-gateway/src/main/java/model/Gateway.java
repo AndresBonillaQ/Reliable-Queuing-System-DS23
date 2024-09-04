@@ -112,7 +112,7 @@ public class Gateway {
 
                 AppendValueRequest request = GsonInstance.getInstance().getGson().fromJson(messageRequest.getContent(), AppendValueRequest.class);
 
-                if(requestsMap.getMessageQueue(assignToCluster(Integer.parseInt(request.getQueueId()))) != null){
+                if(requestsMap.getMessageQueue(assignToCluster(Integer.parseInt(request.getQueueId()))) != null ){
                     requestsMap.putOnRequestQueue(assignToCluster(Integer.parseInt(request.getQueueId())) , messageRequest);
 
                     return messageRequest.getClientId();
