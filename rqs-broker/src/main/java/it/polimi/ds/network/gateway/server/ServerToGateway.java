@@ -136,6 +136,7 @@ public class ServerToGateway extends Thread {
         out.flush();
 
         // send commit msg to all followers that voted ok!
+        log.log(Level.INFO, "Sending commit command to brokers {0}", ThreadsCommunication.getInstance().getBrokerIds());
         RequestMessage requestMessage = NetworkMessageBuilder.Request.buildCommitRequest(brokerContext.getBrokerRaftIntegration().getLastCommitIndex());
         brokerIdSetVotedOk.forEach(x -> ThreadsCommunication.getInstance().getRequestConcurrentHashMapOfBrokerId(x).add(GsonInstance.getInstance().getGson().toJson(requestMessage)));
     }

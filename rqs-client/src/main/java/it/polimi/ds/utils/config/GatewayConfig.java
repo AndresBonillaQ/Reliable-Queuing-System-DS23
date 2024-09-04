@@ -5,6 +5,12 @@ public class GatewayConfig {
     private int port;
     private int timeout;
 
+    public GatewayConfig(String ip, int port, int timeout) {
+        this.ip = ip;
+        this.port = port;
+        this.timeout = timeout;
+    }
+
     public String getIp() {
         return ip;
     }

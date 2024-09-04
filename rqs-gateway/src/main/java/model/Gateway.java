@@ -36,7 +36,7 @@ public class Gateway {
     private HashMap<Integer, Integer> clusterConnected = new HashMap<>();
     private HashMap<Integer, Socket> clusterToSocketMap = new HashMap();
 
-    private static final int maxNumberOfClusters = 2;
+    private static int maxNumberOfClusters = 0;
     private static ConnectionManager connectionManager;
     private int queueSequenceNumber = -1 ;
     private int clientIdSequenceNumber = -1 ;
@@ -233,5 +233,9 @@ public class Gateway {
     }
     public void removeClientId(String clientId) {
         responseMessageMap.removeClientId(clientId);
+    }
+
+    public void setMaxNumberOfClusters(int value){
+        maxNumberOfClusters = value;
     }
 }

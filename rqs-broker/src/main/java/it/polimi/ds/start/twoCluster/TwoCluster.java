@@ -24,10 +24,10 @@ class Follower1 {
                                 new BrokerInfo("2","127.0.0.1", 8080)
                         ),
                         new GatewayInfo(
-                                "192.168.159.118",
+                                "127.0.0.1",
                                 5001
                         ),
-                        "192.168.159.144"
+                        "127.0.0.1"
                 ),
                 false
         );
@@ -50,10 +50,10 @@ class Follower2 {
                                 new BrokerInfo("1","127.0.0.1", 3000)
                         ),
                         new GatewayInfo(
-                                "192.168.159.118",
+                                "127.0.0.1",
                                 5001
                         ),
-                        "192.168.159.144"
+                        "127.0.0.1"
                 ),
                 false
         );
@@ -68,18 +68,18 @@ class Follower3 {
         //follower open port 4000 as SERVER to brokers, 4001 as SERVER to gateway
         BrokerContext follower = new BrokerContext(
                 new BrokerConfig(
-                        "3",
+                        "1",
                         "1",
                         4000,
                         4001,
                         List.of(
-                                new BrokerInfo("4","127.0.0.1", 8500)
+                                new BrokerInfo("2","127.0.0.1", 8500)
                         ),
                         new GatewayInfo(
-                                "192.168.159.118",
+                                "127.0.0.1",
                                 5001
                         ),
-                        "192.168.159.144"
+                        "127.0.0.1"
                 ),
                 false
         );
@@ -94,18 +94,18 @@ class Follower4 {
         //follower open port 4000 as SERVER to brokers, 4001 as SERVER to gateway
         BrokerContext follower = new BrokerContext(
                 new BrokerConfig(
-                        "4",
+                        "2",
                         "1",
                         8500,
                         8501,
                         List.of(
-                                new BrokerInfo("3","127.0.0.1", 4000)
+                                new BrokerInfo("1","127.0.0.1", 4000)
                         ),
                         new GatewayInfo(
-                                "192.168.159.118",
+                                "127.0.0.1",
                                 5001
                         ),
-                        "192.168.159.144"
+                        "127.0.0.1"
                 ),
                 false
         );
