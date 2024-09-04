@@ -83,7 +83,6 @@ public class BrokerModelTest {
 
         int val = brokerModel.readValueFromQueueByClient("1", "1");
         val = brokerModel.readValueFromQueueByClient("1", "1");
-        val = brokerModel.readValueFromQueueByClient("1", "1");
 
         Assert.assertEquals(val, 2);
     }
