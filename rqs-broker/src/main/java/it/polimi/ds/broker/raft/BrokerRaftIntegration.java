@@ -23,7 +23,7 @@ public class BrokerRaftIntegration implements IBrokerRaftIntegration {
     /**
      * Contains broker log
      * */
-    private final List<RaftLog> raftLogQueue = new ArrayList<>();
+    private List<RaftLog> raftLogQueue = new ArrayList<>();
 
     /**
      * the currentTerm
@@ -47,6 +47,14 @@ public class BrokerRaftIntegration implements IBrokerRaftIntegration {
     private final Logger log = Logger.getLogger(BrokerRaftIntegration.class.getName());
 
     public BrokerRaftIntegration(String myBrokerId){
+        this.myBrokerId = myBrokerId;
+    }
+
+    public BrokerRaftIntegration(List<RaftLog> raftLogQueue, int currentTerm, int currentIndex, int lastCommitIndex, String myBrokerId) {
+        this.raftLogQueue = raftLogQueue;
+        this.currentTerm = currentTerm;
+        this.currentIndex = currentIndex;
+        this.lastCommitIndex = lastCommitIndex;
         this.myBrokerId = myBrokerId;
     }
 
@@ -121,7 +129,8 @@ public class BrokerRaftIntegration implements IBrokerRaftIntegration {
 
     public List<String> processCommitRequestAndGetRequestsToExec(int newLastCommitIndex){
         if (newLastCommitIndex < this.lastCommitIndex || newLastCommitIndex >= raftLogQueue.size()) {
-            throw new IndexOutOfBoundsException("newLastCommitIndex: " + newLastCommitIndex + " is out of bounds."); //TODO catch
+            log.log(Level.SEVERE, "IndexOutOfBound!");
+            throw new IndexOutOfBoundsException("newLastCommitIndex: " + newLastCommitIndex + " is out of bounds.");
         }
 
         List<RaftLog> raftLogsToCommit = raftLogQueue.subList(this.lastCommitIndex + 1, newLastCommitIndex + 1);
@@ -167,8 +176,10 @@ public class BrokerRaftIntegration implements IBrokerRaftIntegration {
     }
 
     public List<RaftLog> getRaftLogEntriesFromIndex(int from){
-        if (from < 0 || from >= raftLogQueue.size())
-            throw new IndexOutOfBoundsException("Index: " + from + ", Size: " + raftLogQueue.size()); //TODO
+        if (from < 0 || from >= raftLogQueue.size()){
+            log.log(Level.SEVERE, "IndexOutOfBound!");
+            throw new IndexOutOfBoundsException("Index: " + from + ", Size: " + raftLogQueue.size());
+        }
 
         return new ArrayList<>(raftLogQueue.subList(from, raftLogQueue.size()));
     }
@@ -216,7 +227,7 @@ public class BrokerRaftIntegration implements IBrokerRaftIntegration {
         return raftLogQueue.get(index - 1).getTerm();
     }
 
-    public void handleLastLogsAppended(){
+    public void updateLogCommitState(){
         for (int i = Math.max(0, lastCommitIndex); i < raftLogQueue.size(); i++)
             raftLogQueue.get(i).setCommitted(true);
 
@@ -246,5 +257,21 @@ public class BrokerRaftIntegration implements IBrokerRaftIntegration {
         }
         System.out.format("CurrentTerm: %s, CurrentIndex: %s, LastCommitIndex: %s\n", currentTerm, currentIndex, lastCommitIndex);
         System.out.println("----------------------------------------------------------------------------------------------------");
+    }
+
+    public List<RaftLog> getRaftLogQueue() {
+        return raftLogQueue;
+    }
+
+    public String getMyBrokerId() {
+        return myBrokerId;
+    }
+
+    public List<String> getCommittedLogsToExec(){
+        return raftLogQueue.stream().filter(RaftLog::isCommitted).map(RaftLog::getRequest).collect(Collectors.toList());
+    }
+
+    public List<String> getUncommittedLogsToExec(){
+        return raftLogQueue.stream().filter(log -> !log.isCommitted()).map(RaftLog::getRequest).collect(Collectors.toList());
     }
 }

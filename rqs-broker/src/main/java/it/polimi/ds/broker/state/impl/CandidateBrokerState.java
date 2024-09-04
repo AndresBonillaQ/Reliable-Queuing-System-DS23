@@ -21,7 +21,6 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -113,9 +112,8 @@ public class CandidateBrokerState extends BrokerState {
     }
 
     /**
-     * No NEW_LEADER_REQUEST to followers because of HeartBeat
+     * No notification to followers because of HeartBeat
      * */
-    @Override
     public void onWinLeaderElection() {
         electionTimeoutTask.cancel(true);
         synchronized (brokerContext.getBrokerState()){
@@ -123,7 +121,6 @@ public class CandidateBrokerState extends BrokerState {
         }
     }
 
-    @Override
     public void onLoseLeaderElection() {
         log.log(Level.INFO, "Losing election..");
         electionTimeoutTask.cancel(true);

@@ -44,5 +44,15 @@ public interface IBrokerRaftIntegration {
 
     Set<String> calculateConsensus();
 
-    void handleLastLogsAppended();
+    void updateLogCommitState();
+
+    List<RaftLog> getRaftLogQueue();
+
+    String getMyBrokerId();
+
+    int getCurrentIndex();
+
+    List<String> getCommittedLogsToExec();
+
+    List<String> getUncommittedLogsToExec();
 }

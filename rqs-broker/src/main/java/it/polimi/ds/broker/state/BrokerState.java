@@ -14,10 +14,6 @@ public abstract class BrokerState {
     public BrokerState(BrokerContext brokerContext){
         this.brokerContext = brokerContext;
     }
-
     abstract public void clientToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) throws IOException;
     abstract public void serverToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) throws IOException;
-    public void onHeartbeatTimeout(){}
-    public void onWinLeaderElection(){}
-    public void onLoseLeaderElection(){}
 }

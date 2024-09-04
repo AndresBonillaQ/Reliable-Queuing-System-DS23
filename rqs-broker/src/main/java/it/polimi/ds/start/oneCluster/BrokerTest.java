@@ -102,8 +102,8 @@ class Follower1 {
                         List.of(
                                 new BrokerInfo("2","127.0.0.1", 8080),
                                 new BrokerInfo("3","127.0.0.1", 4000)
-                                //,new BrokerInfo("4","127.0.0.1", 8500)
-                                //,new BrokerInfo("5", "127.0.0.1", 6543)
+                                ,new BrokerInfo("4","127.0.0.1", 8500)
+                                ,new BrokerInfo("5", "127.0.0.1", 6543)
                         ),
                         new GatewayInfo(
                                 "127.0.0.1",
@@ -131,8 +131,8 @@ class Follower2 {
                         List.of(
                                 new BrokerInfo("1","127.0.0.1", 3000),
                                 new BrokerInfo("3","127.0.0.1", 4000)
-                                //,new BrokerInfo("4","127.0.0.1", 8500)
-                                //,new BrokerInfo("5", "127.0.0.1", 6543)
+                                ,new BrokerInfo("4","127.0.0.1", 8500)
+                                ,new BrokerInfo("5", "127.0.0.1", 6543)
                         ),
                         new GatewayInfo(
                                 "127.0.0.1",
@@ -160,8 +160,8 @@ class Follower3 {
                         List.of(
                                 new BrokerInfo("1","127.0.0.1", 3000),
                                 new BrokerInfo("2","127.0.0.1", 8080)
-                                //,new BrokerInfo("4","127.0.0.1", 8500)
-                                //,new BrokerInfo("5", "127.0.0.1", 6543)
+                                ,new BrokerInfo("4","127.0.0.1", 8500)
+                                ,new BrokerInfo("5", "127.0.0.1", 6543)
                         ),
                         new GatewayInfo(
                                 "127.0.0.1",

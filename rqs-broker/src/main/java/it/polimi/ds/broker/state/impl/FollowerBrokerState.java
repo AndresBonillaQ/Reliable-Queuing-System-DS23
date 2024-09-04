@@ -59,7 +59,6 @@ public class FollowerBrokerState extends BrokerState {
      * */
     @Override
     public void serverToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) throws IOException {
-
         String requestLine = in.readLine();
         handleServerToBrokerMessage(clientBrokerId, requestLine, out);
     }
@@ -115,12 +114,14 @@ public class FollowerBrokerState extends BrokerState {
 
         System.out.println("After COMMIT_REQUEST");
         brokerContext.getBrokerRaftIntegration().printLogs();
+        brokerContext.getBrokerModel().printState();
     }
 
     private void handleHeartBeatRequestFromBroker(RequestMessage requestMessage, PrintWriter out){
 
         HeartbeatRequest heartbeatRequest = GsonInstance.getInstance().getGson().fromJson(requestMessage.getContent(), HeartbeatRequest.class);
-        log.log(Level.INFO, "HeartBeat received: {0}", heartbeatRequest);
+        //log.log(Level.INFO, "HeartBeat received: {0}", heartbeatRequest);
+        brokerContext.setHasJustReboot(false);
 
         ResponseMessage responseMessage;
         if(heartbeatRequest.getTerm() >= brokerContext.getBrokerRaftIntegration().getCurrentTerm()){
@@ -145,6 +146,7 @@ public class FollowerBrokerState extends BrokerState {
         ResponseMessage responseMessage;
 
         if(brokerContext.getBrokerRaftIntegration().processRaftLogEntryRequest(raftLogEntryRequest)){
+            brokerContext.persistLog();
             responseMessage = NetworkMessageBuilder.Response.buildAppendEntryLogResponse(
                     StatusEnum.OK,
                     DesStatusEnum.RAFT_LOG_ENTRY_OK.getValue(),
@@ -174,7 +176,6 @@ public class FollowerBrokerState extends BrokerState {
             heartBeatReceived.set(false);
     }
 
-    @Override
     public void onHeartbeatTimeout(){
         synchronized (brokerContext.getBrokerState()){
             log.log(Level.INFO, "I'm going to elect myself");
@@ -192,9 +193,9 @@ public class FollowerBrokerState extends BrokerState {
     private ScheduledFuture<?> heartbeatTimerThreadStart(){
 
         final long randomValue = random.nextInt(Timing.HEARTBEAT_PERIOD_CHECKING_WINDOW) + Timing.HEARTBEAT_PERIOD_CHECKING_OFFSET;
-        final long delay = brokerContext.getHasChangeState().get() ? randomValue : brokerContext.getTimingBasedOnNumBrokers(Timing.HEARTBEAT_FIRST_SET_UP_NEEDED) + randomValue;
+        final long delay = brokerContext.getHasJustReboot().get() ?  brokerContext.getTimingBasedOnNumBrokers(Timing.HEARTBEAT_FIRST_SET_UP_NEEDED) + randomValue : randomValue;
 
-        log.log(Level.INFO, "Start waiting heartbeat, hasChangeState: {0}, random: {1}, finalDelay: {2}", new Object[]{brokerContext.getHasChangeState(), randomValue, delay});
+        log.log(Level.INFO, "Start waiting heartbeat, hasJustReboot: {0}, random: {1}, finalDelay: {2}", new Object[]{brokerContext.getHasJustReboot(), randomValue, delay});
 
         return Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
                 this::handleHeartBeatTimeoutTask,

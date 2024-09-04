@@ -6,10 +6,10 @@ import it.polimi.ds.message.RequestMessage;
 import it.polimi.ds.message.ResponseMessage;
 import it.polimi.ds.message.model.response.utils.StatusEnum;
 import it.polimi.ds.message.raft.response.SetUpResponse;
-import it.polimi.ds.network.utils.thread.impl.ThreadsCommunication;
 import it.polimi.ds.utils.GsonInstance;
 import it.polimi.ds.utils.builder.NetworkMessageBuilder;
 import it.polimi.ds.utils.config.BrokerInfo;
+import it.polimi.ds.utils.config.Timing;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -50,7 +50,7 @@ public class ClientToBroker implements Runnable {
                     PrintWriter out = new PrintWriter(socket.getOutputStream())
             ) {
 
-                socket.setSoTimeout(500);
+                socket.setSoTimeout(Timing.SOCKET_TIMEOUT);
                 sendFirstSetupMessage(in, out);
                 log.log(Level.INFO, "Client connection to BrokerID {0} set-upped", brokerInfo.getClientBrokerId());
 

@@ -57,17 +57,14 @@ public class LeaderBrokerState extends BrokerState {
      * */
     @Override
     public void clientToBrokerExec(String clientBrokerId, BufferedReader in, PrintWriter out) throws IOException {
-
         try{
             if(ThreadsCommunication.getInstance().getRequestConcurrentHashMapOfBrokerId(clientBrokerId) != null){
                 String requestToForward = ThreadsCommunication.getInstance().getRequestConcurrentHashMapOfBrokerId(clientBrokerId).poll(10, TimeUnit.MILLISECONDS);
                 handleClientToBrokerMessage(clientBrokerId, requestToForward, out, in);
             }
-
         }catch (InterruptedException e){
             log.log(Level.SEVERE, "ERROR: {0}", e.getMessage());
         }
-
     }
 
     /**
@@ -98,7 +95,7 @@ public class LeaderBrokerState extends BrokerState {
 
             case HEARTBEAT_REQUEST -> {
                 String responseLine = in.readLine();
-                log.log(Level.INFO,"HeartBeat response: {0}", responseLine);
+                //log.log(Level.INFO,"HeartBeat response: {0}", responseLine);
             }
 
             case APPEND_ENTRY_LOG_REQUEST -> {
@@ -179,7 +176,7 @@ public class LeaderBrokerState extends BrokerState {
 
     private void sendHeartBeat(){
         RequestMessage requestMessage = NetworkMessageBuilder.Request.buildHeartBeatRequest(brokerContext.getMyBrokerConfig().getMyBrokerId(), brokerContext.getBrokerRaftIntegration().getCurrentTerm());
-        log.log(Level.INFO, "Sending heartbeat to brokers: {0}", ThreadsCommunication.getInstance().getBrokerIds());
+        log.log(Level.INFO, "Sending heartbeat for term {0} to brokers: {1}", new Object[]{brokerContext.getBrokerRaftIntegration().getCurrentTerm(), ThreadsCommunication.getInstance().getBrokerIds()});
         ThreadsCommunication.getInstance().addRequestToAllFollowerRequestQueue(
                 GsonInstance.getInstance().getGson().toJson(requestMessage)
         );

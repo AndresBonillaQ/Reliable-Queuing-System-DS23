@@ -12,7 +12,10 @@ import it.polimi.ds.utils.Const;
 import it.polimi.ds.utils.GsonInstance;
 import it.polimi.ds.utils.builder.NetworkMessageBuilder;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
@@ -80,16 +83,13 @@ public class ServerToGateway extends Thread {
 
         brokerContext.getBrokerRaftIntegration().buildAndAppendNewLog(requestLine);
 
-        //List<RaftLog> raftLogList = brokerContext.getBrokerRaftIntegration().getLastUncommittedLogsToForward();
         final List<RaftLog> raftLogList = brokerContext.getBrokerRaftIntegration().getLastLogAppended();
         final int prevLogIndex = brokerContext.getBrokerRaftIntegration().getPrevLogIndex();
 
         final RequestMessage raftLogMessage = NetworkMessageBuilder.Request.buildAppendEntryLogRequest(
                 brokerContext.getBrokerRaftIntegration().getCurrentTerm(),
                 brokerContext.getMyBrokerConfig().getMyBrokerId(),
-                //brokerContext.getBrokerRaftIntegration().getPrevCommittedLogIndex(),
                 prevLogIndex,
-                //brokerContext.getBrokerRaftIntegration().getPrevLogTerm(brokerContext.getBrokerRaftIntegration().getPrevCommittedLogIndex()),
                 brokerContext.getBrokerRaftIntegration().getPrevLogTerm(prevLogIndex),
                 raftLogList
         );
@@ -105,6 +105,7 @@ public class ServerToGateway extends Thread {
             handleConsensusReached(requestLine, out);
         else
             handleConsensusNoReached(requestLine, out);
+        brokerContext.persistLog();
     }
 
     private boolean isConsensusReached(){
@@ -118,20 +119,21 @@ public class ServerToGateway extends Thread {
     private void handleConsensusReached(String requestLine, PrintWriter out){
         log.log(Level.INFO, "Consensus reached, executing command and responding to gateway..");
 
-        ResponseMessage response;
-        try {
-            // exec the request locally
-            response = BrokerRequestDispatcher.exec(brokerContext, requestLine);
-
-            // send commit to gateway
-            out.println(GsonInstance.getInstance().getGson().toJson(response));
-            out.flush();
-
-        } catch (RequestNoManagedException e) {
-            log.log(Level.SEVERE, "Request {} not managed!", requestLine);
+        // Exec uncommitted logs
+        List<String> requestToExec = brokerContext.getBrokerRaftIntegration().getUncommittedLogsToExec();
+        ResponseMessage response = new ResponseMessage();
+        for (String s : requestToExec) {
+            try {
+                response = BrokerRequestDispatcher.exec(brokerContext, s);
+            } catch (RequestNoManagedException e) {
+                log.log(Level.SEVERE, "Request {} not managed!", requestLine);
+            }
         }
 
-        brokerContext.getBrokerRaftIntegration().handleLastLogsAppended();
+        brokerContext.getBrokerRaftIntegration().updateLogCommitState();
+
+        out.println(GsonInstance.getInstance().getGson().toJson(response));
+        out.flush();
 
         // send commit msg to all followers that voted ok!
         RequestMessage requestMessage = NetworkMessageBuilder.Request.buildCommitRequest(brokerContext.getBrokerRaftIntegration().getLastCommitIndex());

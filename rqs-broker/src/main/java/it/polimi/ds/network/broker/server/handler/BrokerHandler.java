@@ -4,13 +4,14 @@ import it.polimi.ds.broker.BrokerContext;
 import it.polimi.ds.exception.network.ImpossibleSetUpException;
 import it.polimi.ds.message.RequestMessage;
 import it.polimi.ds.message.ResponseMessage;
-import it.polimi.ds.message.raft.request.SetUpRequest;
 import it.polimi.ds.message.id.RequestIdEnum;
 import it.polimi.ds.message.model.response.utils.DesStatusEnum;
 import it.polimi.ds.message.model.response.utils.StatusEnum;
+import it.polimi.ds.message.raft.request.SetUpRequest;
 import it.polimi.ds.network.utils.thread.impl.ThreadsCommunication;
 import it.polimi.ds.utils.GsonInstance;
 import it.polimi.ds.utils.builder.NetworkMessageBuilder;
+import it.polimi.ds.utils.config.Timing;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -41,7 +42,7 @@ public class BrokerHandler implements Runnable{
            ){
 
             String brokerClientId = null;
-            socket.setSoTimeout(500);
+            socket.setSoTimeout(Timing.SOCKET_TIMEOUT);
 
             try{
                 brokerClientId = receiveFirstSetupMessage(in, out);
