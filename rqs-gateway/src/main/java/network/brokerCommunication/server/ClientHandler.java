@@ -1,14 +1,11 @@
 package network.brokerCommunication.server;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
-import it.polimi.ds.message.RequestMessage;
-import it.polimi.ds.utils.GsonInstance;
 import messages.MessageRequest;
 import messages.connectionSetUp.SetUpConnectionMessage;
-import messages.id.RequestIdEnum;
-import model.Gateway;
 import messages.pingPong.PingPongMessage;
+import model.Gateway;
+import utils.GsonInstance;
 
 import java.io.BufferedReader;
 import java.io.IOException;

@@ -1,17 +1,10 @@
 package network.brokerCommunication.client;
-import it.polimi.ds.exception.network.ImpossibleSetUpException;
-import it.polimi.ds.utils.ExecutorInstance;
-import it.polimi.ds.utils.config.Timing;
+
 import model.Gateway;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
+import java.util.concurrent.Executors;
 
 public  class ConnectionManager implements ConnectionListener {
 
@@ -23,7 +16,7 @@ public  class ConnectionManager implements ConnectionListener {
     public void onConnectionLost(Integer clusterID) throws IOException {
 
         //a task that waits the gateway to get the new leader information then starts a new connection with the
-        ExecutorInstance.getInstance().getExecutorService().submit(
+        Executors.newSingleThreadExecutor().submit(
                 () -> {
                     while (!Thread.currentThread().isInterrupted()) {
                         try {

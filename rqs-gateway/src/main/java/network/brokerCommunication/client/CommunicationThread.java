@@ -1,13 +1,15 @@
 package network.brokerCommunication.client;
 
 import com.google.gson.Gson;
-import it.polimi.ds.message.ResponseMessage;
 import messages.MessageRequest;
 import messages.MessageResponse;
 import model.Gateway;
 import utils.GsonInstance;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.Socket;
 
 
