@@ -91,3 +91,6 @@ This design allows clients to interact with a unified, simplified interface, una
 For this implementation, broker clusters are static and cannot dynamically join or leave the system at runtime. The system requires that the number and configuration of broker clusters be defined prior to startup. To enable this, the Gateway would need to manage a direct Queue-Cluster mapping or implement a queue redistribution strategy, as the formula-based approach would no longer be applicable.
 
 ---
+
+![Alt text](ds_project.png)
+
